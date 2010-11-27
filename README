@@ -1,0 +1,7 @@
+README - dotfiles
+=================
+
+Setup
+-----
+
+* `./install.rb` to symlink dotfiles to ~/

@@ -1,0 +1,54 @@
+[user]
+	name = Luke Randall
+	email = luke.randall@gmail.com
+
+[diff]
+	renames = true
+	tool = Kaleidoscope
+
+[color]
+	branch = auto
+  	diff = auto
+	status = auto
+	ui = auto
+[color "branch"]
+	current = magenta
+	local = yellow
+	remote = green
+[color "diff"]
+	meta = yellow
+	frag = magenta
+	old = red
+	new = green
+[color "status"]
+	added = yellow
+	changed = green
+	untracked = cyan
+
+[alias]
+	br = branch
+	ci = commit
+	co = checkout
+	ma = checkout master
+	pr = checkout production
+	st = status
+	staged = diff --staged
+  
+	# show difference between working tree and the index
+	unstaged = diff
+ 
+	# show staged and unstaged changes (what would be committed with "git commit -a")
+	both = diff HEAD
+
+[gui]
+	recentrepo = /Users/luke/Code/depicta
+[core]
+	editor = vim
+[push]
+	default = current
+[branch]
+	autosetuprebase = always
+[difftool "Kaleidoscope"]
+	cmd = ksdiff-wrapper git \"$LOCAL\" \"$REMOTE\"
+[difftool]
+	prompt = false

@@ -49,6 +49,8 @@
 [branch]
 	autosetuprebase = always
 [difftool "Kaleidoscope"]
+[difftool]
+[difftool "Kaleidoscope"]
 	cmd = ksdiff-wrapper git \"$LOCAL\" \"$REMOTE\"
 [difftool]
 	prompt = false

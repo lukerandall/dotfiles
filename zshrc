@@ -22,6 +22,7 @@ source $ZSH/oh-my-zsh.sh
 
 # Customize to your needs...
 
+bindkey -v
 unsetopt auto_name_dirs
 if [[ -s ~/.rvm/scripts/rvm ]] ; then source ~/.rvm/scripts/rvm ; fi
 export EDITOR=vim

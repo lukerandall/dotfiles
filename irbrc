@@ -1,54 +1,155 @@
+# IRBRC file by Iain Hecker, http://iain.nl
+# put all this in your ~/.irbrc
 require 'rubygems'
+#require 'yaml'
 
-# IRB Options
-IRB.conf[:AUTO_INDENT] = true
-IRB.conf[:SAVE_HISTORY] = 1000
-IRB.conf[:EVAL_HISTORY] = 200
+alias q exit
 
-# Log to STDOUT if in Rails
-if ENV.include?('RAILS_ENV') && !Object.const_defined?('RAILS_DEFAULT_LOGGER')
-  require 'logger'
-  RAILS_DEFAULT_LOGGER = Logger.new(STDOUT)
-  #IRB.conf[:USE_READLINE] = true
-
-  # Display the RAILS ENV in the prompt
-  # ie : [Development]>>
-  IRB.conf[:PROMPT][:CUSTOM] = {
-   :PROMPT_N => "[#{ENV["RAILS_ENV"].capitalize}]>> ",
-   :PROMPT_I => "[#{ENV["RAILS_ENV"].capitalize}]>> ",
-   :PROMPT_S => nil,
-   :PROMPT_C => "?> ",
-   :RETURN => "=> %s\n"
-   }
-  # Set default prompt
-  IRB.conf[:PROMPT_MODE] = :CUSTOM
-end
-
-def me
-  User.find_by_email("luke.randall@gmail.com")
-end
-
-IRB.conf[:AUTO_INDENT]=true
+# Easily print methods local to an object's class
 class Object
   def local_methods
     (methods - Object.instance_methods).sort
   end
 end
 
-require 'ap' rescue nil
+ANSI = {}
+ANSI[:RESET] = "\e[0m"
+ANSI[:BOLD] = "\e[1m"
+ANSI[:UNDERLINE] = "\e[4m"
+ANSI[:LGRAY] = "\e[0;37m"
+ANSI[:GRAY] = "\e[1;30m"
+ANSI[:RED] = "\e[31m"
+ANSI[:GREEN] = "\e[32m"
+ANSI[:YELLOW] = "\e[33m"
+ANSI[:BLUE] = "\e[34m"
+ANSI[:MAGENTA] = "\e[35m"
+ANSI[:CYAN] = "\e[36m"
+ANSI[:WHITE] = "\e[37m"
 
-begin
-  require 'wirble'
+# Build a simple colorful IRB prompt
+IRB.conf[:PROMPT][:SIMPLE_COLOR] = {
+  :PROMPT_I => "#{ANSI[:BLUE]}>>#{ANSI[:RESET]} ",
+  :PROMPT_N => "#{ANSI[:BLUE]}>>#{ANSI[:RESET]} ",
+  :PROMPT_C => "#{ANSI[:RED]}?>#{ANSI[:RESET]} ",
+  :PROMPT_S => "#{ANSI[:YELLOW]}?>#{ANSI[:RESET]} ",
+  :RETURN => "#{ANSI[:GREEN]}=>#{ANSI[:RESET]} %s\n",
+  :AUTO_INDENT => true
+}
+#IRB.conf[:PROMPT_MODE] = :SIMPLE_COLOR
+IRB.conf[:PROMPT_MODE] = :SIMPLE
+
+# IRB Options
+IRB.conf[:AUTO_INDENT] = true
+IRB.conf[:SAVE_HISTORY] = 1000
+IRB.conf[:EVAL_HISTORY] = 200
+
+# reload this .irbrc
+def IRB.reload
+  load __FILE__
+end
+
+# Loading extensions of the console. This is wrapped
+# because some might not be included in your Gemfile
+# and errors will be raised
+def extend_console(name, care = true, required = true)
+  if care
+    require name if required
+    yield if block_given?
+    $console_extensions << "#{ANSI[:GREEN]}#{name}#{ANSI[:RESET]}"
+  else
+    $console_extensions << "#{ANSI[:GRAY]}#{name}#{ANSI[:RESET]}"
+  end
+rescue LoadError
+  $console_extensions << "#{ANSI[:RED]}#{name}#{ANSI[:RESET]}"
+end
+$console_extensions = []
+
+# Wirble is a gem that handles coloring the IRB
+# output and history
+extend_console 'wirble' do
   Wirble.init
   Wirble.colorize
-rescue
-  nil
 end
 
-begin
-  require 'hirb'
+# Hirb makes tables easy.
+extend_console 'hirb' do
   Hirb.enable
-rescue
-  nil
+  extend Hirb::Console
 end
+
+# awesome_print is prints prettier than pretty_print
+extend_console 'ap' do
+  alias pp ap
+end
+
+# bond adds smarter auto-complete
+extend_console 'bond' do
+  Bond.start
+end
+
+# looksee lets you examine the method lookup path of objects in ways not possible in plain ruby
+extend_console 'looksee/shortcuts' do
+  # no configuration needed
+end
+
+# When you're using Rails 2 console, show queries in the console
+extend_console 'rails2', (ENV.include?('RAILS_ENV') && !Object.const_defined?('RAILS_DEFAULT_LOGGER')), false do
+  require 'logger'
+  RAILS_DEFAULT_LOGGER = Logger.new(STDOUT)
+end
+
+# When you're using Rails 3 console, show queries in the console
+extend_console 'rails3', defined?(ActiveSupport::Notifications), false do
+  $odd_or_even_queries = false
+  ActiveSupport::Notifications.subscribe('sql.active_record') do |*args|
+    $odd_or_even_queries = !$odd_or_even_queries
+    color = $odd_or_even_queries ? ANSI[:CYAN] : ANSI[:MAGENTA]
+    event = ActiveSupport::Notifications::Event.new(*args)
+    time = "%.1fms" % event.duration
+    name = event.payload[:name]
+    sql = event.payload[:sql].gsub("\n", " ").squeeze(" ")
+    puts " #{ANSI[:UNDERLINE]}#{color}#{name} (#{time})#{ANSI[:RESET]} #{sql}"
+  end
+end
+
+# Add a method pm that shows every method on an object
+# Pass a regex to filter these
+extend_console 'pm', true, false do
+  def pm(obj, *options) # Print methods
+    methods = obj.methods
+    methods -= Object.methods unless options.include? :more
+    filter = options.select {|opt| opt.kind_of? Regexp}.first
+    methods = methods.select {|name| name =~ filter} if filter
+
+    data = methods.sort.collect do |name|
+      method = obj.method(name)
+      if method.arity == 0
+        args = "()"
+      elsif method.arity > 0
+        n = method.arity
+        args = "(#{(1..n).collect {|i| "arg#{i}"}.join(", ")})"
+      elsif method.arity < 0
+        n = -method.arity
+        args = "(#{(1..n).collect {|i| "arg#{i}"}.join(", ")}, ...)"
+      end
+      klass = $1 if method.inspect =~ /Method: (.*?)#/
+      [name.to_s, args, klass]
+    end
+    max_name = data.collect {|item| item[0].size}.max
+    max_args = data.collect {|item| item[1].size}.max
+    data.each do |item|
+      print " #{ANSI[:YELLOW]}#{item[0].to_s.rjust(max_name)}#{ANSI[:RESET]}"
+      print "#{ANSI[:BLUE]}#{item[1].ljust(max_args)}#{ANSI[:RESET]}"
+      print " #{ANSI[:GRAY]}#{item[2]}#{ANSI[:RESET]}\n"
+    end
+    data.size
+  end
+end
+
+extend_console 'interactive_editor' do
+  # no configuration needed
+end
+
+# Show results of all extension-loading
+puts "#{ANSI[:GRAY]}~> Console extensions:#{ANSI[:RESET]} #{$console_extensions.join(' ')}#{ANSI[:RESET]}"
 

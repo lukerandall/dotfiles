@@ -27,4 +27,4 @@ unsetopt auto_name_dirs
 if [[ -s ~/.rvm/scripts/rvm ]] ; then source ~/.rvm/scripts/rvm ; fi
 export EDITOR=vim
 export GIT_EDITOR=vim
-export PATH="/usr/local/bin:/usr/local/mysql/bin/:/usr/local/share/npm/bin:$HOME/.cabal/bin:$PATH"
+export PATH="/usr/local/bin:/usr/local/mysql/bin/:/usr/local/share/npm/bin:$HOME/.cabal/bin:$HOME/Library/Haskell/bin:$PATH"

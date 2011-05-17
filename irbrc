@@ -79,7 +79,7 @@ end
 
 # awesome_print is prints prettier than pretty_print
 extend_console 'ap' do
-  alias pp ap
+  #alias pp ap
 end
 
 # bond adds smarter auto-complete
@@ -88,7 +88,7 @@ extend_console 'bond' do
 end
 
 # looksee lets you examine the method lookup path of objects in ways not possible in plain ruby
-extend_console 'looksee/shortcuts' do
+extend_console 'looksee' do
   # no configuration needed
 end
 

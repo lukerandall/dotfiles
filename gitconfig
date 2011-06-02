@@ -33,10 +33,10 @@
 	pr = checkout production
 	st = status
 	staged = diff --staged
-  
+
 	# show difference between working tree and the index
 	unstaged = diff
- 
+
 	# show staged and unstaged changes (what would be committed with "git commit -a")
 	both = diff HEAD
 
@@ -48,8 +48,6 @@
 	default = current
 [branch]
 	autosetuprebase = always
-[difftool "Kaleidoscope"]
-[difftool]
 [difftool "Kaleidoscope"]
 	cmd = ksdiff-wrapper git \"$LOCAL\" \"$REMOTE\"
 [difftool]

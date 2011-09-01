@@ -1,30 +1,115 @@
-# Path to your oh-my-zsh configuration.
-export ZSH=$HOME/.oh-my-zsh
+path=(
+  "$HOME/bin"
+  /usr/local/bin
+  /usr/local/mysql/bin
+  "$HOME/.cabal/bin"
+  "$HOME/Library/Haskell/bin"
+  /usr/bin
+  /bin
+  /usr/sbin
+  /sbin
+)
 
-# Set to the name theme to load.
-# Look in ~/.oh-my-zsh/themes/
-export ZSH_THEME="lukerandall"
+fpath=(
+  $fpath
+  ~/.rvm/scripts/zsh/Completion
+  ~/.zsh/functions
+)
 
-# Set to this to use case-sensitive completion
-# export CASE_SENSITIVE="true"
+# color term
+export CLICOLOR=1
+export LSCOLORS=Dxfxcxdxbxegedabadacad
+export ZLS_COLORS=$LSCOLORS
+export LC_CTYPE=en_US.UTF-8
+export LESS=FRX
 
-# Comment this out to disable weekly auto-update checks
-# export DISABLE_AUTO_UPDATE="true"
+# make with the nice completion
+autoload -U compinit; compinit
 
-# Uncomment following line if you want to disable colors in ls
-# export DISABLE_LS_COLORS="true"
+# Completion for kill-like commands
+zstyle ':completion:*:*:kill:*:processes' list-colors '=(#b) #([0-9]#) ([0-9a-z-]#)*=01;34=0=01'
+zstyle ':completion:*:*:*:*:processes' command "ps -u `whoami` -o pid,user,comm -w -w"
+zstyle ':completion:*:ssh:*' tag-order hosts users
+zstyle ':completion:*:ssh:*' group-order hosts-domain hosts-host users hosts-ipaddr
 
-# Which plugins would you like to load? (plugins can be found in ~/.oh-my-zsh/plugins/*)
-# Example format: plugins=(rails git textmate ruby lighthouse)
-plugins=(brew bundler cap gem git rails rails3 vi-mode)
+# ignore completion functions (until the _ignored completer)
+zstyle ':completion:*:functions' ignored-patterns '_*'
 
-source $ZSH/oh-my-zsh.sh
+# make with the pretty colors
+autoload colors; colors
 
-# Customize to your needs...
+# options
+setopt appendhistory autocd extendedglob histignoredups nonomatch prompt_subst
+
+# Bindings
+# external editor support
+autoload edit-command-line
+zle -N edit-command-line
+bindkey '^x^e' edit-command-line
+
+# Partial word history completion
+bindkey '\ep' up-line-or-search
+bindkey '\en' down-line-or-search
+bindkey '\ew' kill-region
+
+# history
+HISTFILE=~/.zsh_history
+HISTSIZE=5000
+SAVEHIST=10000
+setopt APPEND_HISTORY
+setopt INC_APPEND_HISTORY
+
+# default apps
+(( ${+PAGER}   )) || export PAGER='less'
+(( ${+EDITOR}  )) || export EDITOR='vim'
+export PSQL_EDITOR='vim -c"set syntax=sql"'
 
 bindkey -v
-unsetopt auto_name_dirs
-if [[ -s ~/.rvm/scripts/rvm ]] ; then source ~/.rvm/scripts/rvm ; fi
-export EDITOR=vim
-export GIT_EDITOR=vim
-export PATH="/usr/local/bin:/usr/local/mysql/bin/:/usr/local/share/npm/bin:$HOME/.cabal/bin:$HOME/Library/Haskell/bin:$PATH"
+
+# setup git prompt info
+source "$HOME/.zsh/git.zsh"
+
+# prompt
+PROMPT='%{$fg_bold[green]%}%n@%m%{$reset_color%}:%{$fg_bold[cyan]%}%2~%{$reset_color%} $(git_prompt_info)%{$reset_color%}%B»%b '
+
+# aliases
+alias mv='nocorrect mv'       # no spelling correction on mv
+alias cp='nocorrect cp'
+alias mkdir='nocorrect mkdir'
+alias spec='nocorrect spec'
+alias rspec='nocorrect rspec'
+alias ll="ls -l"
+alias la="ls -a"
+alias l.='ls -ld .[^.]*'
+alias lsd='ls -ld *(-/DN)'
+alias md='mkdir -p'
+alias rd='rmdir'
+alias cd..='cd ..'
+alias ..='cd ..'
+alias spec='spec -c'
+alias heroku='nocorrect heroku'
+
+alias gap='git add -p'
+alias gb='git branch'
+alias gc='git commit -v'
+alias gca='git commit -a -v'
+alias gco="git checkout"
+alias gd='git diff'
+alias gdc='git diff --cached'
+alias gdh='git diff HEAD'
+alias gl='git pull'
+alias glod='git log --oneline --decorate'
+alias gp='git push'
+alias gpr='git pull --rebase'
+alias grep='grep --color=auto --exclude="*~"'
+alias gst='git status'
+alias gr='git rebase'
+alias grc='git rebase --continue'
+alias gra='git rebase --abort'
+
+# rvm-install added line:
+if [[ -s "$HOME/.rvm/scripts/rvm" ]] ; then source "$HOME/.rvm/scripts/rvm" ; fi
+
+# import local zsh customizations, if present
+zrcl="$HOME/.zshrc.local"
+[[ ! -a $zrcl ]] || source $zrcl

@@ -33,6 +33,7 @@
 	pr = checkout production
 	st = status
 	staged = diff --staged
+        pruneremote = remote prune origin
 
 	# show difference between working tree and the index
 	unstaged = diff
@@ -52,3 +53,7 @@
 	cmd = ksdiff-wrapper git \"$LOCAL\" \"$REMOTE\"
 [difftool]
 	prompt = false
+[interactive]
+        singlekey = true
+[merge]
+        summary = true

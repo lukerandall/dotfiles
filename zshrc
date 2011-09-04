@@ -41,6 +41,9 @@ autoload colors; colors
 # options
 setopt appendhistory autocd extendedglob histignoredups nonomatch prompt_subst
 
+# vim emulation
+bindkey -v
+
 # Bindings
 # external editor support
 autoload edit-command-line
@@ -51,6 +54,19 @@ bindkey '^x^e' edit-command-line
 bindkey '\ep' up-line-or-search
 bindkey '\en' down-line-or-search
 bindkey '\ew' kill-region
+
+# use incremental search
+bindkey "^R" history-incremental-search-backward
+
+# add some readline keys back
+bindkey "^A" beginning-of-line
+bindkey "^E" end-of-line
+
+# handy keybindings
+bindkey "^P" history-search-backward
+bindkey "^Y" accept-and-hold
+bindkey "^N" insert-last-word
+bindkey -s "^T" "^[Isudo ^[A" # "t" for "toughguy"
 
 # history
 HISTFILE=~/.zsh_history
@@ -63,8 +79,6 @@ setopt INC_APPEND_HISTORY
 (( ${+PAGER}   )) || export PAGER='less'
 (( ${+EDITOR}  )) || export EDITOR='vim'
 export PSQL_EDITOR='vim -c"set syntax=sql"'
-
-bindkey -v
 
 # setup git prompt info
 source "$HOME/.zsh/git.zsh"

@@ -41,6 +41,14 @@ autoload colors; colors
 # options
 setopt appendhistory autocd extendedglob histignoredups nonomatch prompt_subst
 
+# enable mode indication
+function zle-line-init zle-keymap-select {
+  zle reset-prompt
+}
+
+zle -N zle-line-init
+zle -N zle-keymap-select
+
 # vim emulation
 bindkey -v
 
@@ -135,16 +143,10 @@ alias gr='git rebase'
 alias grc='git rebase --continue'
 alias gra='git rebase --abort'
 
-# rvm-install added line:
-if [[ -s "$HOME/.rvm/scripts/rvm" ]] ; then source "$HOME/.rvm/scripts/rvm" ; fi
-
 # import local zsh customizations, if present
 zrcl="$HOME/.zshrc.local"
 [[ ! -a $zrcl ]] || source $zrcl
 
-function zle-line-init zle-keymap-select {
-  zle reset-prompt
-}
-
-zle -N zle-line-init
-zle -N zle-keymap-select
+# setup rvm
+if [[ -s "$HOME/.rvm/scripts/rvm" ]] ; then source "$HOME/.rvm/scripts/rvm" ; fi
+rvm default

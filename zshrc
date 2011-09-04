@@ -98,7 +98,7 @@ export PSQL_EDITOR='vim -c"set syntax=sql"'
 source "$HOME/.zsh/git.zsh"
 
 # prompt
-PROMPT='%{$fg_bold[green]%}%n@%m%{$reset_color%}:%{$fg_bold[cyan]%}%2~%{$reset_color%} $(git_prompt_info)%{$reset_color%}%B»%b '
+PROMPT='%{$fg_bold[green]%}%n@%m%{$reset_color%} %{$fg_bold[blue]%}%2~%{$reset_color%} $(git_prompt_info)%{$reset_color%}%B»%b '
 
 # aliases
 alias mv='nocorrect mv'       # no spelling correction on mv

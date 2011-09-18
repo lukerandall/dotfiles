@@ -4,6 +4,8 @@ path=(
   /usr/local/mysql/bin
   "$HOME/.cabal/bin"
   "$HOME/Library/Haskell/bin"
+  /Applications/Emacs.app/Contents/MacOS
+  "$HOME/Library/Application Support/Pow/Current/bin"
   /usr/bin
   /bin
   /usr/sbin

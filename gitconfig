@@ -44,8 +44,6 @@
         st = status -s
         l = log --graph --pretty=oneline --abbrev-commit --decorate
 
-[gui]
-	recentrepo = /Users/luke/Code/depicta
 [core]
 	editor = vim
 [push]

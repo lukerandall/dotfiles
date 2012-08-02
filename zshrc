@@ -4,17 +4,16 @@ path=(
   /usr/local/mysql/bin
   "$HOME/.cabal/bin"
   "$HOME/Library/Haskell/bin"
-  /Applications/Emacs.app/Contents/MacOS
   "$HOME/Library/Application Support/Pow/Current/bin"
   /usr/bin
   /bin
   /usr/sbin
   /sbin
+  "$HOME/.rbenv/bin"
 )
 
 fpath=(
   $fpath
-  ~/.rvm/scripts/zsh/Completion
   ~/.zsh/functions
 )
 
@@ -149,6 +148,5 @@ alias gra='git rebase --abort'
 zrcl="$HOME/.zshrc.local"
 [[ ! -a $zrcl ]] || source $zrcl
 
-# setup rvm
-if [[ -s "$HOME/.rvm/scripts/rvm" ]] ; then source "$HOME/.rvm/scripts/rvm" ; fi
-rvm default
+# enable rbenv
+if which rbenv > /dev/null; then eval "$(rbenv init -)"; fi

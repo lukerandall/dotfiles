@@ -40,6 +40,9 @@
 
 	# show staged and unstaged changes (what would be committed with "git commit -a")
 	both = diff HEAD
+        df = diff --color --color-words --abbrev
+        st = status -s
+        l = log --graph --pretty=oneline --abbrev-commit --decorate
 
 [gui]
 	recentrepo = /Users/luke/Code/depicta

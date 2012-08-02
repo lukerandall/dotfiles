@@ -46,6 +46,7 @@
 
 [core]
 	editor = vim
+	excludesfile = /Users/luke/.gitignore_global
 [push]
 	default = current
 [branch]

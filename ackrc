@@ -1,3 +1,2 @@
---type-add=ruby=.haml
+--type-add=ruby=.haml,.sass,.snippet,.eku,.prawn,.feature,.csvbuilder
 --type-add=css=.scss
---type-add=ruby=.feature

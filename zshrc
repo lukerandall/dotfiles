@@ -9,6 +9,7 @@ path=(
   /bin
   /usr/sbin
   /sbin
+  /usr/local/share/npm/bin/
   "$HOME/.rbenv/bin"
 )
 

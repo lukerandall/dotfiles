@@ -34,6 +34,8 @@
 	st = status
 	staged = diff --staged
         pruneremote = remote prune origin
+        pus = push
+        puhs = push
 
 	# show difference between working tree and the index
 	unstaged = diff

@@ -5,6 +5,7 @@
 [diff]
 	renames = true
 	tool = Kaleidoscope
+	algorithm = patience
 
 [color]
 	branch = auto

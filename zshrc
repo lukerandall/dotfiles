@@ -1,16 +1,18 @@
 path=(
   "$HOME/bin"
-  /usr/local/bin
-  /usr/local/mysql/bin
   "$HOME/.cabal/bin"
+  "$HOME/.rbenv/bin"
   "$HOME/Library/Haskell/bin"
   "$HOME/Library/Application Support/Pow/Current/bin"
+  /usr/local/heroku/bin
+  /usr/local/bin
+  /usr/local/mysql/bin
   /usr/bin
   /bin
   /usr/sbin
   /sbin
-  /usr/local/share/npm/bin/
-  "$HOME/.rbenv/bin"
+  /usr/local/share/npm/bin
+  /usr/local/opt/postgresql/bin
 )
 
 fpath=(

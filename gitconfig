@@ -46,6 +46,9 @@
         df = diff --color --color-words --abbrev
         st = status -s
         l = log --graph --pretty=oneline --abbrev-commit --decorate
+	ksreview = "!sh -c 'SHA=${1:-HEAD}; BRANCH=${2:-master}; if [ $SHA == $BRANCH ] ; then SHA=HEAD; fi; BASE_SHA=$(git merge-base $BRANCH $SHA); git difftool $BASE_SHA $SHA;' -"
+	ksshow = "!sh -c 'SHA=${1:-HEAD}; git difftool $SHA^..$SHA;' -"
+	ksdiff = difftool -y -t Kaleidoscope
 
 [core]
 	editor = vim

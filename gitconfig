@@ -49,6 +49,7 @@
 	ksreview = "!sh -c 'SHA=${1:-HEAD}; BRANCH=${2:-master}; if [ $SHA == $BRANCH ] ; then SHA=HEAD; fi; BASE_SHA=$(git merge-base $BRANCH $SHA); git difftool $BASE_SHA $SHA;' -"
 	ksshow = "!sh -c 'SHA=${1:-HEAD}; git difftool $SHA^..$SHA;' -"
 	ksdiff = difftool -y -t Kaleidoscope
+	lg = log --color --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
 
 [core]
 	editor = vim

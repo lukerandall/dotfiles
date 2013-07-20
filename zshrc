@@ -147,9 +147,12 @@ alias gr='git rebase'
 alias grc='git rebase --continue'
 alias gra='git rebase --abort'
 
+alias bi='bundle install --binstubs'
 # import local zsh customizations, if present
 zrcl="$HOME/.zshrc.local"
 [[ ! -a $zrcl ]] || source $zrcl
 
 # enable rbenv
 if which rbenv > /dev/null; then eval "$(rbenv init -)"; fi
+
+export PATH="./bin:$PATH"

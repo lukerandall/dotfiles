@@ -1,4 +1,6 @@
 path=(
+  "/Applications/Postgres.app/Contents/MacOS/bin"
+  "/Applications/threadscope.app/Contents/MacOS"
   "$HOME/bin"
   "$HOME/.cabal/bin"
   "$HOME/.rbenv/bin"
@@ -12,7 +14,6 @@ path=(
   /usr/sbin
   /sbin
   /usr/local/share/npm/bin
-  /usr/local/opt/postgresql/bin
 )
 
 fpath=(

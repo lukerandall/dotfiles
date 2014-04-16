@@ -2,4 +2,4 @@
 *.swp
 *.swo
 .#*
-bin
+vendor/bin

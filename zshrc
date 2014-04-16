@@ -148,6 +148,14 @@ alias gr='git rebase'
 alias grc='git rebase --continue'
 alias gra='git rebase --abort'
 
+# heroku
+alias stage='git push staging HEAD:master'
+alias deploy='git push heroku master'
+alias migrate='heroku run rake db:migrate'
+alias restart='heroku restart'
+alias fetch_db='heroku pgbackups:capture --expire && curl -o latest.dump `heroku pgbackups:url`'
+alias restore_db='pg_restore --verbose --clean --no-acl --no-owner -h localhost -U $USER latest.dump -d'
+
 alias bi='bundle install --binstubs'
 # import local zsh customizations, if present
 zrcl="$HOME/.zshrc.local"

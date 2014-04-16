@@ -30,6 +30,8 @@
 	br = branch
 	ci = commit
 	co = checkout
+        rc = rebase --continue
+        ra = rebase --abort
 	ma = checkout master
 	pr = checkout production
 	st = status

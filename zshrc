@@ -1,19 +1,9 @@
 path=(
-  "/Applications/Postgres.app/Contents/MacOS/bin"
-  "/Applications/threadscope.app/Contents/MacOS"
-  "$HOME/bin"
-  "$HOME/.cabal/bin"
-  "$HOME/.rbenv/bin"
-  "$HOME/Library/Haskell/bin"
-  "$HOME/Library/Application Support/Pow/Current/bin"
-  /usr/local/heroku/bin
   /usr/local/bin
-  /usr/local/mysql/bin
   /usr/bin
   /bin
   /usr/sbin
   /sbin
-  /usr/local/share/npm/bin
 )
 
 fpath=(
@@ -155,6 +145,10 @@ alias migrate='heroku run rake db:migrate'
 alias restart='heroku restart'
 alias fetch_db='heroku pgbackups:capture --expire && curl -o latest.dump `heroku pgbackups:url`'
 alias restore_db='pg_restore --verbose --clean --no-acl --no-owner -h localhost -U $USER latest.dump -d'
+
+alias ghci-core="ghci -ddump-simpl -dsuppress-idinfo \
+-dsuppress-coercions -dsuppress-type-applications \
+-dsuppress-uniques -dsuppress-module-prefixes"
 
 alias bi='bundle install --binstubs'
 # import local zsh customizations, if present

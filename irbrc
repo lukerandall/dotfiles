@@ -77,11 +77,6 @@ extend_console 'hirb' do
   extend Hirb::Console
 end
 
-# awesome_print is prints prettier than pretty_print
-extend_console 'ap' do
-  #alias pp ap
-end
-
 # bond adds smarter auto-complete
 extend_console 'bond' do
   Bond.start
@@ -108,7 +103,7 @@ extend_console 'rails3', defined?(ActiveSupport::Notifications), false do
     time = "%.1fms" % event.duration
     name = event.payload[:name]
     sql = event.payload[:sql].gsub("\n", " ").squeeze(" ")
-    puts " #{ANSI[:UNDERLINE]}#{color}#{name} (#{time})#{ANSI[:RESET]} #{sql}"
+    #puts " #{ANSI[:UNDERLINE]}#{color}#{name} (#{time})#{ANSI[:RESET]} #{sql}"
   end
 end
 

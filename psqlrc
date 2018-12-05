@@ -1,0 +1,18 @@
+\set QUIET 1
+\pset linestyle unicode
+\pset border 2
+\pset null ¤
+\pset format wrapped
+\pset pager off
+\x auto
+
+\timing on
+\set PROMPT1 '%[%033[33;1m%]%x%[%033[0m%]%[%033[1m%]%/%[%033[0m%]%R%# '
+\set VERBOSITY verbose
+\set HISTCONTROL ignoredups
+\set COMP_KEYWORD_CASE upper
+
+\set HISTCONTROL ignoreboth
+\set HISTFILE ~/.psql_history- :DBNAME
+\set HISTSIZE 20000
+\unset QUIET

@@ -9,6 +9,8 @@ path=(
 fpath=(
   $fpath
   ~/.zsh/functions
+  /usr/local/share/zsh-completions
+  /usr/local/share/zsh/site-functions
 )
 
 # color term
@@ -143,7 +145,7 @@ alias stage='git push staging HEAD:master'
 alias deploy='git push heroku master'
 alias migrate='heroku run rake db:migrate'
 alias restart='heroku restart'
-alias fetch_db='heroku pgbackups:capture --expire && curl -o latest.dump `heroku pgbackups:url`'
+alias fetch_db='heroku pg:backups capture --expire && curl -o latest.dump `heroku pg:backups public-url`'
 alias restore_db='pg_restore --verbose --clean --no-acl --no-owner -h localhost -U $USER latest.dump -d'
 
 alias ghci-core="ghci -ddump-simpl -dsuppress-idinfo \
@@ -159,3 +161,18 @@ zrcl="$HOME/.zshrc.local"
 if which rbenv > /dev/null; then eval "$(rbenv init -)"; fi
 
 export PATH="./bin:$PATH"
+
+# OPAM configuration
+. /Users/luke/.opam/opam-init/init.zsh > /dev/null 2> /dev/null || true
+
+# export NVM_DIR="$HOME/.nvm"
+# [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+# [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+export PATH="/usr/local/opt/node@8/bin:$PATH"
+
+# tabtab source for serverless package
+# uninstall by removing these lines or running `tabtab uninstall serverless`
+[[ -f /Users/luke/Code/conferize/node_modules/tabtab/.completions/serverless.zsh ]] && . /Users/luke/Code/conferize/node_modules/tabtab/.completions/serverless.zsh
+# tabtab source for sls package
+# uninstall by removing these lines or running `tabtab uninstall sls`
+[[ -f /Users/luke/Code/conferize/node_modules/tabtab/.completions/sls.zsh ]] && . /Users/luke/Code/conferize/node_modules/tabtab/.completions/sls.zsh

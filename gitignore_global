@@ -3,3 +3,9 @@
 *.swo
 .#*
 vendor/bin
+.stack-work
+dist/
+*.o
+*.hi
+TAGS
+.tern-port

@@ -4,4 +4,6 @@
 --ignore-dir=tmp
 --ignore-dir=vendor
 --ignore-dir=.cabal-sandbox
+--ignore-dir=.stack-work
 --ignore-dir=dist
+--ignore-file=match:.*\.bundle\.js

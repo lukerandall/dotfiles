@@ -176,3 +176,9 @@ export PATH="/usr/local/opt/node@8/bin:$PATH"
 # tabtab source for sls package
 # uninstall by removing these lines or running `tabtab uninstall sls`
 [[ -f /Users/luke/Code/conferize/node_modules/tabtab/.completions/sls.zsh ]] && . /Users/luke/Code/conferize/node_modules/tabtab/.completions/sls.zsh
+
+# tabtab source for slss package
+# uninstall by removing these lines or running `tabtab uninstall slss`
+[[ -f /Users/luke/Code/conferize/node_modules/tabtab/.completions/slss.zsh ]] && . /Users/luke/Code/conferize/node_modules/tabtab/.completions/slss.zsh
+export YVM_DIR=/usr/local/opt/yvm
+[ -r $YVM_DIR/yvm.sh ] && . $YVM_DIR/yvm.sh

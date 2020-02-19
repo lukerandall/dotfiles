@@ -34,11 +34,13 @@
         ra = rebase --abort
 	ma = checkout master
 	pr = checkout production
+        prom = pull --rebase origin master
 	st = status
 	staged = diff --staged
         pruneremote = remote prune origin
         pus = push
         puhs = push
+        pra = pull --rebase --autostash
 
 	# show difference between working tree and the index
 	unstaged = diff
@@ -48,9 +50,6 @@
         df = diff --color --color-words --abbrev
         st = status -s
         l = log --graph --pretty=oneline --abbrev-commit --decorate
-	ksreview = "!sh -c 'SHA=${1:-HEAD}; BRANCH=${2:-master}; if [ $SHA == $BRANCH ] ; then SHA=HEAD; fi; BASE_SHA=$(git merge-base $BRANCH $SHA); git difftool $BASE_SHA $SHA;' -"
-	ksshow = "!sh -c 'SHA=${1:-HEAD}; git difftool $SHA^..$SHA;' -"
-	ksdiff = difftool -y -t Kaleidoscope
 	lg = log --color --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
 	grog = log --graph --abbrev-commit --decorate --all --format=format:\"%C(bold blue)%h%C(reset) - %C(bold cyan)%aD%C(dim white) - %an%C(reset) %C(bold green)(%ar)%C(reset)%C(bold yellow)%d%C(reset)%n %C(white)%s%C(reset)\"
 
@@ -61,8 +60,6 @@
 	default = current
 [branch]
 	autosetuprebase = always
-[difftool "Kaleidoscope"]
-	cmd = ksdiff-wrapper git \"$LOCAL\" \"$REMOTE\"
 [difftool]
 	prompt = false
 [interactive]
@@ -81,5 +78,7 @@
 	cmd = opendiff \"$LOCAL\" \"$REMOTE\"
 	path = 
 [mergetool "sourcetree"]
-	cmd = /Applications/SourceTree.app/Contents/Resources/opendiff-w.sh \"$LOCAL\" \"$REMOTE\" -ancestor \"$BASE\" -merge \"$MERGED\"
+	cmd = /Applications/Sourcetree.app/Contents/Resources/opendiff-w.sh \"$LOCAL\" \"$REMOTE\" -ancestor \"$BASE\" -merge \"$MERGED\"
 	trustExitCode = true
+[credential]
+	helper = osxkeychain

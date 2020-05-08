@@ -182,3 +182,9 @@ export PATH="/usr/local/opt/node@8/bin:$PATH"
 [[ -f /Users/luke/Code/conferize/node_modules/tabtab/.completions/slss.zsh ]] && . /Users/luke/Code/conferize/node_modules/tabtab/.completions/slss.zsh
 export YVM_DIR=/usr/local/opt/yvm
 [ -r $YVM_DIR/yvm.sh ] && . $YVM_DIR/yvm.sh
+
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh

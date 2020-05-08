@@ -1,26 +1,42 @@
 {
+    "editor.fontFamily": "Cascadia Code PL, SF Mono, Menlo, Monaco, 'Courier New', monospace",
+    "editor.fontSize": 13,
+    "editor.fontLigatures": true,
+    "files.trimTrailingWhitespace": true,
+    "files.insertFinalNewline": true,
+    "files.trimFinalNewlines": true,
     "[json]": {
         "editor.defaultFormatter": "esbenp.prettier-vscode"
     },
     "workbench.iconTheme": "Monokai Pro (Filter Octagon) Icons",
     "workbench.colorTheme": "Monokai Pro (Filter Octagon)",
-    "files.trimTrailingWhitespace": true,
-    "files.insertFinalNewline": true,
-    "files.trimFinalNewlines": true,
     "material-icon-theme.showWelcomeMessage": false,
     "ruby.useBundler": true,
     "ruby.useLanguageServer": true,
+    "ruby.format": "rubocop",
     "ruby.lint": {
         "rubocop": {
             "useBundler": true,
             "lint": true
         }
     },
-    "ruby.format": "rubocop",
     "[ruby]": {
         "editor.defaultFormatter": "rebornix.ruby",
         "editor.tabSize": 2
     },
+    "[erb]": {
+        "editor.tabSize": 2
+    },
+    "[haml]": {
+        "editor.tabSize": 2
+    },
+    "vim.hlsearch": true,
+    "vim.easymotionMarkerFontFamily": "SF Mono, Menlo, Monaco, 'Courier New', monospace",
+    "vim.easymotionMarkerFontSize": "14",
+    "vim.easymotionMarkerFontWeight": "bold",
+    "vim.easymotionMarkerWidthPerChar": 11,
+    "vim.easymotionMarkerBackgroundColor": "#ecf39e",
+    "vim.easymotionMarkerHeight": 20,
     "vim.incsearch": true,
     "vim.useSystemClipboard": true,
     "vim.sneak": false,
@@ -31,6 +47,102 @@
         {
             "before": [
                 "<leader>",
+                ";"
+            ],
+            "commands": [
+                "editor.action.commentLine"
+            ],
+            "description": "Comment line"
+        },
+        {
+            "before": [
+                "<C-n>"
+            ],
+            "commands": [
+                ":nohl"
+            ],
+            "description": "Clear highlights"
+        },
+        {
+            "before": [
+                "<leader>",
+                "j",
+                "j"
+            ],
+            "after": [
+                "<leader>",
+                "<leader>",
+                "s"
+            ],
+            "description": "Easymotion to character"
+        },
+        {
+            "before": [
+                "<leader>",
+                "j",
+                "l"
+            ],
+            "after": [
+                "<leader>",
+                "<leader>",
+                "<leader>",
+                "b",
+                "d",
+                "j",
+                "k"
+            ],
+            "description": "Easymotion to line"
+        },
+        {
+            "before": [
+                "<leader>",
+                "j",
+                "w"
+            ],
+            "after": [
+                "<leader>",
+                "<leader>",
+                "<leader>",
+                "b",
+                "d",
+                "w"
+            ],
+            "description": "Easymotion to word"
+        },
+        {
+            "before": [
+                "<leader>",
+                "l",
+                "d"
+            ],
+            "commands": [
+                "workbench.action.closeFolder"
+            ],
+            "description": "Close folder"
+        },
+        {
+            "before": [
+                "<leader>",
+                "j",
+                "="
+            ],
+            "commands": [
+                "editor.action.formatDocument"
+            ],
+            "description": "Format: Document"
+        },
+        {
+            "before": [
+                "<leader>",
+                "<tab>"
+            ],
+            "commands": [
+                "workbench.action.quickOpenPreviousRecentlyUsedEditorInGroup"
+            ],
+            "description": "Next editor"
+        },
+        {
+            "before": [
                 "<leader>",
                 "m",
                 "a"
@@ -43,19 +155,6 @@
         {
             "before": [
                 "<leader>",
-                "<leader>",
-                "m",
-                "t"
-            ],
-            "commands": [
-                "bookmarks.toggle"
-            ],
-            "description": "Bookmarks: Toggle"
-        },
-        {
-            "before": [
-                "<leader>",
-                "<leader>",
                 "m",
                 "l"
             ],
@@ -66,7 +165,6 @@
         },
         {
             "before": [
-                "<leader>",
                 "<leader>",
                 "m",
                 "L"
@@ -79,7 +177,6 @@
         {
             "before": [
                 "<leader>",
-                "<leader>",
                 "m",
                 "p"
             ],
@@ -91,7 +188,6 @@
         {
             "before": [
                 "<leader>",
-                "<leader>",
                 "m",
                 "n"
             ],
@@ -99,6 +195,17 @@
                 "bookmarks.jumpToNext"
             ],
             "description": "Bookmarks: Next"
+        },
+        {
+            "before": [
+                "<leader>",
+                "m",
+                "t"
+            ],
+            "commands": [
+                "editor.action.toggleMinimap"
+            ],
+            "description": "Bookmarks: Toggle"
         },
         {
             "before": [
@@ -181,6 +288,17 @@
         {
             "before": [
                 "<leader>",
+                "s",
+                "j"
+            ],
+            "commands": [
+                "workbench.action.gotoSymbol"
+            ],
+            "description": "Symbol: Jump to"
+        },
+        {
+            "before": [
+                "<leader>",
                 "v"
             ],
             "commands": [
@@ -213,6 +331,17 @@
             "before": [
                 "<leader>",
                 "w",
+                "H"
+            ],
+            "commands": [
+                "workbench.action.moveActiveEditorGroupLeft"
+            ],
+            "description": "Window: Move Left"
+        },
+        {
+            "before": [
+                "<leader>",
+                "w",
                 "l"
             ],
             "commands": [
@@ -224,12 +353,34 @@
             "before": [
                 "<leader>",
                 "w",
+                "L"
+            ],
+            "commands": [
+                "workbench.action.moveActiveEditorGroupRight"
+            ],
+            "description": "Window: Move Right"
+        },
+        {
+            "before": [
+                "<leader>",
+                "w",
                 "k"
             ],
             "commands": [
                 "workbench.action.focusAboveGroup"
             ],
-            "description": "Window: Focus Above"
+            "description": "Window: Focus Up"
+        },
+        {
+            "before": [
+                "<leader>",
+                "w",
+                "K"
+            ],
+            "commands": [
+                "workbench.action.moveActiveEditorGroupUp"
+            ],
+            "description": "Window: Move Up"
         },
         {
             "before": [
@@ -240,7 +391,18 @@
             "commands": [
                 "workbench.action.focusBelowGroup"
             ],
-            "description": "Window: Focus Below"
+            "description": "Window: Focus Down"
+        },
+        {
+            "before": [
+                "<leader>",
+                "w",
+                "J"
+            ],
+            "commands": [
+                "workbench.action.moveActiveEditorGroupDown"
+            ],
+            "description": "Window: Move Down"
         },
         {
             "before": [
@@ -301,6 +463,17 @@
             "before": [
                 "<leader>",
                 "w",
+                "D"
+            ],
+            "commands": [
+                "workbench.action.closeAllGroups"
+            ],
+            "description": "Window: Delete All (close)"
+        },
+        {
+            "before": [
+                "<leader>",
+                "w",
                 "m"
             ],
             "commands": [
@@ -318,6 +491,28 @@
                 "workbench.action.terminal.new"
             ],
             "description": "Window: Open Terminal"
+        },
+        {
+            "before": [
+                "<leader>",
+                "b",
+                "c"
+            ],
+            "commands": [
+                "breadcrumbs.focusAndSelect"
+            ],
+            "description": "Breadcrumbs: Focus"
+        },
+        {
+            "before": [
+                "<leader>",
+                "b",
+                "t"
+            ],
+            "commands": [
+                "breadcrumbs.toggle"
+            ],
+            "description": "Breadcrumbs: Toggle"
         },
         {
             "before": [
@@ -394,7 +589,7 @@
             "commands": [
                 "workbench.action.files.newUntitledFile"
             ],
-            "description": "Buffer: Start new"
+            "description": "Buffer: Scratch"
         },
         {
             "before": [
@@ -461,6 +656,17 @@
                 "workbench.action.openGlobalSettings"
             ],
             "description": "Files: Edit settings"
+        },
+        {
+            "before": [
+                "<leader>",
+                "f",
+                "E"
+            ],
+            "commands": [
+                "workbench.action.openSettingsJson"
+            ],
+            "description": "Files: Edit settings (JSON)"
         },
         {
             "before": [
@@ -667,7 +873,7 @@
             "before": [
                 "<leader>",
                 "g",
-                "b"
+                "B"
             ],
             "commands": [
                 "git.checkout"
@@ -706,6 +912,53 @@
                 "git.fetch"
             ],
             "description": "Git: Fetch"
+        },
+        {
+            "before": [
+                "<leader>",
+                "g",
+                "F"
+            ],
+            "commands": [
+                "git.pull"
+            ],
+            "description": "Git: Pull"
+        },
+        {
+            "before": [
+                "<leader>",
+                "g",
+                "t",
+                "t"
+            ],
+            "commands": [
+                "git.stash"
+            ],
+            "description": "Git: Stash"
+        },
+        {
+            "before": [
+                "<leader>",
+                "g",
+                "t",
+                "p"
+            ],
+            "commands": [
+                "git.stashDrop"
+            ],
+            "description": "Git: Stash Pop"
+        },
+        {
+            "before": [
+                "<leader>",
+                "g",
+                "t",
+                "d"
+            ],
+            "commands": [
+                "git.stashDrop"
+            ],
+            "description": "Git: Stash Drop"
         },
         {
             "before": [
@@ -754,16 +1007,6 @@
         {
             "before": [
                 "<leader>",
-                ";"
-            ],
-            "commands": [
-                "editor.action.commentLine"
-            ],
-            "description": "Comment line"
-        },
-        {
-            "before": [
-                "<leader>",
                 "h",
                 "d"
             ],
@@ -786,17 +1029,6 @@
         {
             "before": [
                 "<leader>",
-                "j",
-                "="
-            ],
-            "commands": [
-                "editor.action.formatDocument"
-            ],
-            "description": "Format: Document"
-        },
-        {
-            "before": [
-                "<leader>",
                 "x",
                 "a",
                 "c"
@@ -805,6 +1037,17 @@
                 "yo1dog.cursor-align.alignCursors"
             ],
             "description": "Align: Cursor"
+        },
+        {
+            "before": [
+                "<leader>",
+                "T",
+                "t"
+            ],
+            "commands": [
+                "workbench.action.toggleActivityBarVisibility"
+            ],
+            "description": "Toggle: Activity Bar"
         }
     ],
     "vim.visualModeKeyBindingsNonRecursive": [
@@ -855,6 +1098,30 @@
                 "align.by.regex"
             ],
             "description": "Align: Regex"
+        },
+        {
+            "before": [
+                "<leader>",
+                "x",
+                "b",
+                "e"
+            ],
+            "commands": [
+                "extension.base64Encode"
+            ],
+            "description": "Base64: Encode"
+        },
+        {
+            "before": [
+                "<leader>",
+                "x",
+                "b",
+                "d"
+            ],
+            "commands": [
+                "extension.base64Decode"
+            ],
+            "description": "Base64: Decode"
         },
         {
             "before": [
@@ -954,13 +1221,16 @@
     ],
     "window.zoomLevel": 0,
     "cSpell.enabled": false,
-    "editor.fontFamily": "Cascadia Code PL, Menlo, Monaco, 'Courier New', monospace",
-    "editor.fontSize": 13,
-    "editor.fontLigatures": true,
     "keyboard.touchbar.enabled": false,
     "gitlens.blame.avatars": false,
     "gitlens.codeLens.enabled": false,
     "gitlens.currentLine.scrollable": false,
     "workbench.startupEditor": "none",
-    "ruby.codeCompletion": "rcodetools"
+    "ruby.codeCompletion": "rcodetools",
+    "workbench.activityBar.visible": false,
+    "editor.minimap.enabled": false,
+    "git.autofetch": true,
+    "breadcrumbs.enabled": true,
+    "auto-close-tag.SublimeText3Mode": true,
+    "sync.gist": "6a9db416c557b854e2ce5e9ced173ef4"
 }

@@ -1,0 +1,966 @@
+{
+    "[json]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "workbench.iconTheme": "Monokai Pro (Filter Octagon) Icons",
+    "workbench.colorTheme": "Monokai Pro (Filter Octagon)",
+    "files.trimTrailingWhitespace": true,
+    "files.insertFinalNewline": true,
+    "files.trimFinalNewlines": true,
+    "material-icon-theme.showWelcomeMessage": false,
+    "ruby.useBundler": true,
+    "ruby.useLanguageServer": true,
+    "ruby.lint": {
+        "rubocop": {
+            "useBundler": true,
+            "lint": true
+        }
+    },
+    "ruby.format": "rubocop",
+    "[ruby]": {
+        "editor.defaultFormatter": "rebornix.ruby",
+        "editor.tabSize": 2
+    },
+    "vim.incsearch": true,
+    "vim.useSystemClipboard": true,
+    "vim.sneak": false,
+    "vim.leader": "<space>",
+    "vim.easymotion": true,
+    "vim.visualstar": true,
+    "vim.normalModeKeyBindingsNonRecursive": [
+        {
+            "before": [
+                "<leader>",
+                "<leader>",
+                "m",
+                "a"
+            ],
+            "commands": [
+                "bookmarks.toggle"
+            ],
+            "description": "Bookmarks: Add"
+        },
+        {
+            "before": [
+                "<leader>",
+                "<leader>",
+                "m",
+                "t"
+            ],
+            "commands": [
+                "bookmarks.toggle"
+            ],
+            "description": "Bookmarks: Toggle"
+        },
+        {
+            "before": [
+                "<leader>",
+                "<leader>",
+                "m",
+                "l"
+            ],
+            "commands": [
+                "bookmarks.list"
+            ],
+            "description": "Bookmarks: List"
+        },
+        {
+            "before": [
+                "<leader>",
+                "<leader>",
+                "m",
+                "L"
+            ],
+            "commands": [
+                "bookmarks.listFromAllFiles"
+            ],
+            "description": "Bookmarks: List from all files"
+        },
+        {
+            "before": [
+                "<leader>",
+                "<leader>",
+                "m",
+                "p"
+            ],
+            "commands": [
+                "bookmarks.jumpToPrevious"
+            ],
+            "description": "Bookmarks: Previous"
+        },
+        {
+            "before": [
+                "<leader>",
+                "<leader>",
+                "m",
+                "n"
+            ],
+            "commands": [
+                "bookmarks.jumpToNext"
+            ],
+            "description": "Bookmarks: Next"
+        },
+        {
+            "before": [
+                "<leader>",
+                "p",
+                "p"
+            ],
+            "commands": [
+                "workbench.action.openRecent"
+            ],
+            "description": "Projects: List"
+        },
+        {
+            "before": [
+                "<leader>",
+                "p",
+                "f"
+            ],
+            "commands": [
+                "workbench.action.quickOpen"
+            ],
+            "description": "Project: Find file in project"
+        },
+        {
+            "before": [
+                "<leader>",
+                "p",
+                "a"
+            ],
+            "commands": [
+                "extension.goToTest"
+            ],
+            "description": "Project: Alternate file"
+        },
+        {
+            "before": [
+                "<leader>",
+                "p",
+                "g"
+            ],
+            "commands": [
+                "workbench.action.showEditorsInActiveGroup"
+            ],
+            "description": "Project: Show active files",
+            "todo": "Move to Window section"
+        },
+        {
+            "before": [
+                "<leader>",
+                "s",
+                "p"
+            ],
+            "commands": [
+                "search.action.openNewEditor"
+            ],
+            "description": "Search: Project"
+        },
+        {
+            "before": [
+                "<leader>",
+                "s",
+                "c"
+            ],
+            "commands": [
+                "workbench.action.closeSidebar"
+            ],
+            "description": "Search: Close sidebar"
+        },
+        {
+            "before": [
+                "<leader>",
+                "s",
+                "s"
+            ],
+            "commands": [
+                "workbench.action.findInFiles"
+            ],
+            "description": "Search: Search"
+        },
+        {
+            "before": [
+                "<leader>",
+                "v"
+            ],
+            "commands": [
+                "editor.action.smartSelect.grow"
+            ],
+            "description": "Visual selection: Grow"
+        },
+        {
+            "before": [
+                "<leader>",
+                "V"
+            ],
+            "commands": [
+                "editor.action.smartSelect.shrink"
+            ],
+            "description": "Visual selection: Shrink"
+        },
+        {
+            "before": [
+                "<leader>",
+                "w",
+                "h"
+            ],
+            "commands": [
+                "workbench.action.focusLeftGroup"
+            ],
+            "description": "Window: Focus Left"
+        },
+        {
+            "before": [
+                "<leader>",
+                "w",
+                "l"
+            ],
+            "commands": [
+                "workbench.action.focusRightGroup"
+            ],
+            "description": "Window: Focus Right"
+        },
+        {
+            "before": [
+                "<leader>",
+                "w",
+                "k"
+            ],
+            "commands": [
+                "workbench.action.focusAboveGroup"
+            ],
+            "description": "Window: Focus Above"
+        },
+        {
+            "before": [
+                "<leader>",
+                "w",
+                "j"
+            ],
+            "commands": [
+                "workbench.action.focusBelowGroup"
+            ],
+            "description": "Window: Focus Below"
+        },
+        {
+            "before": [
+                "<leader>",
+                "w",
+                "v"
+            ],
+            "commands": [
+                "workbench.action.splitEditorRight"
+            ],
+            "description": "Window: Vertical Split Right"
+        },
+        {
+            "before": [
+                "<leader>",
+                "w",
+                "V"
+            ],
+            "commands": [
+                "workbench.action.splitEditorLeft"
+            ],
+            "description": "Window: Vertical Split Left"
+        },
+        {
+            "before": [
+                "<leader>",
+                "w",
+                "s"
+            ],
+            "commands": [
+                "workbench.action.splitEditorDown"
+            ],
+            "description": "Window: Split Below"
+        },
+        {
+            "before": [
+                "<leader>",
+                "w",
+                "S"
+            ],
+            "commands": [
+                "workbench.action.splitEditorUp"
+            ],
+            "description": "Window: Split Up"
+        },
+        {
+            "before": [
+                "<leader>",
+                "w",
+                "d"
+            ],
+            "commands": [
+                "workbench.action.closeEditorsInGroup"
+            ],
+            "description": "Window: Delete (close)"
+        },
+        {
+            "before": [
+                "<leader>",
+                "w",
+                "m"
+            ],
+            "commands": [
+                "workbench.action.closeEditorsInOtherGroups"
+            ],
+            "description": "Window: Maximise"
+        },
+        {
+            "before": [
+                "<leader>",
+                "w",
+                "t"
+            ],
+            "commands": [
+                "workbench.action.terminal.new"
+            ],
+            "description": "Window: Open Terminal"
+        },
+        {
+            "before": [
+                "<leader>",
+                "b",
+                "b"
+            ],
+            "commands": [
+                "workbench.action.showAllEditors"
+            ],
+            "description": "Buffer: List"
+        },
+        {
+            "before": [
+                "<leader>",
+                "b",
+                "d"
+            ],
+            "commands": [
+                "workbench.action.closeActiveEditor"
+            ],
+            "description": "Buffer: Delete (close)"
+        },
+        {
+            "before": [
+                "<leader>",
+                "b",
+                "D"
+            ],
+            "commands": [
+                "fileutils.removeFile"
+            ],
+            "description": "Buffer: Delete File"
+        },
+        {
+            "before": [
+                "<leader>",
+                "b",
+                "<C-d>"
+            ],
+            "commands": [
+                "workbench.action.closeOtherEditors"
+            ],
+            "description": "Buffer: Delete Others"
+        },
+        {
+            "before": [
+                "<leader>",
+                "b",
+                "n"
+            ],
+            "commands": [
+                "workbench.action.nextEditor"
+            ],
+            "description": "Buffer: Next"
+        },
+        {
+            "before": [
+                "<leader>",
+                "b",
+                "p"
+            ],
+            "commands": [
+                "workbench.action.previousEditor"
+            ],
+            "description": "Buffer: Previous"
+        },
+        {
+            "before": [
+                "<leader>",
+                "b",
+                "s"
+            ],
+            "commands": [
+                "workbench.action.files.newUntitledFile"
+            ],
+            "description": "Buffer: Start new"
+        },
+        {
+            "before": [
+                "<leader>",
+                "b",
+                "u"
+            ],
+            "commands": [
+                "workbench.action.reopenClosedEditor"
+            ],
+            "description": "Buffer: Undo delete"
+        },
+        {
+            "before": [
+                "<leader>",
+                "e",
+                "l"
+            ],
+            "commands": [
+                "workbench.actions.view.problems"
+            ],
+            "description": "Errors: List"
+        },
+        {
+            "before": [
+                "<leader>",
+                "e",
+                "c"
+            ],
+            "commands": [
+                "workbench.action.closePanel"
+            ],
+            "description": "Errors: Close"
+        },
+        {
+            "before": [
+                "<leader>",
+                "e",
+                "n"
+            ],
+            "commands": [
+                "editor.action.marker.next"
+            ],
+            "description": "Errors: Next"
+        },
+        {
+            "before": [
+                "<leader>",
+                "e",
+                "p"
+            ],
+            "commands": [
+                "editor.action.marker.prev"
+            ],
+            "description": "Errors: Previous"
+        },
+        {
+            "before": [
+                "<leader>",
+                "f",
+                "e"
+            ],
+            "commands": [
+                "workbench.action.openGlobalSettings"
+            ],
+            "description": "Files: Edit settings"
+        },
+        {
+            "before": [
+                "<leader>",
+                "f",
+                "f"
+            ],
+            "commands": [
+                "workbench.action.files.openFileFolder"
+            ],
+            "description": "Files: File open dialog"
+        },
+        {
+            "before": [
+                "<leader>",
+                "f",
+                "r"
+            ],
+            "commands": [
+                "workbench.action.openRecent"
+            ],
+            "description": "Files: Recent"
+        },
+        {
+            "before": [
+                "<leader>",
+                "f",
+                "s"
+            ],
+            "commands": [
+                "workbench.action.files.save"
+            ],
+            "description": "File: Save"
+        },
+        {
+            "before": [
+                "<leader>",
+                "f",
+                "S"
+            ],
+            "commands": [
+                "workbench.action.files.saveAll"
+            ],
+            "description": "File: Save all"
+        },
+        {
+            "before": [
+                "<leader>",
+                "f",
+                "n"
+            ],
+            "commands": [
+                "fileutils.newFile"
+            ],
+            "description": "File: New"
+        },
+        {
+            "before": [
+                "<leader>",
+                "f",
+                "N"
+            ],
+            "commands": [
+                "fileutils.newFolder"
+            ],
+            "description": "File: New folder"
+        },
+        {
+            "before": [
+                "<leader>",
+                "f",
+                "D"
+            ],
+            "commands": [
+                "fileutils.removeFile"
+            ],
+            "description": "File: Delete"
+        },
+        {
+            "before": [
+                "<leader>",
+                "f",
+                "m"
+            ],
+            "commands": [
+                "fileutils.renameFile"
+            ],
+            "description": "File: Rename"
+        },
+        {
+            "before": [
+                "<leader>",
+                "f",
+                "M"
+            ],
+            "commands": [
+                "fileutils.moveFile"
+            ],
+            "description": "File: Move"
+        },
+        {
+            "before": [
+                "<leader>",
+                "f",
+                "t"
+            ],
+            "commands": [
+                "workbench.view.explorer"
+            ],
+            "description": "File: Tree view"
+        },
+        {
+            "before": [
+                "<leader>",
+                "f",
+                "T"
+            ],
+            "commands": [
+                "workbench.files.action.showActiveFileInExplorer"
+            ],
+            "description": "File: Show active file in tree view"
+        },
+        {
+            "before": [
+                "<leader>",
+                "f",
+                "y"
+            ],
+            "commands": [
+                "workbench.action.files.copyPathOfActiveFile"
+            ],
+            "description": "File: Yank file path"
+        },
+        {
+            "before": [
+                "<leader>",
+                "g",
+                "b"
+            ],
+            "commands": [
+                "gitlens.toggleFileBlame"
+            ],
+            "description": "Git: Blame Toggle"
+        },
+        {
+            "before": [
+                "<leader>",
+                "g",
+                "l",
+                "t"
+            ],
+            "commands": [
+                "gitlens.toggleCodeLens"
+            ],
+            "description": "Git: Lens Toggle"
+        },
+        {
+            "before": [
+                "<leader>",
+                "g",
+                "l",
+                "b"
+            ],
+            "commands": [
+                "gitlens.toggleLineBlame"
+            ],
+            "description": "Git: Line Blame Toggle"
+        },
+        {
+            "before": [
+                "<leader>",
+                "g",
+                "h",
+                "o"
+            ],
+            "commands": [
+                "gitlens.openFileInRemote"
+            ],
+            "description": "Git: Hub Open"
+        },
+        {
+            "before": [
+                "<leader>",
+                "g",
+                "m"
+            ],
+            "commands": [
+                "magit.dispatch"
+            ],
+            "description": "Git: Magit dispatch"
+        },
+        {
+            "before": [
+                "<leader>",
+                "g",
+                "s"
+            ],
+            "commands": [
+                "magit.status"
+            ],
+            "description": "Git: Status"
+        },
+        {
+            "before": [
+                "<leader>",
+                "g",
+                "b"
+            ],
+            "commands": [
+                "git.checkout"
+            ],
+            "description": "Git: Checkout"
+        },
+        {
+            "before": [
+                "<leader>",
+                "g",
+                "c"
+            ],
+            "commands": [
+                "git.commit"
+            ],
+            "description": "Git: Commit"
+        },
+        {
+            "before": [
+                "<leader>",
+                "g",
+                "d"
+            ],
+            "commands": [
+                "git.deleteBranch"
+            ],
+            "description": "Git: Delete branch"
+        },
+        {
+            "before": [
+                "<leader>",
+                "g",
+                "f"
+            ],
+            "commands": [
+                "git.fetch"
+            ],
+            "description": "Git: Fetch"
+        },
+        {
+            "before": [
+                "<leader>",
+                "g",
+                "i"
+            ],
+            "commands": [
+                "git.init"
+            ],
+            "description": "Git: Init"
+        },
+        {
+            "before": [
+                "<leader>",
+                "g",
+                "p"
+            ],
+            "commands": [
+                "git.publish"
+            ],
+            "description": "Git: Publish"
+        },
+        {
+            "before": [
+                "<leader>",
+                "g",
+                "S"
+            ],
+            "commands": [
+                "git.stage"
+            ],
+            "description": "Git: Stage"
+        },
+        {
+            "before": [
+                "<leader>",
+                "g",
+                "U"
+            ],
+            "commands": [
+                "git.unstage"
+            ],
+            "description": "Git: Unstage"
+        },
+        {
+            "before": [
+                "<leader>",
+                ";"
+            ],
+            "commands": [
+                "editor.action.commentLine"
+            ],
+            "description": "Comment line"
+        },
+        {
+            "before": [
+                "<leader>",
+                "h",
+                "d"
+            ],
+            "commands": [
+                "workbench.action.openGlobalKeybindings"
+            ],
+            "description": "Help: Keybindings"
+        },
+        {
+            "before": [
+                "<leader>",
+                "i",
+                "s"
+            ],
+            "commands": [
+                "editor.action.insertSnippet"
+            ],
+            "description": "Insert: Snippet"
+        },
+        {
+            "before": [
+                "<leader>",
+                "j",
+                "="
+            ],
+            "commands": [
+                "editor.action.formatDocument"
+            ],
+            "description": "Format: Document"
+        },
+        {
+            "before": [
+                "<leader>",
+                "x",
+                "a",
+                "c"
+            ],
+            "commands": [
+                "yo1dog.cursor-align.alignCursors"
+            ],
+            "description": "Align: Cursor"
+        }
+    ],
+    "vim.visualModeKeyBindingsNonRecursive": [
+        {
+            "before": [
+                "p"
+            ],
+            "after": [
+                "p",
+                "g",
+                "v",
+                "y"
+            ],
+            "description": "Paste preserving register"
+        },
+        {
+            "before": [
+                "<leader>",
+                "g",
+                "h",
+                "o"
+            ],
+            "commands": [
+                "gitlens.openFileInRemote"
+            ],
+            "description": "Git: Hub Open visual selection"
+        },
+        {
+            "before": [
+                "<leader>",
+                "x",
+                "a",
+                "a"
+            ],
+            "commands": [
+                "wwm.aligncode"
+            ],
+            "description": "Align: Auto"
+        },
+        {
+            "before": [
+                "<leader>",
+                "x",
+                "a",
+                "r"
+            ],
+            "commands": [
+                "align.by.regex"
+            ],
+            "description": "Align: Regex"
+        },
+        {
+            "before": [
+                "<leader>",
+                "x",
+                "a",
+                "v"
+            ],
+            "commands": [
+                "align.by.regex"
+            ],
+            "description": "Align: Vertically (same as regex)"
+        },
+        {
+            "before": [
+                "<leader>",
+                "x",
+                "s"
+            ],
+            "commands": [
+                "editor.action.sortLinesAscending"
+            ],
+            "description": "Sort: Lines ascending"
+        },
+        {
+            "before": [
+                "<leader>",
+                "x",
+                "S"
+            ],
+            "commands": [
+                "editor.action.sortLinesDescending"
+            ],
+            "description": "Sort: Lines descending"
+        },
+        {
+            "before": [
+                "<leader>",
+                "v"
+            ],
+            "commands": [
+                "editor.action.smartSelect.grow"
+            ],
+            "description": "Visual selection: Grow"
+        },
+        {
+            "before": [
+                "<leader>",
+                "V"
+            ],
+            "commands": [
+                "editor.action.smartSelect.shrink"
+            ],
+            "description": "Visual selection: Shrink"
+        },
+        {
+            "before": [
+                "<leader>",
+                ";"
+            ],
+            "commands": [
+                "editor.action.commentLine"
+            ],
+            "description": "Comment line"
+        }
+    ],
+    "cSpell.userWords": [
+        "cors",
+        "dotenv",
+        "minigrep",
+        "postgres",
+        "sqlx"
+    ],
+    "rust-analyzer.updates.askBeforeDownload": false,
+    "cSpell.enableFiletypes": [
+        "!haskell",
+        "!java",
+        "erb",
+        "gemfile",
+        "graphql",
+        "haml",
+        "ruby",
+        "sql",
+        "toml"
+    ],
+    "cSpell.language": "en,en-GB",
+    "pgsql.connections": [
+        {
+            "host": "localhost",
+            "dbname": "withkids_development",
+            "user": "luke",
+            "password": "",
+            "emptyPasswordInput": true,
+            "port": "5432",
+            "profileName": "withkids development"
+        }
+    ],
+    "window.zoomLevel": 0,
+    "cSpell.enabled": false,
+    "editor.fontFamily": "Cascadia Code PL, Menlo, Monaco, 'Courier New', monospace",
+    "editor.fontSize": 13,
+    "editor.fontLigatures": true,
+    "keyboard.touchbar.enabled": false,
+    "gitlens.blame.avatars": false,
+    "gitlens.codeLens.enabled": false,
+    "gitlens.currentLine.scrollable": false,
+    "workbench.startupEditor": "none",
+    "ruby.codeCompletion": "rcodetools"
+}

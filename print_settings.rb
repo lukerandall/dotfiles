@@ -3,7 +3,7 @@
 require 'json'
 
 json = JSON.parse(File.read('settings.json').gsub(/\/\/.*$/, ''))
-keys = json.keys.select { |k| k =~ /Mode/ }
+keys = json.keys.select { |k| k =~ /vim\..*Mode/ }
 keys.each do |key|
   puts ['#', key.gsub('ModeKeyBindingsNonRecursive', '').gsub('vim.', ''), 'mode'].join(' ').upcase
   puts

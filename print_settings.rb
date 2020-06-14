@@ -7,6 +7,7 @@ keys = json.keys.select { |k| k =~ /Mode/ }
 keys.each do |key|
   puts ['#', key.gsub('ModeKeyBindingsNonRecursive', '').gsub('vim.', ''), 'mode'].join(' ').upcase
   puts
+  puts "```"
   json[key].each do |cmd|
     shortcut = cmd['before'].join(" ").ljust(22)
     commands = cmd['commands']
@@ -20,11 +21,12 @@ keys.each do |key|
 
     desc = full_desc.shift.ljust(40)
 
-    other_desc = full_desc.join(" ")
+    # other_desc = full_desc.join(" ")
+    other_desc = nil
 
     output = [shortcut, desc, other_desc ]
-    puts output.join(" ")
+    puts output.join(" ").strip
   end
-  puts
+  puts "```"
   puts
 end

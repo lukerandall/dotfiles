@@ -122,23 +122,7 @@ alias ..='cd ..'
 alias spec='spec -c'
 alias heroku='nocorrect heroku'
 
-alias gap='git add -p'
-alias gb='git branch'
-alias gc='git commit -v'
-alias gca='git commit -a -v'
-alias gco="git checkout"
-alias gd='git diff'
-alias gdc='git diff --cached'
-alias gdh='git diff HEAD'
-alias gl='git pull'
-alias glod='git log --oneline --decorate'
-alias gp='git push'
-alias gpr='git pull --rebase'
 alias grep='grep --color=auto --exclude="*~"'
-alias gst='git status'
-alias gr='git rebase'
-alias grc='git rebase --continue'
-alias gra='git rebase --abort'
 
 # heroku
 alias stage='git push staging HEAD:master'

@@ -1,0 +1,5 @@
+brew "fzf"
+brew "overmind"
+brew "ripgrep"
+brew "starship"
+brew "wget"

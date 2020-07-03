@@ -1,4 +1,7 @@
 path=(
+  "$HOME/.local/bin"
+  "$HOME/.rbenv/shims"
+  "$HOME/.cargo/bin"
   /usr/local/bin
   /usr/bin
   /bin

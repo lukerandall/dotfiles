@@ -1,4 +1,5 @@
 brew "fzf"
+brew "jq"
 brew "overmind"
 brew "ripgrep"
 brew "starship"

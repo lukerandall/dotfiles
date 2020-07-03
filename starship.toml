@@ -1,0 +1,38 @@
+prompt_order = [
+    "username",
+    "hostname",
+    "kubernetes",
+    "git_branch",
+    "git_commit",
+    "git_state",
+    "git_status",
+    "docker_context",
+    "package",
+    "elixir",
+    "erlang",
+    "golang",
+    "nodejs",
+    "python",
+    "ruby",
+    "rust",
+    "terraform",
+    "memory_usage",
+    "aws",
+    "env_var",
+    "crystal",
+    "cmd_duration",
+    "custom",
+    "line_break",
+    "jobs",
+    "battery",
+    "time",
+    "directory",
+    "character"
+]
+
+[git_branch]
+symbol = ""
+style = "bold green"
+
+[ruby]
+symbol = "🆁 "

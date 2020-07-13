@@ -112,17 +112,6 @@
         {
             "before": [
                 "<leader>",
-                "l",
-                "d"
-            ],
-            "commands": [
-                "workbench.action.closeFolder"
-            ],
-            "description": "Close folder"
-        },
-        {
-            "before": [
-                "<leader>",
                 "j",
                 "="
             ],
@@ -228,6 +217,17 @@
                 "workbench.action.quickOpen"
             ],
             "description": "Project: Find file in project"
+        },
+        {
+            "before": [
+                "<leader>",
+                "p",
+                "c"
+            ],
+            "commands": [
+                "workbench.action.closeFolder"
+            ],
+            "description": "Project: Close"
         },
         {
             "before": [
@@ -480,6 +480,18 @@
                 "workbench.action.closeEditorsInOtherGroups"
             ],
             "description": "Window: Maximise"
+        },
+        {
+            "before": [
+                "<leader>",
+                "w",
+                "M"
+            ],
+            "commands": [
+                "workbench.action.closeEditorsInOtherGroups",
+                "workbench.action.closeOtherEditors"
+            ],
+            "description": "Window: Maximise and close all others"
         },
         {
             "before": [

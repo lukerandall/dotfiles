@@ -32,6 +32,7 @@
 	co = checkout
     rc = rebase --continue
     ra = rebase --abort
+    rs = rebase --skip
 	ma = checkout master
 	pr = checkout production
     prom = pull --rebase origin master

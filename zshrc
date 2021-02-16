@@ -1,6 +1,7 @@
 path=(
   "$HOME/.local/bin"
   "$HOME/.rbenv/shims"
+  "$HOME/.pyenv"
   "$HOME/.cargo/bin"
   /usr/local/bin
   /usr/bin
@@ -138,6 +139,8 @@ zrcl="$HOME/.zshrc.local"
 # enable rbenv
 if which rbenv > /dev/null; then eval "$(rbenv init -)"; fi
 
+export PYENV_ROOT="$HOME/.pyenv"
+
 export PATH="./bin:$PATH"
 
 export YVM_DIR=/usr/local/opt/yvm
@@ -148,3 +151,7 @@ alias start-nvm='[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" && [ -s "$NVM_
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
 eval "$(starship init zsh)"
+if command -v pyenv 1>/dev/null 2>&1; then
+  eval "$(pyenv init -)"
+  eval "$(pyenv virtualenv-init -)"
+fi

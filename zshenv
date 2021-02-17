@@ -26,6 +26,7 @@ export LESS=FRX
 
 # zoxide
 eval "$(zoxide init zsh)"
+alias zf=__zoxide_zi
 
 function vi_mode_prompt_info() {
   echo "${${KEYMAP/vicmd/$MODE_INDICATOR}/(main|viins)/}"

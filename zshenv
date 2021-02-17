@@ -24,8 +24,8 @@ export ZLS_COLORS=$LSCOLORS
 export LC_CTYPE=en_US.UTF-8
 export LESS=FRX
 
-# z
-source '/usr/local/opt/z/etc/profile.d/z.sh'
+# zoxide
+eval "$(zoxide init zsh)"
 
 function vi_mode_prompt_info() {
   echo "${${KEYMAP/vicmd/$MODE_INDICATOR}/(main|viins)/}"

@@ -94,7 +94,7 @@ if command -v pyenv 1>/dev/null 2>&1; then
 fi
 
 # actually export path
-export PATH=$PATH
+export PATH="$HOME/.rbenv/shims:$HOME/.local/bin:$HOME/.pyenv:$HOME/.cargo/bin:$PATH"
 
 # yvm & nvm
 export YVM_DIR=/usr/local/opt/yvm

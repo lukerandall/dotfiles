@@ -1,6 +1,6 @@
 path=(
-  "$HOME/.local/bin"
   "$HOME/.rbenv/shims"
+  "$HOME/.local/bin"
   "$HOME/.pyenv"
   "$HOME/.cargo/bin"
   /usr/local/bin

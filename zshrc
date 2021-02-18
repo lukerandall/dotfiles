@@ -1,3 +1,59 @@
+path=(
+  "$HOME/.rbenv/shims"
+  "$HOME/.local/bin"
+  "$HOME/.pyenv"
+  "$HOME/.cargo/bin"
+  /usr/local/bin
+  /usr/bin
+  /bin
+  /usr/sbin
+  /sbin
+)
+
+fpath=(
+  $fpath
+  ~/.zsh/functions
+  /usr/local/share/zsh-completions
+  /usr/local/share/zsh/site-functions
+)
+
+# color term
+export CLICOLOR=1
+export LSCOLORS=Dxfxcxdxbxegedabadacad
+export ZLS_COLORS=$LSCOLORS
+export LC_CTYPE=en_US.UTF-8
+export LESS=FRX
+
+# zoxide
+eval "$(zoxide init zsh)"
+alias zf=__zoxide_zi
+
+function vi_mode_prompt_info() {
+  echo "${${KEYMAP/vicmd/$MODE_INDICATOR}/(main|viins)/}"
+}
+
+# if mode indicator wasn't setup by theme, define default
+if [[ "$MODE_INDICATOR" == "" ]]; then
+  MODE_INDICATOR="%{$fg_bold[red]%}^%{$reset_color%}"
+fi
+
+# define right prompt, if it wasn't defined by a theme
+if [[ "$RPS1" == "" && "$RPROMPT" == "" ]]; then
+  RPS1='$(vi_mode_prompt_info)'
+fi
+
+# history
+HISTFILE=~/.zsh_history
+HISTSIZE=5000
+SAVEHIST=10000
+setopt APPEND_HISTORY
+setopt INC_APPEND_HISTORY
+
+
+# default apps
+(( ${+PAGER}   )) || export PAGER='less'
+(( ${+EDITOR}  )) || export EDITOR='vim'
+export PSQL_EDITOR='vim -c"set syntax=sql"'
 # autocompletion
 autoload -U compinit; compinit
 
@@ -94,9 +150,6 @@ if command -v pyenv 1>/dev/null 2>&1; then
   eval "$(pyenv virtualenv-init -)"
 fi
 
-# actually export path
-export PATH="$HOME/.rbenv/shims:$HOME/.local/bin:$HOME/.pyenv:$HOME/.cargo/bin:$PATH"
-
 # yvm & nvm
 export YVM_DIR=/usr/local/opt/yvm
 [ -r $YVM_DIR/yvm.sh ] && . $YVM_DIR/yvm.sh
@@ -131,3 +184,4 @@ zinit light-mode for \
 
 zinit light reegnz/jq-zsh-plugin
 bindkey '\e.' jq-complete
+

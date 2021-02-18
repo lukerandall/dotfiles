@@ -104,7 +104,7 @@ function zshaddhistory() {
 }
 
 # Shows recent commands run in the pwd
-alias jog='grep -a "${PWD}   " ~/.zsh_history_ext | cat | cut -f1 -d"|" | tail'
+alias jog='grep -a "${PWD}   " ~/.zsh_history_ext | cat | cut -f1 -d"|" | fzf --bind "f1:execute(less -f {}),ctrl-y:execute-silent(echo {} | pbcopy)+abort"'
 
 # default apps
 (( ${+PAGER}   )) || export PAGER='less'
@@ -159,6 +159,8 @@ export NVM_DIR="$HOME/.nvm"
 
 # fzf
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+export FZF_DEFAULT_OPTS='--height 40% --layout=reverse'
+export FZF_DEFAULT_COMMAND='fd --type f'
 
 # zoxide
 eval "$(zoxide init zsh)"

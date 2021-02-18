@@ -63,6 +63,7 @@ alias cp='nocorrect cp'
 alias mkdir='nocorrect mkdir'
 alias spec='nocorrect spec'
 alias rspec='nocorrect rspec'
+alias changed-specs='git ls-files --modified --others spec'
 alias ll="ls -l"
 alias la="ls -a"
 alias l.='ls -ld .[^.]*'

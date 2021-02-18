@@ -24,6 +24,14 @@ export ZLS_COLORS=$LSCOLORS
 export LC_CTYPE=en_US.UTF-8
 export LESS=FRX
 
+# Store history by directory
+function zshaddhistory() {
+	echo "${1%%$'\n'}|${PWD}   " >> ~/.zsh_history_ext
+}
+
+# Show recent commands in the pwd
+alias jog='grep -a "${PWD}   " ~/.zsh_history_ext | cat | cut -f1 -d"|" | tail'
+
 # zoxide
 eval "$(zoxide init zsh)"
 alias zf=__zoxide_zi
@@ -184,4 +192,3 @@ zinit light-mode for \
 
 zinit light reegnz/jq-zsh-plugin
 bindkey '\e.' jq-complete
-

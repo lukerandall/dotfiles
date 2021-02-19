@@ -3,6 +3,7 @@ path=(
   "$HOME/.rbenv/shims"
   "$HOME/.pyenv"
   "$HOME/.cargo/bin"
+  "$HOME/.zinit/plugins/bigH---git-fuzzy/bin"
   /usr/local/bin
   /usr/bin
   /bin
@@ -125,6 +126,7 @@ alias ll="ls -l"
 alias la="ls -a"
 alias l.='ls -ld .[^.]*'
 alias lsd='ls -ld *(-/DN)'
+alias gf='git fuzzy'
 alias rspec='nocorrect rspec'
 alias changed-specs='git ls-files --modified --others spec'
 
@@ -187,7 +189,8 @@ autoload -Uz _zinit
 zinit light-mode for \
     zinit-zsh/z-a-as-monitor \
     zinit-zsh/z-a-patch-dl \
-    zinit-zsh/z-a-bin-gem-node
+    zinit-zsh/z-a-bin-gem-node \
+    bigH/git-fuzzy \
+    reegnz/jq-zsh-plugin
 
-zinit light reegnz/jq-zsh-plugin
 bindkey '\e.' jq-complete

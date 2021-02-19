@@ -189,7 +189,6 @@ autoload -Uz _zinit
 zinit light-mode for \
     zinit-zsh/z-a-as-monitor \
     zinit-zsh/z-a-patch-dl \
-    zinit-zsh/z-a-bin-gem-node \
     bigH/git-fuzzy \
     reegnz/jq-zsh-plugin
 

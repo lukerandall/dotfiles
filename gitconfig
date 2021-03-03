@@ -58,14 +58,23 @@
 [core]
 	editor = vim
 	excludesfile = /Users/luke/.gitignore_global
+    pager = delta
+
+[delta]
+    plus-color = "#012800"
+    minus-color = "#340001"
+    syntax-theme = Monokai Extended
+
+[interactive]
+    singlekey = true
+    diffFilter = delta --color-only
+
 [push]
 	default = current
 [branch]
 	autosetuprebase = always
 [difftool]
 	prompt = false
-[interactive]
-	singlekey = true
 [merge]
 	summary = true
 

@@ -231,6 +231,7 @@ zinit light-mode for \
     zinit-zsh/z-a-patch-dl \
     bigH/git-fuzzy \
     reegnz/jq-zsh-plugin \
-    chitoku-k/fzf-zsh-completions
+    chitoku-k/fzf-zsh-completions \
+    Aloxaf/fzf-tab
 
 bindkey '\e.' jq-complete

@@ -36,3 +36,6 @@ style = "bold green"
 
 [ruby]
 symbol = "🆁 "
+
+[kubernetes]
+disabled = false

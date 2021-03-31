@@ -105,7 +105,7 @@ function zshaddhistory() {
 }
 
 # Shows recent commands run in the pwd
-alias jog='grep -a "${PWD}   " ~/.zsh_history_ext | cat | cut -f1 -d"|" | fzf --bind "f1:execute(less -f {}),ctrl-y:execute-silent(echo {} | pbcopy)+abort"'
+alias jog='grep -a "${PWD}   " ~/.zsh_history_ext | cat | cut -f1 -d"|" | fzf --bind "f1:execute(less -f {})" | tr -d "\n" | pbcopy'
 
 # default apps
 (( ${+PAGER}   )) || export PAGER='less'

@@ -127,6 +127,7 @@ alias la="ls -a"
 alias l.='ls -ld .[^.]*'
 alias lsd='ls -ld *(-/DN)'
 alias rspec='nocorrect rspec'
+alias gh-open='gh repo view --web'
 
 # git functions & aliases
 alias changed-specs='git ls-files --modified --others spec'

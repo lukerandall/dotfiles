@@ -31,43 +31,43 @@
 	br = branch
 	ci = commit
 	co = checkout
-    rc = rebase --continue
-    ra = rebase --abort
-    rs = rebase --skip
+	rc = rebase --continue
+	ra = rebase --abort
+	rs = rebase --skip
 	ma = checkout master
 	pr = checkout production
-    prom = pull --rebase origin master
+	prom = pull --rebase origin master
 	st = status
 	staged = diff --staged
-    pruneremote = remote prune origin
-    pus = push
-    puhs = push
-    pra = pull --rebase --autostash
+	pruneremote = remote prune origin
+	pus = push
+	puhs = push
+	pra = pull --rebase --autostash
 
 	# show difference between working tree and the index
 	unstaged = diff
 
 	# show staged and unstaged changes (what would be committed with "git commit -a")
 	both = diff HEAD
-    df = diff --color --color-words --abbrev
-    st = status -s
-    l = log --graph --pretty=oneline --abbrev-commit --decorate
+	df = diff --color --color-words --abbrev
+	st = status -s
+	l = log --graph --pretty=oneline --abbrev-commit --decorate
 	lg = log --color --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
 	grog = log --graph --abbrev-commit --decorate --all --format=format:\"%C(bold blue)%h%C(reset) - %C(bold cyan)%aD%C(dim white) - %an%C(reset) %C(bold green)(%ar)%C(reset)%C(bold yellow)%d%C(reset)%n %C(white)%s%C(reset)\"
 
 [core]
 	editor = vim
 	excludesfile = /Users/luke/.gitignore_global
-    pager = delta
+	pager = delta
 
 [delta]
-    plus-color = "#012800"
-    minus-color = "#340001"
-    syntax-theme = Monokai Extended
+	plus-color = "#012800"
+	minus-color = "#340001"
+	syntax-theme = Monokai Extended
 
 [interactive]
-    singlekey = true
-    diffFilter = delta --color-only
+	singlekey = true
+	diffFilter = delta --color-only
 
 [push]
 	default = current

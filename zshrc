@@ -133,6 +133,7 @@ alias gh-open='gh repo view --web'
 # git functions & aliases
 alias changed-specs='git ls-files --modified --others spec'
 alias gf='git fuzzy'
+alias pushf='git push origin $(git branch --show-current) -f'
 
 function delete-branches() {
   git branch |

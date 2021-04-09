@@ -38,4 +38,4 @@ style = "bold green"
 symbol = "🆁 "
 
 [kubernetes]
-disabled = false
+disabled = true

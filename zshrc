@@ -127,6 +127,7 @@ alias la="ls -a"
 alias l.='ls -ld .[^.]*'
 alias lsd='ls -ld *(-/DN)'
 alias rspec='nocorrect rspec'
+alias serve='python3 -m http.server -b localhost'
 alias gh-open='gh repo view --web'
 
 # git functions & aliases

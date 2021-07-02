@@ -237,3 +237,6 @@ zinit light-mode for \
     Aloxaf/fzf-tab
 
 bindkey '\e.' jq-complete
+
+export MCFLY_FUZZY=true
+eval "$(mcfly init zsh)"

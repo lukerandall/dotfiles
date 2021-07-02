@@ -41,7 +41,7 @@ zstyle ':completion:*:functions' ignored-patterns '_*'
 autoload colors; colors
 
 # options
-setopt appendhistory autocd extendedglob histignoredups nonomatch prompt_subst
+setopt autocd extendedglob nonomatch prompt_subst
 
 # enable mode indication
 function zle-line-init zle-keymap-select {
@@ -96,16 +96,9 @@ bindkey -s "^T" "^[Isudo ^[A" # "t" for "toughguy"
 HISTFILE=~/.zsh_history
 HISTSIZE=5000
 SAVEHIST=10000
-setopt APPEND_HISTORY
-setopt INC_APPEND_HISTORY
-
-# Store history by directory
-function zshaddhistory() {
-  echo "${1%%$'\n'}|${PWD}   " >> ~/.zsh_history_ext
-}
-
-# Shows recent commands run in the pwd
-alias jog='grep -a "${PWD}   " ~/.zsh_history_ext | cat | cut -f1 -d"|" | fzf --bind "f1:execute(less -f {})" | tr -d "\n" | pbcopy'
+setopt append_history          # append to history file
+setopt inc_append_history      # write to the history file immediately, not when the shell exits
+setopt hist_ignore_dups        # don't record an event that was just recorded again
 
 # default apps
 (( ${+PAGER}   )) || export PAGER='less'

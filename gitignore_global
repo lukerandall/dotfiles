@@ -10,3 +10,6 @@ dist/
 TAGS
 .tern-port
 .gitconfig.local
+.direnv
+.envrc
+.vscode

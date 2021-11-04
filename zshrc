@@ -234,3 +234,4 @@ bindkey '\e.' jq-complete
 
 export MCFLY_FUZZY=true
 eval "$(mcfly init zsh)"
+eval "$(direnv hook zsh)"

@@ -9,3 +9,4 @@ dist/
 *.hi
 TAGS
 .tern-port
+.gitconfig.local

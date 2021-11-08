@@ -224,6 +224,7 @@ autoload -Uz _zinit
 
 zinit ice depth=1
 zinit light-mode for \
+    zsh-users/zsh-autosuggestions \
     zinit-zsh/z-a-as-monitor \
     zinit-zsh/z-a-patch-dl \
     bigH/git-fuzzy \

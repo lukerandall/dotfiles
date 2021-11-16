@@ -222,18 +222,42 @@ source "$HOME/.zinit/bin/zinit.zsh"
 autoload -Uz _zinit
 (( ${+_comps} )) && _comps[zinit]=_zinit
 
+jog() {
+    sqlite3 $HOME/.histdb/zsh-history.db "
+  SELECT
+    replace(commands.argv, '
+    ', '
+  ')
+  FROM commands
+  JOIN history ON history.command_id = commands.id
+  JOIN places ON history.place_id = places.id
+  WHERE history.exit_status = 0
+  AND dir = '${PWD}'
+  AND places.host = '${HOST}'
+  AND commands.argv != 'jog'
+  AND commands.argv NOT LIKE 'z %'
+  AND commands.argv NOT LIKE 'cd %'
+  AND commands.argv != '..'
+  ORDER BY start_time DESC
+  LIMIT 10
+  "
+}
+
+HISTDB_TABULATE_CMD=(sed -e $'s/\x1f/\t/g')
+
 zinit ice depth=1
 zinit light-mode for \
-    zsh-users/zsh-autosuggestions \
     zinit-zsh/z-a-as-monitor \
     zinit-zsh/z-a-patch-dl \
+    zsh-users/zsh-autosuggestions \
+    zsh-users/zsh-completions \
+    zsh-users/zaw \
     bigH/git-fuzzy \
     reegnz/jq-zsh-plugin \
     chitoku-k/fzf-zsh-completions \
-    Aloxaf/fzf-tab
+    Aloxaf/fzf-tab \
+    larkery/zsh-histdb
 
 bindkey '\e.' jq-complete
 
-export MCFLY_FUZZY=true
-eval "$(mcfly init zsh)"
 eval "$(direnv hook zsh)"

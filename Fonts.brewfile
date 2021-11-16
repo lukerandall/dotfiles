@@ -1,0 +1,13 @@
+tap 'homebrew/cask-fonts'
+
+cask 'font-fira-code'
+cask 'font-monoid'
+cask 'font-hack'
+cask 'font-iosevka'
+cask 'font-jetbrains-mono'
+cask 'font-fantasque-sans-mono'
+cask 'font-anonymous-pro'
+cask 'font-inconsolata'
+cask 'font-victor-mono'
+cask 'font-space-mono'
+cask 'font-hasklig'

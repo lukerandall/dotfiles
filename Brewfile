@@ -11,7 +11,7 @@ mas 'Lungo',          id: 1263070803
 mas 'Magic Lasso',    id: 1198047227
 mas 'Moom',           id: 419330170
 mas 'NotePlan 3',     id: 1505432629
-mas "Parcel",         id: 639968404
+mas 'Parcel',         id: 639968404
 mas 'Slack',          id: 803453959
 mas 'StopTheMadness', id: 1376402589
 mas 'Tailscale',      id: 1475387142
@@ -19,7 +19,7 @@ mas 'Vimari',         id: 1480933944
 # rubocop:enable Style/NumericLiterals
 
 tap 'heroku/brew'
-tap "tylerbrock/saw"
+tap 'tylerbrock/saw'
 
 brew 'awscli'
 brew 'bat'
@@ -57,6 +57,7 @@ cask 'mimestream'
 cask 'platypus'
 cask 'postgres-unofficial'
 cask 'raycast'
+cask 'session-manager-plugin'
 cask 'setapp'
 cask 'textexpander'
 cask 'visual-studio-code'

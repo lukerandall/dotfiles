@@ -239,8 +239,8 @@ jog() {
   AND commands.argv NOT LIKE 'cd %'
   AND commands.argv != '..'
   ORDER BY start_time DESC
-  LIMIT 10
-  "
+  LIMIT 50
+  " | fzf --no-sort | tee /dev/tty | tr -d "\n" | pbcopy
 }
 
 HISTDB_TABULATE_CMD=(sed -e $'s/\x1f/\t/g')

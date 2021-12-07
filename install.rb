@@ -12,3 +12,4 @@ end
 
 `mkdir -p ~/.config`
 puts `ln -svf #{File.expand_path "starship.toml"} #{home}/.config/starship.toml`
+puts `ln -svf #{File.expand_path "fish"} #{home}/.config/`

@@ -6,3 +6,4 @@ oh-my-fish/plugin-tab
 oh-my-fish/plugin-aws
 oh-my-fish/plugin-pyenv
 rbenv/fish-rbenv
+jorgebucaran/autopair.fish

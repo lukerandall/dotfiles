@@ -1,5 +1,11 @@
 # This file contains fish universal variable definitions.
 # VERSION: 3.0
+SETUVAR FZF_DEFAULT_OPTS:\x2d\x2dheight\x2040\x25
+SETUVAR FZF_DISABLE_KEYBINDINGS:0
+SETUVAR FZF_LEGACY_KEYBINDINGS:1
+SETUVAR FZF_PREVIEW_DIR_CMD:ls
+SETUVAR FZF_PREVIEW_FILE_CMD:head\x20\x2dn\x2010
+SETUVAR FZF_TMUX_HEIGHT:40\x25
 SETUVAR __fish_initialized:3100
 SETUVAR _fish_abbr_be:bundle\x20exec
 SETUVAR _fish_abbr_fetch__db:heroku\x20pg\x3abackups\x20capture\x20\x2d\x2dexpire\x20\x26\x26\x20curl\x20\x2do\x20latest\x2edump\x20\x28heroku\x20pg\x3abackups\x20public\x2durl\x29
@@ -7,6 +13,7 @@ SETUVAR _fish_abbr_pushf:git\x20push\x20origin\x20\x28git\x20branch\x20\x2d\x2ds
 SETUVAR _fish_abbr_restore__db:pg_restore\x20\x2d\x2dverbose\x20\x2d\x2dclean\x20\x2d\x2dno\x2dacl\x20\x2d\x2dno\x2downer\x20\x2dh\x20localhost\x20\x2dU\x20luke\x20latest\x2edump\x20\x2dd
 SETUVAR _fish_abbr_serve:python3\x20\x2dm\x20http\x2eserver\x20\x2db\x20localhost
 SETUVAR _fisher_franciscolourenco_2F_done_files:/Users/luke/\x2econfig/fish/conf\x2ed/done\x2efish
+SETUVAR _fisher_jethrokuan_2F_fzf_files:/Users/luke/\x2econfig/fish/functions/__fzf_cd\x2efish\x1e/Users/luke/\x2econfig/fish/functions/__fzf_complete\x2efish\x1e/Users/luke/\x2econfig/fish/functions/__fzf_complete_preview\x2efish\x1e/Users/luke/\x2econfig/fish/functions/__fzf_find_file\x2efish\x1e/Users/luke/\x2econfig/fish/functions/__fzf_get_dir\x2efish\x1e/Users/luke/\x2econfig/fish/functions/__fzf_open\x2efish\x1e/Users/luke/\x2econfig/fish/functions/__fzf_parse_commandline\x2efish\x1e/Users/luke/\x2econfig/fish/functions/__fzf_reverse_isearch\x2efish\x1e/Users/luke/\x2econfig/fish/functions/__fzfcmd\x2efish\x1e/Users/luke/\x2econfig/fish/conf\x2ed/fzf\x2efish
 SETUVAR _fisher_jorgebucaran_2F_autopair_2E_fish_files:/Users/luke/\x2econfig/fish/functions/_autopair_backspace\x2efish\x1e/Users/luke/\x2econfig/fish/functions/_autopair_insert_left\x2efish\x1e/Users/luke/\x2econfig/fish/functions/_autopair_insert_right\x2efish\x1e/Users/luke/\x2econfig/fish/functions/_autopair_insert_same\x2efish\x1e/Users/luke/\x2econfig/fish/functions/_autopair_tab\x2efish\x1e/Users/luke/\x2econfig/fish/conf\x2ed/autopair\x2efish
 SETUVAR _fisher_jorgebucaran_2F_nvm_2E_fish_files:/Users/luke/\x2econfig/fish/functions/_nvm_index_update\x2efish\x1e/Users/luke/\x2econfig/fish/functions/_nvm_list\x2efish\x1e/Users/luke/\x2econfig/fish/functions/_nvm_version_activate\x2efish\x1e/Users/luke/\x2econfig/fish/functions/_nvm_version_deactivate\x2efish\x1e/Users/luke/\x2econfig/fish/functions/nvm\x2efish\x1e/Users/luke/\x2econfig/fish/conf\x2ed/nvm\x2efish\x1e/Users/luke/\x2econfig/fish/completions/nvm\x2efish
 SETUVAR _fisher_jorgebucaran_2F_spark_2E_fish_files:/Users/luke/\x2econfig/fish/functions/spark\x2efish\x1e/Users/luke/\x2econfig/fish/completions/spark\x2efish
@@ -14,7 +21,7 @@ SETUVAR _fisher_oh_2D_my_2D_fish_2F_plugin_2D_aws_files:/Users/luke/\x2econfig/f
 SETUVAR _fisher_oh_2D_my_2D_fish_2F_plugin_2D_brew_files:/Users/luke/\x2econfig/fish/conf\x2ed/brew\x2efish
 SETUVAR _fisher_oh_2D_my_2D_fish_2F_plugin_2D_pyenv_files:/Users/luke/\x2econfig/fish/functions/pyenv\x2efish\x1e/Users/luke/\x2econfig/fish/conf\x2ed/pyenv\x2efish\x1e/Users/luke/\x2econfig/fish/completions/pyenv\x2efish
 SETUVAR _fisher_oh_2D_my_2D_fish_2F_plugin_2D_tab_files:/Users/luke/\x2econfig/fish/functions/tab\x2eapple_terminal\x2efish\x1e/Users/luke/\x2econfig/fish/functions/tab\x2efish\x1e/Users/luke/\x2econfig/fish/functions/tab\x2egnome_terminal\x2efish\x1e/Users/luke/\x2econfig/fish/functions/tab\x2eguake\x2efish\x1e/Users/luke/\x2econfig/fish/functions/tab\x2eiterm\x2efish\x1e/Users/luke/\x2econfig/fish/functions/tab\x2eiterm\x2esplit\x2efish\x1e/Users/luke/\x2econfig/fish/functions/tab\x2eiterm\x2esplith\x2efish\x1e/Users/luke/\x2econfig/fish/functions/tab\x2eiterm_legacy\x2efish\x1e/Users/luke/\x2econfig/fish/functions/tab\x2eiterm_legacy\x2esplit\x2efish\x1e/Users/luke/\x2econfig/fish/functions/tab\x2eiterm_legacy\x2esplith\x2efish\x1e/Users/luke/\x2econfig/fish/functions/tab\x2ekonsole\x2efish\x1e/Users/luke/\x2econfig/fish/functions/tab\x2exfce4_terminal\x2efish
-SETUVAR _fisher_plugins:jorgebucaran/nvm\x2efish\x1ejorgebucaran/spark\x2efish\x1efranciscolourenco/done\x1eoh\x2dmy\x2dfish/plugin\x2dbrew\x1eoh\x2dmy\x2dfish/plugin\x2dtab\x1eoh\x2dmy\x2dfish/plugin\x2daws\x1eoh\x2dmy\x2dfish/plugin\x2dpyenv\x1erbenv/fish\x2drbenv\x1ejorgebucaran/autopair\x2efish
+SETUVAR _fisher_plugins:jorgebucaran/nvm\x2efish\x1ejorgebucaran/spark\x2efish\x1efranciscolourenco/done\x1eoh\x2dmy\x2dfish/plugin\x2dbrew\x1eoh\x2dmy\x2dfish/plugin\x2dtab\x1eoh\x2dmy\x2dfish/plugin\x2daws\x1eoh\x2dmy\x2dfish/plugin\x2dpyenv\x1erbenv/fish\x2drbenv\x1ejorgebucaran/autopair\x2efish\x1ejethrokuan/fzf
 SETUVAR _fisher_rbenv_2F_fish_2D_rbenv_files:/Users/luke/\x2econfig/fish/functions/rbenv\x2efish\x1e/Users/luke/\x2econfig/fish/conf\x2ed/rbenv\x2efish\x1e/Users/luke/\x2econfig/fish/completions/rbenv\x2efish
 SETUVAR fish_color_autosuggestion:555\x1ebrblack
 SETUVAR fish_color_cancel:\x2dr

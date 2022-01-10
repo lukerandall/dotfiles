@@ -31,6 +31,7 @@
 	br = branch
 	ci = commit
 	co = checkout
+	cp = cherry-pick
 	rc = rebase --continue
 	ra = rebase --abort
 	rs = rebase --skip
@@ -95,3 +96,5 @@
 	helper = osxkeychain
 [pull]
 	rebase = true
+[init]
+	defaultBranch = main

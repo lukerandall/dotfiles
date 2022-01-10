@@ -4,8 +4,11 @@ SETUVAR __fish_initialized:3100
 SETUVAR _fish_abbr_be:bundle\x20exec
 SETUVAR _fish_abbr_fetch__db:heroku\x20pg\x3abackups\x20capture\x20\x2d\x2dexpire\x20\x26\x26\x20curl\x20\x2do\x20latest\x2edump\x20\x28heroku\x20pg\x3abackups\x20public\x2durl\x29
 SETUVAR _fish_abbr_pushf:git\x20push\x20origin\x20\x28git\x20branch\x20\x2d\x2dshow\x2dcurrent\x29\x20\x2df
+SETUVAR _fish_abbr_restart_2D_screen_2D_sharing:sudo\x20defaults\x20write\x20/var/db/launchd\x2edb/com\x2eapple\x2elaunchd/overrides\x2eplist\x20com\x2eapple\x2escreensharing\x20\x2ddict\x20Disabled\x20\x2dbool\x20true\x3b\x20sudo\x20launchctl\x20unload\x20\x2dw\x20/System/Library/LaunchDaemons/com\x2eapple\x2escreensharing\x2eplist\x3b\x20sudo\x20defaults\x20write\x20/var/db/launchd\x2edb/com\x2eapple\x2elaunchd/overrides\x2eplist\x20com\x2eapple\x2escreensharing\x20\x2ddict\x20Disabled\x20\x2dbool\x20false\x20\x26\x26\x20sudo\x20launchctl\x20load\x20\x2dw\x20/System/Library/LaunchDaemons/com\x2eapple\x2escreensharing\x2eplist
 SETUVAR _fish_abbr_restore__db:pg_restore\x20\x2d\x2dverbose\x20\x2d\x2dclean\x20\x2d\x2dno\x2dacl\x20\x2d\x2dno\x2downer\x20\x2dh\x20localhost\x20\x2dU\x20luke\x20latest\x2edump\x20\x2dd
 SETUVAR _fish_abbr_serve:python3\x20\x2dm\x20http\x2eserver\x20\x2db\x20localhost
+SETUVAR _fish_abbr_tag_2D_staging:git\x20tag\x20\x2dd\x20staging\x3b\x20git\x20tag\x20staging\x20\x26\x26\x20git\x20push\x20\x2d\x2dtags\x20\x2d\x2dforce
+SETUVAR _fish_abbr_tf:terraform
 SETUVAR _fisher_PatrickF1_2F_fzf_2E_fish_files:/Users/luke/\x2econfig/fish/functions/_fzf_configure_bindings_help\x2efish\x1e/Users/luke/\x2econfig/fish/functions/_fzf_extract_var_info\x2efish\x1e/Users/luke/\x2econfig/fish/functions/_fzf_preview_file\x2efish\x1e/Users/luke/\x2econfig/fish/functions/_fzf_report_file_type\x2efish\x1e/Users/luke/\x2econfig/fish/functions/_fzf_search_directory\x2efish\x1e/Users/luke/\x2econfig/fish/functions/_fzf_search_git_log\x2efish\x1e/Users/luke/\x2econfig/fish/functions/_fzf_search_git_status\x2efish\x1e/Users/luke/\x2econfig/fish/functions/_fzf_search_history\x2efish\x1e/Users/luke/\x2econfig/fish/functions/_fzf_search_variables\x2efish\x1e/Users/luke/\x2econfig/fish/functions/_fzf_wrapper\x2efish\x1e/Users/luke/\x2econfig/fish/functions/fzf_configure_bindings\x2efish\x1e/Users/luke/\x2econfig/fish/conf\x2ed/fzf\x2efish\x1e/Users/luke/\x2econfig/fish/completions/fzf_configure_bindings\x2efish
 SETUVAR _fisher_franciscolourenco_2F_done_files:/Users/luke/\x2econfig/fish/conf\x2ed/done\x2efish
 SETUVAR _fisher_jorgebucaran_2F_autopair_2E_fish_files:/Users/luke/\x2econfig/fish/functions/_autopair_backspace\x2efish\x1e/Users/luke/\x2econfig/fish/functions/_autopair_insert_left\x2efish\x1e/Users/luke/\x2econfig/fish/functions/_autopair_insert_right\x2efish\x1e/Users/luke/\x2econfig/fish/functions/_autopair_insert_same\x2efish\x1e/Users/luke/\x2econfig/fish/functions/_autopair_tab\x2efish\x1e/Users/luke/\x2econfig/fish/conf\x2ed/autopair\x2efish
@@ -44,7 +47,7 @@ SETUVAR fish_pager_color_completion:\x1d
 SETUVAR fish_pager_color_description:B3A06D\x1eyellow
 SETUVAR fish_pager_color_prefix:normal\x1e\x2d\x2dbold\x1e\x2d\x2dunderline
 SETUVAR fish_pager_color_progress:brwhite\x1e\x2d\x2dbackground\x3dcyan
-SETUVAR fish_user_paths:/opt/homebrew/bin\x1e/Users/luke/\x2erbenv/shims\x1e/Applications/Postgres\x2eapp/Contents/Versions/latest/bin
+SETUVAR fish_user_paths:/Users/luke/Code/go/bin\x1e/Users/luke/\x2ecargo/bin\x1e/Applications/Docker\x2eapp/Contents/Resources/bin\x1e/opt/homebrew/bin\x1e/Users/luke/\x2erbenv/shims\x1e/Applications/Postgres\x2eapp/Contents/Versions/latest/bin
 SETUVAR fzf_fd_opts:\x2d\x2dhidden\x1e\x2d\x2dexclude\x3d\x2egit
 SETUVAR nvm_data:/Users/luke/\x2elocal/share/nvm
 SETUVAR nvm_mirror:https\x3a//nodejs\x2eorg/dist

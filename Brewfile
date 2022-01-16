@@ -12,6 +12,7 @@ mas 'Magic Lasso',    id: 1198047227
 mas 'Moom',           id: 419330170
 mas 'NotePlan 3',     id: 1505432629
 mas 'Parcel',         id: 639968404
+mas 'Peek',           id: 1554235898
 mas 'Slack',          id: 803453959
 mas 'StopTheMadness', id: 1376402589
 mas 'Tailscale',      id: 1475387142

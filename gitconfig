@@ -62,9 +62,24 @@
 	pager = delta
 
 [delta]
-	plus-color = "#012800"
-	minus-color = "#340001"
+  features = decorations
+  line-numbers = true
 	syntax-theme = Monokai Extended
+
+[delta "interactive"]
+keep-plus-minus-markers = false
+
+[delta "decorations"]
+	commit-decoration-style = blue ol
+	commit-style = raw
+# file-style = omit
+	hunk-header-decoration-style = blue ol ul
+	hunk-header-file-style = blue
+	hunk-header-style = file line-number syntax
+	line-numbers-zero-style = grey
+	line-numbers-minus-style = red
+	line-numbers-plus-style = green
+	line-numbers-left-format = "{nm:^4}| "
 
 [interactive]
 	singlekey = true

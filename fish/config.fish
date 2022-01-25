@@ -1,5 +1,6 @@
 set -x EDITOR nvim
 set -x GOPATH $HOME/Code/go
+set -x TZ_LIST "Europe/Berlin,Berlin;Africa/Johannesburg,South Africa;US/Arizona,Arizona;"
 
 fish_add_path /Applications/Postgres.app/Contents/Versions/latest/bin
 fish_add_path /Applications/Docker.app/Contents/Resources/bin/
@@ -24,6 +25,7 @@ abbr --add fetch_db "heroku pg:backups capture --expire && curl -o latest.dump (
 abbr --add restore_db "pg_restore --verbose --clean --no-acl --no-owner -h localhost -U $USER latest.dump -d"
 abbr --add tag-staging "git tag -d staging; git tag staging && git push --tags --force"
 abbr --add restart-screen-sharing "sudo defaults write /var/db/launchd.db/com.apple.launchd/overrides.plist com.apple.screensharing -dict Disabled -bool true; sudo launchctl unload -w /System/Library/LaunchDaemons/com.apple.screensharing.plist; sudo defaults write /var/db/launchd.db/com.apple.launchd/overrides.plist com.apple.screensharing -dict Disabled -bool false && sudo launchctl load -w /System/Library/LaunchDaemons/com.apple.screensharing.plist"
+abbr --add av aws-vault
 
 alias vim nvim
 alias cat bat

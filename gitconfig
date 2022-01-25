@@ -9,7 +9,7 @@
 
 [color]
 	branch = auto
-  	diff = auto
+	diff = auto
 	status = auto
 	ui = auto
 [color "branch"]
@@ -27,7 +27,6 @@
 	untracked = cyan
 
 [alias]
-	f = fuzzy
 	br = branch
 	ci = commit
 	co = checkout
@@ -62,17 +61,17 @@
 	pager = delta
 
 [delta]
-  features = decorations
-  line-numbers = true
+	navigate = true
+	features = decorations
+	line-numbers = true
 	syntax-theme = Monokai Extended
 
 [delta "interactive"]
-keep-plus-minus-markers = false
+	keep-plus-minus-markers = false
 
 [delta "decorations"]
 	commit-decoration-style = blue ol
 	commit-style = raw
-# file-style = omit
 	hunk-header-decoration-style = blue ol ul
 	hunk-header-file-style = blue
 	hunk-header-style = file line-number syntax
@@ -87,29 +86,34 @@ keep-plus-minus-markers = false
 
 [push]
 	default = current
+
 [branch]
 	autosetuprebase = always
+
+[diff]
+	colorMoved = default
+
 [difftool]
 	prompt = false
+
 [merge]
 	summary = true
+	conflictstyle = diff3
 
 [include]
 	path = ./.gitconfig.local
+
 [filter "lfs"]
 	required = true
 	process = git-lfs filter-process
 	clean = git-lfs clean -- %f
 	smudge = git-lfs smudge -- %f
-[difftool "sourcetree"]
-	cmd = opendiff \"$LOCAL\" \"$REMOTE\"
-	path =
-[mergetool "sourcetree"]
-	cmd = /Applications/Sourcetree.app/Contents/Resources/opendiff-w.sh \"$LOCAL\" \"$REMOTE\" -ancestor \"$BASE\" -merge \"$MERGED\"
-	trustExitCode = true
+
 [credential]
 	helper = osxkeychain
+
 [pull]
 	rebase = true
+
 [init]
 	defaultBranch = main

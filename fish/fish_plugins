@@ -8,3 +8,4 @@ oh-my-fish/plugin-pyenv
 rbenv/fish-rbenv
 jorgebucaran/autopair.fish
 PatrickF1/fzf.fish
+lilyball/nix-env.fish

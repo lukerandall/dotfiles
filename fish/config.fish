@@ -14,6 +14,7 @@ fish_vi_key_bindings
 
 zoxide init fish | source
 starship init fish | source
+atuin init fish | source
 
 status --is-interactive; and pyenv virtualenv-init - | source
 fzf_configure_bindings --directory=\ct --git_status=\cs --git_log=\cg --history=\cr --variables=\cv

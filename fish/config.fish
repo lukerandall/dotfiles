@@ -9,6 +9,12 @@ fish_add_path "$HOME/.rbenv/shims"
 fish_add_path "$HOME/.cargo/bin"
 fish_add_path "$GOPATH/bin"
 
+function fish_greeting
+  echo
+  echo "Search Bindings"
+  echo "Dir C-t   Git Log C-g   Git Status C-s   History C-h   Env C-v"
+end
+
 set fish_greeting 
 fish_vi_key_bindings
 

@@ -31,6 +31,9 @@
 	ci = commit
 	co = checkout
 	cp = cherry-pick
+	cpa = cherry-pick --abort
+	cpc = cherry-pick --continue
+	cps = cherry-pick --skip
 	ma = checkout main
 	pf = push -f
 	puhs = push

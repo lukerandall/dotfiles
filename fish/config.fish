@@ -12,14 +12,14 @@ fish_add_path "$GOPATH/bin"
 function fish_greeting
   echo
   echo "Search Bindings"
-  echo "Dir C-t   Git Log C-g   Git Status C-s   History C-h   Env C-v"
+  echo "Dir C-t   Git Log C-g   Git Status C-s   History C-h   Env C-v   Processes C-p"
 end
 
 set fish_greeting 
 fish_vi_key_bindings
 
 status --is-interactive; and pyenv virtualenv-init - | source
-fzf_configure_bindings --directory=\ct --git_status=\cs --git_log=\cg --history=\ch --variables=\cv
+fzf_configure_bindings --directory=\ct --git_status=\cs --git_log=\cg --history=\ch --variables=\cv --processes=\cp
 
 zoxide init fish | source
 starship init fish | source

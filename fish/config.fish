@@ -15,11 +15,16 @@ function fish_greeting
   echo "Dir C-t   Git Log C-g   Git Status C-s   History C-h   Env C-v   Processes C-p"
 end
 
-set fish_greeting 
+set fish_greeting
 fish_vi_key_bindings
 
 status --is-interactive; and pyenv virtualenv-init - | source
 fzf_configure_bindings --directory=\ct --git_status=\cs --git_log=\cg --history=\ch --variables=\cv --processes=\cp
+
+set LOCAL_CONFIG $HOME/.fish/local.fish
+if test -e $LOCAL_CONFIG
+  source $LOCAL_CONFIG
+end
 
 zoxide init fish | source
 starship init fish | source
@@ -32,10 +37,8 @@ abbr --add fetch_db "heroku pg:backups capture --expire && curl -o latest.dump (
 abbr --add restore_db "pg_restore --verbose --clean --no-acl --no-owner -h localhost -U $USER latest.dump -d"
 abbr --add tag-staging "git tag -d staging; git tag staging && git push --tags --force"
 abbr --add tag-test "git tag -d test; git tag test && git push --tags --force"
-abbr --add restart-screen-sharing "sudo defaults write /var/db/launchd.db/com.apple.launchd/overrides.plist com.apple.screensharing -dict Disabled -bool true; sudo launchctl unload -w /System/Library/LaunchDaemons/com.apple.screensharing.plist; sudo defaults write /var/db/launchd.db/com.apple.launchd/overrides.plist com.apple.screensharing -dict Disabled -bool false && sudo launchctl load -w /System/Library/LaunchDaemons/com.apple.screensharing.plist"
 
 alias vim nvim
 alias cat bat
 alias less bat
 alias ls exa
-

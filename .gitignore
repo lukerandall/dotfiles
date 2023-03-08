@@ -4,3 +4,4 @@ Brewfile.local.lock.json
 Brewfile.lock.json
 Fonts.brewfile.lock.json
 fish/local.fish
+fish/fish_variables

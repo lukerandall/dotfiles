@@ -9,7 +9,7 @@ mas 'Fantastical',    id: 975937182
 mas 'JSONPeep',       id: 1458969831
 mas 'Lungo',          id: 1263070803
 mas 'Magic Lasso',    id: 1198047227
-mas 'NotePlan 3',     id: 1505432629
+# mas 'NotePlan 3',     id: 1505432629 # installed via Setapp
 mas 'Parcel',         id: 639968404
 mas 'Peek',           id: 1554235898
 mas 'Slack',          id: 803453959
@@ -27,7 +27,6 @@ brew 'atuin'
 brew 'aws-sso-cli'
 brew 'awscli'
 brew 'bat'
-brew 'circleci'
 brew 'direnv'
 brew 'dog'
 brew 'dust'
@@ -66,6 +65,7 @@ brew 'xsv'
 brew 'zoxide'
 
 cask '1password-cli'
+cask 'arq'
 cask 'brave-browser'
 cask 'firefox'
 cask 'iterm2'
@@ -77,6 +77,5 @@ cask 'raycast'
 cask 'reflect'
 cask 'session-manager-plugin'
 cask 'setapp'
-cask 'textexpander'
 cask 'visual-studio-code'
 cask 'zoom'

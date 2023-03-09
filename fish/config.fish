@@ -16,7 +16,7 @@ function fish_greeting
 end
 
 set fish_greeting
-fish_vi_key_bindings
+set -g fish_key_bindings fish_hybrid_key_bindings
 
 status --is-interactive; and pyenv virtualenv-init - | source
 fzf_configure_bindings --directory=\ct --git_status=\cs --git_log=\cg --history=\ch --variables=\cv --processes=\cp

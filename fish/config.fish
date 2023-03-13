@@ -2,6 +2,7 @@ set -x EDITOR nvim
 set -x GOPATH $HOME/Code/go
 set -x TZ_LIST "Europe/Berlin,Berlin;Africa/Johannesburg,South Africa;US/Arizona,Arizona;US/Pacific"
 
+fish_add_path /opt/homebrew/bin
 fish_add_path /Applications/Postgres.app/Contents/Versions/latest/bin
 fish_add_path /Applications/Docker.app/Contents/Resources/bin/
 fish_add_path "$HOME/.local/bin"

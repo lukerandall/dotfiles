@@ -3,13 +3,32 @@ return {
   {
     "nvim-telescope/telescope.nvim",
     keys = {
-      -- add a keymap to browse plugin files
-      -- stylua: ignore
       {
         "<leader>fp",
-        function() require("telescope.builtin").find_files({ cwd = require("lazy.core.config").options.root }) end,
+        function()
+          require("telescope.builtin").find_files({ cwd = require("lazy.core.config").options.root })
+        end,
         desc = "Find Plugin File",
       },
+      {
+        "<leader>fm",
+        function()
+          require("telescope.builtin").marks()
+        end,
+        desc = "Find Marks",
+      },
+      {
+        "<leader>fu",
+        "<cmd>Telescope undo<cr>",
+        desc = "Find Undo",
+      },
+    },
+    dependencies = {
+      "nvim-telescope/telescope-fzf-native.nvim",
+      build = "make",
+      config = function()
+        require("telescope").load_extension("fzf")
+      end,
     },
     -- change some options
     opts = {
@@ -19,6 +38,13 @@ return {
         winblend = 0,
       },
     },
+  },
+
+  {
+    "debugloop/telescope-undo.nvim",
+    config = function()
+      require("telescope").load_extension("undo")
+    end,
   },
 
   {

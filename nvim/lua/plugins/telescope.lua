@@ -11,23 +11,21 @@ return {
         desc = "Find Plugin File",
       },
       {
-        "<leader>fm",
-        function()
-          require("telescope.builtin").marks()
-        end,
-        desc = "Find Marks",
+        "<leader>su",
+        "<cmd>Telescope undo<cr>",
+        desc = "Undo",
       },
       {
-        "<leader>fu",
-        "<cmd>Telescope undo<cr>",
-        desc = "Find Undo",
+        "<leader>gb",
+        "<cmd>Telescope git_branches<cr>",
+        desc = "Undo",
       },
     },
     dependencies = {
+      "natecraddock/telescope-zf-native.nvim",
       "nvim-telescope/telescope-fzf-native.nvim",
-      build = "make",
       config = function()
-        require("telescope").load_extension("fzf")
+        require("telescope").load_extension("zf-native")
       end,
     },
     -- change some options

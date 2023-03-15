@@ -4,3 +4,7 @@
 
 -- Use solargraph for ruby
 require("lspconfig").solargraph.setup({})
+
+require("lspconfig").elixirls.setup({
+  cmd = { "/opt/homebrew/bin/elixir-ls" },
+})

@@ -6,6 +6,7 @@ return {
       ---@type lspconfig.options
       servers = {
         ruby_ls = {},
+        elixirls = {},
       },
     },
     keys = {

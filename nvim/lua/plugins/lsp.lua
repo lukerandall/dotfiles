@@ -5,8 +5,9 @@ return {
     opts = {
       ---@type lspconfig.options
       servers = {
-        ruby_ls = {},
         elixirls = {},
+        ruby_ls = {},
+        tailwindcss = {},
       },
     },
     keys = {

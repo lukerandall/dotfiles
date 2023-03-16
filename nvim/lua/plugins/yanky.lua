@@ -18,7 +18,9 @@ return {
   keys = {
     {
       "<leader>sy",
-      "<cmd>Telescope yank_history<cr>",
+      function()
+        require("telescope").extensions.yank_history.yank_history()
+      end,
       desc = "Yank history",
     },
     {

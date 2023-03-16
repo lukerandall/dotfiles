@@ -24,8 +24,10 @@ return {
     dependencies = {
       "natecraddock/telescope-zf-native.nvim",
       "nvim-telescope/telescope-fzf-native.nvim",
+      "gbprod/yanky.nvim",
       config = function()
         require("telescope").load_extension("zf-native")
+        require("telescope").load_extension("yank_history")
       end,
     },
     -- change some options

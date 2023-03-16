@@ -18,7 +18,7 @@ return {
       {
         "<leader>gb",
         "<cmd>Telescope git_branches<cr>",
-        desc = "Undo",
+        desc = "Branches",
       },
     },
     dependencies = {

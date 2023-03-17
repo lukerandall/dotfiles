@@ -31,6 +31,7 @@ return {
       },
     },
     dependencies = {
+      "ThePrimeagen/harpoon",
       "debugloop/telescope-undo.nvim",
       "gbprod/yanky.nvim",
       "natecraddock/telescope-zf-native.nvim",
@@ -38,6 +39,7 @@ return {
       "nvim-telescope/telescope-project.nvim",
       "otavioschwanck/telescope-alternate",
       config = function()
+        require("telescope").load_extension("harpoon")
         require("telescope").load_extension("project")
         require("telescope").load_extension("telescope-alternate")
         require("telescope").load_extension("undo")

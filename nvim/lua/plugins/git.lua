@@ -43,6 +43,16 @@ return {
         end,
         desc = "Neogit Split",
       },
+      {
+        "<leader>go",
+        function()
+          os.execute("op plugin run -- gh browse " .. vim.fn.expand("%"))
+        end,
+        desc = "Open in GitHub",
+      },
     },
+  },
+  {
+    "f-person/git-blame.nvim",
   },
 }

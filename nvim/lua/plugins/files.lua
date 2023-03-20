@@ -9,4 +9,7 @@ return {
       },
     },
   },
+  {
+    "jghauser/mkdir.nvim",
+  },
 }

@@ -1,3 +1,5 @@
+local t = require("telescope")
+
 return {
   -- change some telescope options and a keymap to browse plugin files
   {
@@ -6,7 +8,7 @@ return {
       {
         "<leader>fp",
         function()
-          require("telescope").extensions.project.project()
+          t.extensions.project.project()
         end,
         desc = "Find Project",
       },
@@ -20,7 +22,7 @@ return {
       {
         "<leader>sg",
         function()
-          require("telescope").extensions.live_grep_args.live_grep_args()
+          t.extensions.live_grep_args.live_grep_args()
         end,
         desc = "Grep With Args",
       },
@@ -45,7 +47,7 @@ return {
       {
         "<leader>fF",
         function()
-          require("telescope").extensions["pathogen"].find_files()
+          t.extensions["pathogen"].find_files()
         end,
         desc = "Find Files (Pathogen)",
       },
@@ -57,7 +59,7 @@ return {
       {
         "<leader>su",
         function()
-          require("telescope").extensions.undo.undo()
+          t.extensions.undo.undo()
         end,
         desc = "Undo",
       },
@@ -79,19 +81,20 @@ return {
       "nvim-telescope/telescope-smart-history.nvim",
       "otavioschwanck/telescope-alternate",
       config = function()
-        require("telescope").load_extension("harpoon")
-        require("telescope").load_extension("live_grep_args")
-        require("telescope").load_extension("pathogen")
-        require("telescope").load_extension("project")
-        require("telescope").load_extension("telescope-alternate")
-        require("telescope").load_extension("undo")
-        require("telescope").load_extension("yank_history")
-        require("telescope").load_extension("zf-native")
-        require("telescope").load_extension("smart_history")
+        t.load_extension("harpoon")
+        t.load_extension("live_grep_args")
+        t.load_extension("pathogen")
+        t.load_extension("project")
+        t.load_extension("smart_history")
+        t.load_extension("telescope-alternate")
+        t.load_extension("undo")
+        t.load_extension("yank_history")
+        t.load_extension("zf-native")
+        t.load_extension("zoxide")
       end,
     },
     config = function()
-      require("telescope").setup({
+      t.setup({
         defaults = {
           layout_strategy = "horizontal",
           sorting_strategy = "ascending",
@@ -104,6 +107,11 @@ return {
               ["<C-]>"] = require("telescope.actions").cycle_history_next,
               ["<C-[>"] = require("telescope.actions").cycle_history_prev,
               ["<Esc>"] = require("telescope.actions").close,
+            },
+            n = {
+              ["<Esc>"] = function(...)
+                return require("telescope.actions").close(...)
+              end,
             },
           },
           history = {

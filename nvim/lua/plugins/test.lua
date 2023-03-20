@@ -7,32 +7,69 @@ wk.register({
 }, { prefix = "<leader>" })
 
 return {
-  "vim-test/vim-test",
+  "nvim-neotest/neotest",
+  config = function()
+    require("neotest").setup({
+      adapters = {
+        require("neotest-go"),
+        require("neotest-rspec"),
+        require("neotest-rust"),
+        require("neotest-elixir"),
+      },
+    })
+  end,
+  dependencies = {
+    "nvim-lua/plenary.nvim",
+    "nvim-treesitter/nvim-treesitter",
+    "antoinemadec/FixCursorHold.nvim",
+    "nvim-neotest/neotest-python",
+    "nvim-neotest/neotest-go",
+    "olimorris/neotest-rspec",
+    "rouge8/neotest-rust",
+    "jfpedroza/neotest-elixir",
+  },
   keys = {
     {
       "<leader>tt",
-      "<cmd>:TestNearest<cr>",
+      function()
+        require("neotest").run.run()
+      end,
       desc = "Nearest",
     },
     {
       "<leader>tf",
-      "<cmd>:TestFile<cr>",
+      function()
+        require("neotest").run.run(vim.fn.expand("%"))
+      end,
       desc = "File",
     },
     {
       "<leader>ta",
-      "<cmd>:TestSuite<cr>",
+      function()
+        require("neotest").run.run(vim.fn.getcwd())
+      end,
       desc = "All",
     },
     {
-      "<leader>tl",
-      "<cmd>:TestLast<cr>",
-      desc = "Last",
+      "<leader>to",
+      function()
+        require("neotest").output.open({ enter = true })
+      end,
+      desc = "Open Output",
     },
     {
-      "<leader>tg",
-      "<cmd>:TestVisit<cr>",
-      desc = "Go to Last",
+      "<leader>ts",
+      function()
+        require("neotest").summary.open()
+      end,
+      desc = "Summary",
+    },
+    {
+      "<leader>tS",
+      function()
+        require("neotest").run.stop()
+      end,
+      desc = "Stop",
     },
   },
 }

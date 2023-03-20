@@ -43,6 +43,13 @@ return {
         desc = "Pickers",
       },
       {
+        "<leader>fF",
+        function()
+          require("telescope").extensions["pathogen"].find_files()
+        end,
+        desc = "Find Files (Pathogen)",
+      },
+      {
         "<leader>sq",
         "<cmd>Telescope quickfix<cr>",
         desc = "Quickfix",
@@ -62,6 +69,7 @@ return {
     },
     dependencies = {
       "ThePrimeagen/harpoon",
+      "brookhong/telescope-pathogen.nvim",
       "debugloop/telescope-undo.nvim",
       "gbprod/yanky.nvim",
       "natecraddock/telescope-zf-native.nvim",
@@ -73,6 +81,7 @@ return {
       config = function()
         require("telescope").load_extension("harpoon")
         require("telescope").load_extension("live_grep_args")
+        require("telescope").load_extension("pathogen")
         require("telescope").load_extension("project")
         require("telescope").load_extension("telescope-alternate")
         require("telescope").load_extension("undo")

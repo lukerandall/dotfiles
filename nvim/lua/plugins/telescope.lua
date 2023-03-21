@@ -45,6 +45,13 @@ return {
         desc = "Pickers",
       },
       {
+        "<leader>sP",
+        function()
+          require("telescope").extensions.luasnip.luasnip({})
+        end,
+        desc = "Snippets",
+      },
+      {
         "<leader>fF",
         function()
           t.extensions["pathogen"].find_files()
@@ -71,6 +78,7 @@ return {
     },
     dependencies = {
       "ThePrimeagen/harpoon",
+      "benfowler/telescope-luasnip.nvim",
       "brookhong/telescope-pathogen.nvim",
       "debugloop/telescope-undo.nvim",
       "gbprod/yanky.nvim",
@@ -83,6 +91,7 @@ return {
       config = function()
         t.load_extension("harpoon")
         t.load_extension("live_grep_args")
+        t.load_extension("luasnip")
         t.load_extension("pathogen")
         t.load_extension("project")
         t.load_extension("smart_history")

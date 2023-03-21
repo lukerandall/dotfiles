@@ -4,7 +4,7 @@
 #
 home = File.expand_path('~')
 
-dirs = %w[bat fish nvim]
+dirs = %w[bat fish kitty nvim]
 config_files = %w[starship.toml]
 ignored = %w[
   install.rb README.md Brewfile Brewfile.lock.json Brewfile.local Brewfile.local.lock.json Fonts.brewfile

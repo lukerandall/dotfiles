@@ -10,4 +10,12 @@ return {
       require("telescope").load_extension("yaml_schema")
     end,
   },
+  {
+    "cuducos/yaml.nvim",
+    ft = { "yaml" },
+    requires = {
+      "nvim-treesitter/nvim-treesitter",
+      "nvim-telescope/telescope.nvim",
+    },
+  },
 }

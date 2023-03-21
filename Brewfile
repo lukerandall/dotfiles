@@ -18,6 +18,7 @@ mas 'Tailscale',      id: 1475387142
 # rubocop:enable Style/NumericLiterals
 
 tap 'heroku/brew'
+tap 'homebrew/cask-fonts'
 tap 'noahgorstein/tap'
 tap 'synfinatic/aws-sso-cli'
 tap 'tylerbrock/saw'
@@ -36,6 +37,7 @@ brew 'exa'
 brew 'fd'
 brew 'fish'
 brew 'fisher'
+brew 'font-symbols-only-nerd-font'
 brew 'flyctl'
 brew 'fzf'
 brew 'gh'

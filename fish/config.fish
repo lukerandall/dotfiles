@@ -11,20 +11,28 @@ fish_add_path "$HOME/.cargo/bin"
 fish_add_path "$GOPATH/bin"
 
 function fish_greeting
-  echo
-  echo "Search Bindings"
-  echo "Dir C-t   Git Log C-g   Git Status C-s   History C-h   Env C-v   Processes C-p"
+    echo -e "\033[31;1;4mSearch Bindings\033[0m"
+    echo "C-t → Directory"
+    echo "C-g → Git Log"
+    echo "C-s → Git Status"
+    echo "C-h → Fish History"
+    echo "C-v → Environment Variables"
+    echo "C-p → Processes"
 end
 
 set fish_greeting
 set -g fish_key_bindings fish_hybrid_key_bindings
+set -g FZF_DEFAULT_OPTS "\
+--color=bg+:#363a4f,bg:#24273a,spinner:#f4dbd6,hl:#ed8796 \
+--color=fg:#cad3f5,header:#ed8796,info:#c6a0f6,pointer:#f4dbd6 \
+--color=marker:#f4dbd6,fg+:#cad3f5,prompt:#c6a0f6,hl+:#ed8796"
 
 status --is-interactive; and pyenv virtualenv-init - | source
 fzf_configure_bindings --directory=\ct --git_status=\cs --git_log=\cg --history=\ch --variables=\cv --processes=\cp
 
 set LOCAL_CONFIG $HOME/.fish/local.fish
 if test -e $LOCAL_CONFIG
-  source $LOCAL_CONFIG
+    source $LOCAL_CONFIG
 end
 
 zoxide init fish | source

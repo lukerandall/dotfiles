@@ -5,9 +5,24 @@ return {
     opts = {
       ---@type lspconfig.options
       servers = {
+        cssls = {},
+        cssmodules_ls = {},
+        dockerls = {},
         elixirls = {},
+        gopls = {},
+        graphql = {},
+        html = {},
+        jsonls = {},
+        marksman = {}, -- markdown
+        pyright = {},
+        rnix = {},
         ruby_ls = {},
+        rust_analyzer = {},
+        solargraph = {},
         tailwindcss = {},
+        taplo = {}, -- toml
+        terraformls = {},
+        tsserver = {},
       },
     },
     keys = {

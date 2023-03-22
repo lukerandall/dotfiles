@@ -1,0 +1,21 @@
+SSOConfig:
+    name:
+        DefaultRegion: eu-central-1
+        SSORegion: eu-central-1
+        StartUrl: https://name.awsapps.com/start
+DefaultRegion: eu-central-1
+ConsoleDuration: 60
+CacheRefresh: 168
+AutoConfigCheck: true
+UrlAction: open-url-in-container
+ConfigProfilesUrlAction: open-url-in-container
+UrlExecCommand:
+    - /Applications/Firefox.app/Contents/MacOS/firefox
+    - "%s"
+LogLevel: error
+HistoryLimit: 25
+HistoryMinutes: 1440
+PromptColors:
+    DescriptionBGColor: Purple
+    SuggestionBGColor: Cyan
+    SuggestionTextColor: Black

@@ -9,6 +9,7 @@ config_files = %w[starship.toml]
 ignored = %w[
   install.rb README.md Brewfile Brewfile.lock.json Brewfile.local Brewfile.local.lock.json Fonts.brewfile
   Fonts.brewfile.lock.json print_settings.rb settings.json settings.sh setup.sh keybindings.json
+  aws-sso
 ]
 
 Dir['*'].each do |file|

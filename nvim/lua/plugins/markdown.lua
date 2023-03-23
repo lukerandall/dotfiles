@@ -1,11 +1,3 @@
-local wk = require("which-key")
-
-wk.register({
-  m = {
-    name = "Markdown", -- optional group name
-  },
-}, { prefix = "<leader>" })
-
 return {
   {
     "ellisonleao/glow.nvim",
@@ -14,11 +6,11 @@ return {
     end,
     keys = {
       {
-        "<leader>mp",
+        "<leader>cp",
         function()
           vim.cmd("Glow")
         end,
-        desc = "Preview",
+        desc = "Preview Markdown",
       },
     },
   },

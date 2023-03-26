@@ -20,6 +20,13 @@ return {
         desc = "Find Plugin File",
       },
       {
+        "<leader>se",
+        function()
+          t.extensions.emoji.emoji()
+        end,
+        desc = "Emoji",
+      },
+      {
         "<leader>sg",
         function()
           t.extensions.live_grep_args.live_grep_args()
@@ -96,7 +103,9 @@ return {
       "nvim-telescope/telescope-project.nvim",
       "nvim-telescope/telescope-smart-history.nvim",
       "otavioschwanck/telescope-alternate",
+      "xiyaowong/telescope-emoji.nvim",
       config = function()
+        t.load_extension("emoji")
         t.load_extension("harpoon")
         t.load_extension("live_grep_args")
         t.load_extension("luasnip")
@@ -156,5 +165,8 @@ return {
         },
       })
     end,
+  },
+  {
+    "xiyaowong/telescope-emoji.nvim",
   },
 }

@@ -5,4 +5,8 @@ return {
       "nvim-treesitter/nvim-treesitter",
     },
   },
+  {
+    "gennaro-tedesco/nvim-jqx",
+    ft = { "json", "yaml" },
+  },
 }

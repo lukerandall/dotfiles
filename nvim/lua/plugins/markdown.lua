@@ -1,17 +1,9 @@
 return {
   {
     "ellisonleao/glow.nvim",
+    ft = "markdown",
     config = function()
       require("glow").setup()
     end,
-    keys = {
-      {
-        "<leader>cp",
-        function()
-          vim.cmd("Glow")
-        end,
-        desc = "Preview Markdown",
-      },
-    },
   },
 }

@@ -43,16 +43,29 @@ return {
         end,
         desc = "Neogit Split",
       },
-      {
-        "<leader>go",
-        function()
-          os.execute("op plugin run -- gh browse " .. vim.fn.expand("%"))
-        end,
-        desc = "Open in GitHub",
-      },
     },
   },
   {
     "f-person/git-blame.nvim",
+  },
+  {
+    "almo7aya/openingh.nvim",
+    keys = {
+      {
+        "<leader>go",
+        -- ":OpenInGHFile <CR>",
+        function()
+          vim.cmd("OpenInGHFile")
+        end,
+        mode = { "n" },
+        desc = "Open in GitHub",
+      },
+      {
+        "<leader>go",
+        ":OpenInGHFile <CR>",
+        mode = { "v" },
+        desc = "Open in GitHub",
+      },
+    },
   },
 }

@@ -52,6 +52,13 @@ return {
         desc = "Snippets",
       },
       {
+        "<leader>sT",
+        function()
+          require("telescope-tabs").list_tabs()
+        end,
+        desc = "Tabs",
+      },
+      {
         "<leader>fF",
         function()
           t.extensions["pathogen"].find_files()
@@ -77,6 +84,7 @@ return {
       },
     },
     dependencies = {
+      "LukasPietzschmann/telescope-tabs",
       "ThePrimeagen/harpoon",
       "benfowler/telescope-luasnip.nvim",
       "brookhong/telescope-pathogen.nvim",
@@ -96,6 +104,7 @@ return {
         t.load_extension("project")
         t.load_extension("smart_history")
         t.load_extension("telescope-alternate")
+        t.load_extension("telescope-tabs")
         t.load_extension("undo")
         t.load_extension("yank_history")
         t.load_extension("zf-native")

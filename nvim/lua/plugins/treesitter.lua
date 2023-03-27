@@ -1,6 +1,4 @@
 return {
-  { import = "lazyvim.plugins.extras.lang.typescript" },
-
   {
     "nvim-treesitter/nvim-treesitter",
     opts = {
@@ -29,5 +27,4 @@ return {
   {
     "nvim-treesitter/nvim-treesitter-context",
   },
-  { import = "lazyvim.plugins.extras.lang.json" },
 }

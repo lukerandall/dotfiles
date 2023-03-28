@@ -1,8 +1,5 @@
 #!/usr/bin/env ruby
-#
-## from http://errtheblog.com/posts/89-huba-huba
-#
-home = File.expand_path('~')
+# frozen_string_literal: true
 
 dirs = %w[bat fish kitty nvim]
 config_files = %w[starship.toml]
@@ -11,6 +8,8 @@ ignored = %w[
   Fonts.brewfile.lock.json print_settings.rb settings.json settings.sh setup.sh keybindings.json
   aws-sso
 ]
+
+home = File.expand_path('~')
 
 Dir['*'].each do |file|
   next if dirs.include?(file) || config_files.include?(file) || ignored.include?(file)

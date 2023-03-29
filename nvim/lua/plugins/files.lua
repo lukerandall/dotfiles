@@ -18,6 +18,7 @@ return {
       require("other-nvim").setup({
         mappings = {
           "rails",
+          -- missing spec mappings
           {
             pattern = "(.+)/spec/(.*)/(.*)/(.*)_spec.rb",
             target = {
@@ -38,6 +39,19 @@ return {
             pattern = "(.+)/spec/(.*)/(.*)_(.*)_spec.rb",
             target = {
               { target = "%1/app/%4s/%3_%4.rb" },
+            },
+          },
+          -- project: call-flow
+          {
+            pattern = "(.+)/spec/requests/(.*)_spec.rb",
+            target = {
+              { target = "%1/app/models/flow/%2.yml" },
+            },
+          },
+          {
+            pattern = "(.+)/app/models/flow/(.*).yml",
+            target = {
+              { target = "%1/spec/requests/%2_spec.rb" },
             },
           },
         },

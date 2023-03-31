@@ -1,7 +1,6 @@
 local t = require("telescope")
 
 return {
-  -- change some telescope options and a keymap to browse plugin files
   {
     "nvim-telescope/telescope.nvim",
     keys = {
@@ -18,13 +17,6 @@ return {
           require("telescope.builtin").find_files({ cwd = require("lazy.core.config").options.root })
         end,
         desc = "Find Plugin File",
-      },
-      {
-        "<leader>se",
-        function()
-          t.extensions.emoji.emoji()
-        end,
-        desc = "Emoji",
       },
       {
         "<leader>sg",
@@ -103,9 +95,7 @@ return {
       "nvim-telescope/telescope-project.nvim",
       "nvim-telescope/telescope-smart-history.nvim",
       "otavioschwanck/telescope-alternate",
-      "xiyaowong/telescope-emoji.nvim",
       config = function()
-        t.load_extension("emoji")
         t.load_extension("harpoon")
         t.load_extension("live_grep_args")
         t.load_extension("luasnip")
@@ -168,5 +158,36 @@ return {
   },
   {
     "xiyaowong/telescope-emoji.nvim",
+    dependencies = {
+      "nvim-telescope/telescope.nvim",
+    },
+    config = function()
+      require("telescope").load_extension("emoji")
+    end,
+    keys = {
+      {
+        "<leader>se",
+        function()
+          t.extensions.emoji.emoji()
+        end,
+        desc = "Emoji",
+      },
+    },
+  },
+  {
+    "nvim-telescope/telescope-file-browser.nvim",
+    dependencies = {
+      "nvim-telescope/telescope.nvim",
+    },
+    config = function()
+      require("telescope").load_extension("file_browser")
+    end,
+    keys = {
+      {
+        "<leader>fB",
+        "<cmd>Telescope file_browser<cr>",
+        desc = "File Browser",
+      },
+    },
   },
 }

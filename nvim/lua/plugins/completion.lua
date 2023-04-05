@@ -1,11 +1,5 @@
 return {
   {
-    "petertriho/cmp-git",
-    config = function()
-      require("cmp_git").setup()
-    end,
-  },
-  {
     "hrsh7th/nvim-cmp",
     dependencies = {
       "L3MON4D3/LuaSnip",
@@ -14,7 +8,6 @@ return {
       "hrsh7th/cmp-emoji",
       "hrsh7th/cmp-nvim-lsp",
       "hrsh7th/cmp-path",
-      "petertriho/cmp-git",
     },
     config = function()
       local cmp = require("cmp")
@@ -68,14 +61,6 @@ return {
           { name = "path" },
           { name = "emoji" },
         },
-      })
-      -- Set configuration for specific filetype.
-      cmp.setup.filetype("gitcommit", {
-        sources = cmp.config.sources({
-          { name = "cmp_git" }, -- You can specify the `cmp_git` source if you were installed it.
-        }, {
-          { name = "buffer" },
-        }),
       })
 
       -- Use buffer source for `/` and `?` (if you enabled `native_menu`, this won't work anymore).

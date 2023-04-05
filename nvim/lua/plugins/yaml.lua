@@ -9,6 +9,7 @@ return {
     config = function()
       require("telescope").load_extension("yaml_schema")
     end,
+    lazy = true,
   },
   {
     "cuducos/yaml.nvim",

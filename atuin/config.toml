@@ -28,3 +28,5 @@ dialect = "uk"
 search_mode = "fuzzy"
 
 inline_height = 30
+
+filter_mode_shell_up_key_binding = "session"

@@ -46,6 +46,8 @@ abbr --add restore_db "pg_restore --verbose --clean --no-acl --no-owner -h local
 abbr --add tag-staging "git tag -d staging; git tag staging && git push --tags --force"
 abbr --add tag-test "git tag -d test; git tag test && git push --tags --force"
 
+alias icat "kitty +kitten icat"
+alias diff "kitty +kitten diff"
 alias vim nvim
 alias cat bat
 alias less bat

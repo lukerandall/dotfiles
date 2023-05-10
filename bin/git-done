@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+
+set -e
+
+force_remove_branch="${1:--d}"
+branch_name="$(git symbolic-ref HEAD 2>/dev/null)"
+branch_name=${branch_name##refs/heads/}
+default_branch_name="${GIT_DEFAULT_BRANCH:-main}"
+
+git fetch
+
+if [[ "${branch_name}" == "${default_branch_name}" ]]; then
+  echo "Can't do this on $branch_name."
+  exit 1
+fi
+
+git checkout -q "${default_branch_name}"
+git pull -q --ff-only
+
+set +e
+git branch "${force_remove_branch}" "${branch_name}"
+status=$?
+set -e
+
+if [[ $status -ne 0 ]]; then
+  git checkout -q -
+fi

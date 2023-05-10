@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
-dirs = %w[atuin bat fish kitty nvim]
+dirs = %w[atuin bin bat fish kitty nvim]
 config_files = %w[starship.toml]
 ignored = %w[
   install.rb README.md Brewfile Brewfile.lock.json Brewfile.local Brewfile.local.lock.json Fonts.brewfile
@@ -26,5 +26,12 @@ end
 
 puts
 dirs.each do |dir|
+  next if dir == 'bin'
+
   puts `ln -svf #{File.expand_path dir} #{home}/.config`
+end
+
+puts
+Dir['bin/*'].each do |file|
+  puts `ln -svf #{File.expand_path file} #{home}/.local/#{file}`
 end

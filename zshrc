@@ -1,6 +1,5 @@
 path=(
   "$HOME/.local/bin"
-  "$HOME/.rbenv/shims"
   "$HOME/.pyenv"
   "$HOME/.cargo/bin"
   "$HOME/.zinit/plugins/bigH---git-fuzzy/bin"
@@ -177,9 +176,6 @@ alias restore_db='pg_restore --verbose --clean --no-acl --no-owner -h localhost 
 # import local zsh customizations, if present
 zrcl="$HOME/.zshrc.local"
 [[ ! -a $zrcl ]] || source $zrcl
-
-# enable rbenv
-if which rbenv > /dev/null; then eval "$(rbenv init -)"; fi
 
 # pyenv
 export PYENV_ROOT="$HOME/.pyenv"

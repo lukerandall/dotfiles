@@ -15,6 +15,7 @@ UrlExecCommand:
 LogLevel: error
 HistoryLimit: 25
 HistoryMinutes: 1440
+ProfileFormat: '{{ .AccountAlias }}:{{ AccountIdStr .AccountId }}:{{ .RoleName }}'
 PromptColors:
     DescriptionBGColor: Purple
     SuggestionBGColor: Cyan

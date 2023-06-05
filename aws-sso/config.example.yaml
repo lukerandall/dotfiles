@@ -17,6 +17,10 @@ HistoryLimit: 25
 HistoryMinutes: 1440
 ProfileFormat: '{{ .AccountAlias }}:{{ AccountIdStr .AccountId }}:{{ .RoleName }}'
 PromptColors:
-    DescriptionBGColor: Purple
-    SuggestionBGColor: Cyan
     SuggestionTextColor: Black
+    SuggestionBGColor: Cyan
+    DescriptionTextColor: Black
+    DescriptionBGColor: LightGrey
+    SelectedSuggestionTextColor: Black
+    SelectedSuggestionBGColor: Fuchsia
+    SelectedDescriptionBGColor: LightGrey

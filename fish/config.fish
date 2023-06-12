@@ -29,7 +29,7 @@ set -g FZF_DEFAULT_OPTS "\
 status --is-interactive; and pyenv virtualenv-init - | source
 fzf_configure_bindings --directory=\ct --git_status=\cs --git_log=\cg --history=\ch --variables=\cv --processes=\cp
 
-set LOCAL_CONFIG $HOME/.fish/local.fish
+set LOCAL_CONFIG $HOME/.config/fish/local.fish
 if test -e $LOCAL_CONFIG
     source $LOCAL_CONFIG
 end

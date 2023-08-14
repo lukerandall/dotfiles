@@ -49,6 +49,18 @@ return {
     "f-person/git-blame.nvim",
   },
   {
+    "FabijanZulj/blame.nvim",
+    keys = {
+      {
+        "<leader>gB",
+        function()
+          vim.cmd("ToggleBlame")
+        end,
+        desc = "Blame",
+      },
+    },
+  },
+  {
     "almo7aya/openingh.nvim",
     keys = {
       {

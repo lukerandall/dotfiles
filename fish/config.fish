@@ -51,4 +51,4 @@ alias diff "kitty +kitten diff"
 alias vim nvim
 alias cat bat
 alias less bat
-alias ls exa
+alias ls eza

@@ -13,6 +13,12 @@ return {
     "jghauser/mkdir.nvim",
   },
   {
+    "stevearc/oil.nvim",
+    opts = {},
+    -- Optional dependencies
+    dependencies = { "nvim-tree/nvim-web-devicons" },
+  },
+  {
     "rgroli/other.nvim",
     config = function()
       require("other-nvim").setup({
@@ -64,6 +70,13 @@ return {
           vim.cmd("Other")
         end,
         desc = "Alternate",
+      },
+      {
+        "<leader>fm",
+        function()
+          vim.cmd("Oil")
+        end,
+        desc = "Manager (Oil)",
       },
       {
         "<leader>fA",

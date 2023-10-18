@@ -150,7 +150,7 @@ return {
           },
           ["telescope-alternate"] = {
             mappings = {},
-            presets = { "rails", "nestjs" },
+            presets = { "rails", "rspec" },
           },
         },
       })

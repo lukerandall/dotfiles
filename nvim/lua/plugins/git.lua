@@ -61,22 +61,30 @@ return {
     },
   },
   {
-    "almo7aya/openingh.nvim",
+    "ruifm/gitlinker.nvim",
+    dependencies = "nvim-lua/plenary.nvim",
     keys = {
       {
-        "<leader>go",
-        -- ":OpenInGHFile <CR>",
+        "<leader>ghy",
         function()
-          vim.cmd("OpenInGHFile")
+          require("gitlinker").get_buf_range_url("v")
         end,
-        mode = { "n" },
-        desc = "Open in GitHub",
+        desc = "Copy GitHub URL to system clipboard",
+        mode = "x",
       },
       {
-        "<leader>go",
-        ":OpenInGHFile <CR>",
-        mode = { "v" },
-        desc = "Open in GitHub",
+        "<leader>ghy",
+        function()
+          require("gitlinker").get_buf_range_url("n")
+        end,
+        desc = "Copy GitHub URL to system clipboard",
+      },
+      {
+        "<leader>gho",
+        function()
+          require("gitlinker").get_repo_url({ action_callback = require("gitlinker.actions").open_in_browser })
+        end,
+        desc = "Open GitHub repository in browser",
       },
     },
   },

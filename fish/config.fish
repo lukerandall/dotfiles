@@ -38,6 +38,8 @@ zoxide init fish | source
 starship init fish | source
 atuin init fish | source
 
+source $HOME/.op/plugins.sh
+
 abbr --add be bundle exec
 abbr --add tf terraform
 abbr --add serve python3 -m http.server -b localhost

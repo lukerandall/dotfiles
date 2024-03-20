@@ -18,3 +18,13 @@ function __fish_complete_aws_sso_subcommand
  end
 
  complete -c aws-sso -n "contains -- -- (commandline -opc)" -x -a "(__fish_complete_aws_sso_subcommand)"
+# BEGIN_AWS_SSO_CLI
+function __complete_aws-sso
+    set -lx COMP_LINE (commandline -cp)
+    test -z (commandline -ct)
+    and set COMP_LINE "$COMP_LINE "
+    /opt/homebrew/bin/aws-sso
+end
+complete -f -c aws-sso -a "(__complete_aws-sso)"
+
+# END_AWS_SSO_CLI

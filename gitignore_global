@@ -13,3 +13,6 @@ TAGS
 .direnv
 .envrc
 .vscode
+.nvimrc
+.mise.local.toml
+.mise.*.local.toml

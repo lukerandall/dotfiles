@@ -16,7 +16,6 @@ function fish_greeting
     echo "C-s → Git Status"
     echo "C-h → Fish History"
     echo "C-v → Environment Variables"
-    echo "C-p → Processes"
 end
 
 set fish_greeting
@@ -27,7 +26,7 @@ set -g FZF_DEFAULT_OPTS "\
 --color=marker:#f4dbd6,fg+:#cad3f5,prompt:#c6a0f6,hl+:#ed8796"
 
 status --is-interactive; and pyenv virtualenv-init - | source
-fzf_configure_bindings --directory=\ct --git_status=\cs --git_log=\cg --history=\ch --variables=\cv --processes=\cp
+fzf_configure_bindings --directory=\ct --git_status=\cs --git_log=\cg --history=\ch --variables=\cv
 
 set LOCAL_CONFIG $HOME/.config/fish/local.fish
 if test -e $LOCAL_CONFIG
@@ -42,6 +41,7 @@ source $HOME/.op/plugins.sh
 
 abbr --add be bundle exec
 abbr --add tf terraform
+abbr --add dc docker compose
 abbr --add serve python3 -m http.server -b localhost
 abbr --add fetch_db "heroku pg:backups capture --expire && curl -o latest.dump (heroku pg:backups public-url)"
 abbr --add restore_db "pg_restore --verbose --clean --no-acl --no-owner -h localhost -U $USER latest.dump -d"

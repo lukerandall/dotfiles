@@ -1,7 +1,6 @@
 # IRBRC file by Iain Hecker, http://iain.nl
 # put all this in your ~/.irbrc
 require 'rubygems'
-#require 'yaml'
 
 alias q exit
 
@@ -28,14 +27,14 @@ ANSI[:WHITE] = "\e[37m"
 
 # Build a simple colorful IRB prompt
 IRB.conf[:PROMPT][:SIMPLE_COLOR] = {
-  :PROMPT_I => "#{ANSI[:BLUE]}>>#{ANSI[:RESET]} ",
-  :PROMPT_N => "#{ANSI[:BLUE]}>>#{ANSI[:RESET]} ",
-  :PROMPT_C => "#{ANSI[:RED]}?>#{ANSI[:RESET]} ",
-  :PROMPT_S => "#{ANSI[:YELLOW]}?>#{ANSI[:RESET]} ",
-  :RETURN => "#{ANSI[:GREEN]}=>#{ANSI[:RESET]} %s\n",
-  :AUTO_INDENT => true
+  PROMPT_I: "#{ANSI[:BLUE]}>>#{ANSI[:RESET]} ",
+  PROMPT_N: "#{ANSI[:BLUE]}>>#{ANSI[:RESET]} ",
+  PROMPT_C: "#{ANSI[:RED]}?>#{ANSI[:RESET]} ",
+  PROMPT_S: "#{ANSI[:YELLOW]}?>#{ANSI[:RESET]} ",
+  RETURN: "#{ANSI[:GREEN]}=>#{ANSI[:RESET]} %s\n",
+  AUTO_INDENT: true
 }
-#IRB.conf[:PROMPT_MODE] = :SIMPLE_COLOR
+# IRB.conf[:PROMPT_MODE] = :SIMPLE_COLOR
 IRB.conf[:PROMPT_MODE] = :SIMPLE
 
 # IRB Options
@@ -71,28 +70,6 @@ extend_console 'wirble' do
   Wirble.colorize
 end
 
-# Hirb makes tables easy.
-extend_console 'hirb' do
-  Hirb.enable
-  extend Hirb::Console
-end
-
-# bond adds smarter auto-complete
-extend_console 'bond' do
-  Bond.start
-end
-
-# looksee lets you examine the method lookup path of objects in ways not possible in plain ruby
-extend_console 'looksee' do
-  # no configuration needed
-end
-
-# When you're using Rails 2 console, show queries in the console
-extend_console 'rails2', (ENV.include?('RAILS_ENV') && !Object.const_defined?('RAILS_DEFAULT_LOGGER')), false do
-  require 'logger'
-  RAILS_DEFAULT_LOGGER = Logger.new(STDOUT)
-end
-
 # When you're using Rails 3 console, show queries in the console
 extend_console 'rails3', defined?(ActiveSupport::Notifications), false do
   $odd_or_even_queries = false
@@ -100,10 +77,10 @@ extend_console 'rails3', defined?(ActiveSupport::Notifications), false do
     $odd_or_even_queries = !$odd_or_even_queries
     color = $odd_or_even_queries ? ANSI[:CYAN] : ANSI[:MAGENTA]
     event = ActiveSupport::Notifications::Event.new(*args)
-    time = "%.1fms" % event.duration
+    time = '%.1fms' % event.duration
     name = event.payload[:name]
-    sql = event.payload[:sql].gsub("\n", " ").squeeze(" ")
-    #puts " #{ANSI[:UNDERLINE]}#{color}#{name} (#{time})#{ANSI[:RESET]} #{sql}"
+    sql = event.payload[:sql].gsub("\n", ' ').squeeze(' ')
+    # puts " #{ANSI[:UNDERLINE]}#{color}#{name} (#{time})#{ANSI[:RESET]} #{sql}"
   end
 end
 
@@ -113,25 +90,25 @@ extend_console 'pm', true, false do
   def pm(obj, *options) # Print methods
     methods = obj.methods
     methods -= Object.methods unless options.include? :more
-    filter = options.select {|opt| opt.kind_of? Regexp}.first
-    methods = methods.select {|name| name =~ filter} if filter
+    filter = options.select { |opt| opt.is_a? Regexp }.first
+    methods = methods.select { |name| name =~ filter } if filter
 
     data = methods.sort.collect do |name|
       method = obj.method(name)
       if method.arity == 0
-        args = "()"
+        args = '()'
       elsif method.arity > 0
         n = method.arity
-        args = "(#{(1..n).collect {|i| "arg#{i}"}.join(", ")})"
+        args = "(#{(1..n).collect { |i| "arg#{i}" }.join(', ')})"
       elsif method.arity < 0
         n = -method.arity
-        args = "(#{(1..n).collect {|i| "arg#{i}"}.join(", ")}, ...)"
+        args = "(#{(1..n).collect { |i| "arg#{i}" }.join(', ')}, ...)"
       end
-      klass = $1 if method.inspect =~ /Method: (.*?)#/
+      klass = Regexp.last_match(1) if method.inspect =~ /Method: (.*?)#/
       [name.to_s, args, klass]
     end
-    max_name = data.collect {|item| item[0].size}.max
-    max_args = data.collect {|item| item[1].size}.max
+    max_name = data.collect { |item| item[0].size }.max
+    max_args = data.collect { |item| item[1].size }.max
     data.each do |item|
       print " #{ANSI[:YELLOW]}#{item[0].to_s.rjust(max_name)}#{ANSI[:RESET]}"
       print "#{ANSI[:BLUE]}#{item[1].ljust(max_args)}#{ANSI[:RESET]}"
@@ -151,11 +128,11 @@ puts "#{ANSI[:GRAY]}~> Console extensions:#{ANSI[:RESET]} #{$console_extensions.
 # Happy clipboarding
 class Clippy
   def paste
-    IO.read("|pbpaste").chomp
+    IO.read('|pbpaste').chomp
   end
 
   def copy(string)
-    IO.popen("pbcopy", "w") do |p|
+    IO.popen('pbcopy', 'w') do |p|
       p.puts(string)
     end
     string
@@ -166,7 +143,7 @@ class Clippy
   end
 
   def clear
-    copy("")
+    copy('')
   end
 
   def to_s

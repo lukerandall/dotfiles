@@ -39,8 +39,9 @@ atuin init fish | source
 source $HOME/.op/plugins.sh
 
 abbr --add be bundle exec
-abbr --add tf terraform
 abbr --add dc docker compose
+abbr --add tf terraform
+abbr --add mr mise run
 abbr --add serve python3 -m http.server -b localhost
 abbr --add fetch_db "heroku pg:backups capture --expire && curl -o latest.dump (heroku pg:backups public-url)"
 abbr --add restore_db "pg_restore --verbose --clean --no-acl --no-owner -h localhost -U $USER latest.dump -d"

@@ -15,7 +15,6 @@ mas 'StopTheMadness',       id: 1376402589
 mas 'Tailscale',            id: 1475387142
 # rubocop:enable Style/NumericLiterals
 
-tap 'heroku/brew'
 tap 'homebrew/cask-fonts'
 tap 'noahgorstein/tap'
 tap 'synfinatic/aws-sso-cli'

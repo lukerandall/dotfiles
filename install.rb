@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
-dirs = %w[atuin bin bat fish kitty nvim]
+dirs = %w[atuin bin bat fish kitty mise nvim]
 config_files = %w[starship.toml]
 ignored = %w[
   install.rb README.md Brewfile Brewfile.lock.json Brewfile.local Brewfile.local.lock.json Fonts.brewfile

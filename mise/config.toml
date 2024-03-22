@@ -1,0 +1,6 @@
+[tools]
+usage = "latest"
+node = "20"
+
+[settings]
+experimental = true

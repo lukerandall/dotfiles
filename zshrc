@@ -1,8 +1,5 @@
 path=(
   "$HOME/.local/bin"
-  "$HOME/.pyenv"
-  "$HOME/.cargo/bin"
-  "$HOME/.zinit/plugins/bigH---git-fuzzy/bin"
   /opt/homebrew/bin
   /usr/local/bin
   /usr/bin
@@ -176,13 +173,6 @@ alias restore_db='pg_restore --verbose --clean --no-acl --no-owner -h localhost 
 # import local zsh customizations, if present
 zrcl="$HOME/.zshrc.local"
 [[ ! -a $zrcl ]] || source $zrcl
-
-# pyenv
-export PYENV_ROOT="$HOME/.pyenv"
-if command -v pyenv 1>/dev/null 2>&1; then
-  eval "$(pyenv init -)"
-  eval "$(pyenv virtualenv-init -)"
-fi
 
 export PATH="./bin:$PATH"
 

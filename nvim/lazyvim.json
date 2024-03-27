@@ -5,6 +5,7 @@
     "lazyvim.plugins.extras.lang.elixir",
     "lazyvim.plugins.extras.lang.ruby",
     "lazyvim.plugins.extras.lang.terraform",
+    "lazyvim.plugins.extras.ui.alpha",
     "lazyvim.plugins.extras.util.project"
   ],
   "news": {

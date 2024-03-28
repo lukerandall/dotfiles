@@ -60,6 +60,25 @@ return {
               { target = "%1/spec/requests/%2_spec.rb" },
             },
           },
+          {
+            pattern = "lib/(.*)_web/live/(.*)_live/(.*).ex",
+            target = {
+              { target = "lib/%1_web/live/%2_live/%3.html.heex" },
+            },
+          },
+          -- elixir & phoenix
+          {
+            pattern = "lib/(.*)_web/live/(.*)_live/(.*).html.heex",
+            target = { { target = "lib/%1_web/live/%2_live/%3.ex" } },
+          },
+          {
+            pattern = "lib/(.*)/(.*).ex",
+            target = { { target = "test/%1/%2_test.exs" } },
+          },
+          {
+            pattern = "test/(.*)_test.exs",
+            target = { { target = "lib/%1.ex" } },
+          },
         },
       })
     end,

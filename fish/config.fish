@@ -9,16 +9,7 @@ fish_add_path "$HOME/.local/bin"
 fish_add_path "$HOME/.cargo/bin"
 fish_add_path "$GOPATH/bin"
 
-function fish_greeting
-    echo -e "\033[31;1;4mSearch Bindings\033[0m"
-    echo "C-t → Directory"
-    echo "C-g → Git Log"
-    echo "C-s → Git Status"
-    echo "C-h → Fish History"
-    echo "C-v → Environment Variables"
-end
-
-set fish_greeting
+set -g fish_greeting
 set -g fish_key_bindings fish_hybrid_key_bindings
 set -g FZF_DEFAULT_OPTS "\
 --color=bg+:#363a4f,bg:#24273a,spinner:#f4dbd6,hl:#ed8796 \

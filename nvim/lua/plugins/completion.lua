@@ -13,6 +13,17 @@ return {
       local cmp = require("cmp")
       local luasnip = require("luasnip")
 
+      local sources = {
+        { name = "nvim_lsp" },
+        { name = "luasnip" },
+        { name = "buffer" },
+        { name = "path" },
+        { name = "emoji" },
+      }
+      if vim.env.USE_COPILOT == "true" then
+        sources = vim.list_extend({ { name = "copilot" } }, sources)
+      end
+
       cmp.setup({
         snippet = {
           expand = function(args)
@@ -53,14 +64,7 @@ return {
             "s",
           }),
         },
-        sources = {
-          { name = "copilot" },
-          { name = "nvim_lsp" },
-          { name = "luasnip" },
-          { name = "buffer" },
-          { name = "path" },
-          { name = "emoji" },
-        },
+        sources = sources,
       })
 
       -- Use buffer source for `/` and `?` (if you enabled `native_menu`, this won't work anymore).

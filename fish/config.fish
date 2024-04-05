@@ -50,6 +50,7 @@ abbr --add tag-test "git tag -d test; git tag test && git push --tags --force"
 
 alias icat "kitty +kitten icat"
 alias diff "kitty +kitten diff"
+alias gist "gh gist create"
 alias vim nvim
 alias cat bat
 alias less bat

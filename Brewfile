@@ -12,7 +12,6 @@ mas 'Parcel',               id: 639968404
 mas 'Peek',                 id: 1554235898
 mas 'Slack',                id: 803453959
 mas 'StopTheMadness',       id: 1376402589
-mas 'Tailscale',            id: 1475387142
 # rubocop:enable Style/NumericLiterals
 
 tap 'homebrew/cask-fonts'

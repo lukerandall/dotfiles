@@ -35,7 +35,7 @@
 	cpc = cherry-pick --continue
 	cps = cherry-pick --skip
 	ma = checkout main
-	pf = push -f --force-with-lease
+	pf = push --force-with-lease
 	puhs = push
 	pus = push
 	ra = rebase --abort

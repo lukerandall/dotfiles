@@ -11,7 +11,7 @@ class Object
   end
 end
 
-ANSI = {}
+ANSI ||= {}
 ANSI[:RESET] = "\e[0m"
 ANSI[:BOLD] = "\e[1m"
 ANSI[:UNDERLINE] = "\e[4m"

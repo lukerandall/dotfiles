@@ -13,9 +13,6 @@ return {
         graphql = {},
         html = {},
         jsonls = {},
-        marksman = {}, -- markdown
-        pyright = {},
-        rnix = {},
         ruby_ls = {},
         rust_analyzer = {},
         solargraph = {},

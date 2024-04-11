@@ -5,10 +5,12 @@
     "lazyvim.plugins.extras.editor.mini-files",
     "lazyvim.plugins.extras.lang.docker",
     "lazyvim.plugins.extras.lang.elixir",
+    "lazyvim.plugins.extras.lang.markdown",
     "lazyvim.plugins.extras.lang.ruby",
     "lazyvim.plugins.extras.lang.terraform",
     "lazyvim.plugins.extras.test.core",
     "lazyvim.plugins.extras.ui.alpha",
+    "lazyvim.plugins.extras.util.dot",
     "lazyvim.plugins.extras.util.project"
   ],
   "news": {

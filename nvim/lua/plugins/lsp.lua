@@ -13,7 +13,7 @@ return {
         graphql = {},
         html = {},
         jsonls = {},
-        ruby_ls = {},
+        ruby_lsp = {},
         rust_analyzer = {},
         solargraph = {},
         tailwindcss = {},

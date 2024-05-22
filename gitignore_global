@@ -16,3 +16,4 @@ TAGS
 .nvimrc
 .mise.local.toml
 .mise.*.local.toml
+/.ruby-lsp/**

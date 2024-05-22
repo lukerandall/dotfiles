@@ -21,13 +21,6 @@ return {
   end,
   keys = {
     {
-      "<leader>sy",
-      function()
-        require("telescope").extensions.yank_history.yank_history()
-      end,
-      desc = "Yank history",
-    },
-    {
       "<leader>yd",
       function()
         vim.fn.setreg("+", vim.fn.expand("%:h") .. "/")

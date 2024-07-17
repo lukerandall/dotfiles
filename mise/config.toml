@@ -1,6 +1,7 @@
 [tools]
 usage = "latest"
 node = "20"
+ruby = "3.3"
 
 [settings]
 experimental = true

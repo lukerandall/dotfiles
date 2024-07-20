@@ -1,10 +1,8 @@
 local wk = require("which-key")
 
-wk.register({
-  y = {
-    name = "Yank",
-  },
-}, { prefix = "<leader>" })
+wk.add({
+  { "<leader>y", group = "Yank" },
+})
 
 return {
   "gbprod/yanky.nvim",

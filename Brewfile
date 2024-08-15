@@ -55,6 +55,7 @@ brew 'tealdeer'
 brew 'tmux'
 brew 'tuc'
 brew 'tz'
+brew 'wezterm'
 brew 'xsv'
 brew 'zoxide'
 

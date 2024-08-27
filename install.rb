@@ -2,6 +2,7 @@
 # frozen_string_literal: true
 
 dirs = %w[atuin bin bat fish kitty mise nvim wezterm]
+app_support_dirs = %w[jj]
 config_files = %w[starship.toml]
 ignored = %w[
   install.rb README.md Brewfile Brewfile.lock.json Brewfile.local Brewfile.local.lock.json Fonts.brewfile
@@ -12,7 +13,9 @@ ignored = %w[
 home = File.expand_path('~')
 
 Dir['*'].each do |file|
-  next if dirs.include?(file) || config_files.include?(file) || ignored.include?(file)
+  if dirs.include?(file) || config_files.include?(file) || ignored.include?(file) || app_support_dirs.include?(file)
+    next
+  end
 
   target = File.join(home, ".#{File.basename(file)}")
   puts `ln -svf #{File.expand_path file} #{target}`
@@ -29,6 +32,13 @@ dirs.each do |dir|
   next if dir == 'bin'
 
   puts `ln -svf #{File.expand_path dir} #{home}/.config`
+end
+
+puts
+app_support_dirs.each do |dir|
+  next if dir == 'bin'
+
+  puts `ln -svf #{File.expand_path dir} '#{home}/Library/Application Support'`
 end
 
 puts

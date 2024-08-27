@@ -1,0 +1,8 @@
+aliases.bootstrap = ["git", "init", "--colocate"]
+
+[user]
+name = "Luke Randall"
+email = "luke.randall@gmail.com"
+
+[ui]
+default-command = "log"

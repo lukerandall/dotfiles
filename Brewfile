@@ -13,6 +13,9 @@ mas 'Slack',                id: 803453959
 mas 'StopTheMadness',       id: 1376402589
 # rubocop:enable Style/NumericLiterals
 
+tap 'mike-engel/jwt-cli'
+tap 'tylerbrock/saw'
+
 brew 'atuin'
 brew 'aws-sso-cli'
 brew 'awscli'

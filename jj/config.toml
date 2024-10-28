@@ -10,9 +10,10 @@ dm = ["desc", "-m"]
 drop = ["abandon"]
 
 l = ["log", "-r", "main..@"]
-lr = ["log", "-r", "@ | ancestors(remote_bookmarks().., 2) | trunk()"]
-ll = ["log", "-r", "bookmarks() & ~(main | remote_bookmarks())"]
+ll = ["log", "-r", "::@ & ~remote_bookmarks()"]
+llb = ["log", "-r", "bookmarks() & ~(main | remote_bookmarks())"]
 lll = ["log", "-r", "all()"]
+lrb = ["log", "-r", "@ | ancestors(remote_bookmarks().., 2) | trunk()"]
 
 [git]
 auto-local-bookmark = true

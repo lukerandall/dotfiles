@@ -5,6 +5,10 @@ gpc = ["git", "push", "-c"]
 gpa = ["git", "push", "-c", "@"]
 gf = ["git", "fetch"]
 
+d = ["desc"]
+dm = ["desc", "-m"]
+drop = ["abandon"]
+
 l = ["log", "-r", "main..@"]
 lr = ["log", "-r", "@ | ancestors(remote_bookmarks().., 2) | trunk()"]
 ll = ["log", "-r", "bookmarks() & ~(main | remote_bookmarks())"]

@@ -1,4 +1,6 @@
 aliases.bootstrap = ["git", "init", "--colocate"]
+aliases.l = ["log", "-r", "main..@"]
+aliases.lr = ["log", "-r", "@ | ancestors(remote_bookmarks().., 2) | trunk()"]
 
 [user]
 name = "Luke Randall"

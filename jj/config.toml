@@ -1,18 +1,20 @@
-aliases.bootstrap = ["git", "init", "--colocate"]
-aliases.gp = ["git", "push"]
-aliases.gpc = ["git", "push", "-c"]
-aliases.gpa = ["git", "push", "-c", "@"]
-aliases.gf = ["git", "fetch"]
+[aliases]
+bootstrap = ["git", "init", "--colocate"]
+gp = ["git", "push"]
+gpc = ["git", "push", "-c"]
+gpa = ["git", "push", "-c", "@"]
+gf = ["git", "fetch"]
 
-aliases.l = ["log", "-r", "main..@"]
-aliases.lr = ["log", "-r", "@ | ancestors(remote_bookmarks().., 2) | trunk()"]
-aliases.ll = ["log", "-r", "bookmarks() & ~(main | remote_bookmarks())"]
+l = ["log", "-r", "main..@"]
+lr = ["log", "-r", "@ | ancestors(remote_bookmarks().., 2) | trunk()"]
+ll = ["log", "-r", "bookmarks() & ~(main | remote_bookmarks())"]
 
-git.auto-local-bookmark = true
+[git]
+auto-local-bookmark = true
+
+[ui]
+default-command = "log"
 
 [user]
 name = "Luke Randall"
 email = "luke.randall@gmail.com"
-
-[ui]
-default-command = "log"

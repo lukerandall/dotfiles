@@ -1,6 +1,14 @@
 aliases.bootstrap = ["git", "init", "--colocate"]
+aliases.gp = ["git", "push"]
+aliases.gpc = ["git", "push", "-c"]
+aliases.gpa = ["git", "push", "-c", "@"]
+aliases.gf = ["git", "fetch"]
+
 aliases.l = ["log", "-r", "main..@"]
 aliases.lr = ["log", "-r", "@ | ancestors(remote_bookmarks().., 2) | trunk()"]
+aliases.ll = ["log", "-r", "bookmarks() & ~(main | remote_bookmarks())"]
+
+git.auto-local-bookmark = true
 
 [user]
 name = "Luke Randall"

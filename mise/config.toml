@@ -1,8 +1,9 @@
 [tools]
-usage = "latest"
+go = "latest"
 node = "20"
 ruby = "3.3"
-go = "latest"
+rust = "latest"
+usage = "latest"
 
 [settings]
 experimental = true

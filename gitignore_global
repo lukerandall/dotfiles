@@ -17,3 +17,4 @@ TAGS
 .mise.local.toml
 .mise.*.local.toml
 /.ruby-lsp/**
+/.zed/

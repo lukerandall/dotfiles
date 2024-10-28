@@ -27,6 +27,12 @@ zoxide init fish | source
 starship init fish | source
 atuin init fish | source
 
+if status is-interactive
+    mise activate fish | source
+else
+    mise activate fish --shims | source
+end
+
 source $HOME/.op/plugins.sh
 
 abbr --add be bundle exec

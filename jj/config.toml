@@ -8,6 +8,7 @@ gf = ["git", "fetch"]
 l = ["log", "-r", "main..@"]
 lr = ["log", "-r", "@ | ancestors(remote_bookmarks().., 2) | trunk()"]
 ll = ["log", "-r", "bookmarks() & ~(main | remote_bookmarks())"]
+lll = ["log", "-r", "all()"]
 
 [git]
 auto-local-bookmark = true

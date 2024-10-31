@@ -46,6 +46,7 @@ abbr --add fetch_db "heroku pg:backups capture --expire && curl -o latest.dump (
 abbr --add restore_db "pg_restore --verbose --clean --no-acl --no-owner -h localhost -U $USER latest.dump -d"
 abbr --add tag-staging "git tag -d staging; git tag staging && git push --tags --force"
 abbr --add tag-test "git tag -d test; git tag test && git push --tags --force"
+abbr --add ls eza
 
 alias icat "kitty +kitten icat"
 alias diff "kitty +kitten diff"
@@ -53,4 +54,11 @@ alias gist "gh gist create"
 alias vim nvim
 alias cat bat
 alias less bat
-alias ls eza
+
+# argc-completions
+set -gx ARGC_COMPLETIONS_ROOT /Users/luke/Code/argc-completions
+set -gx ARGC_COMPLETIONS_PATH "$ARGC_COMPLETIONS_ROOT/completions/macos:$ARGC_COMPLETIONS_ROOT/completions"
+fish_add_path "$ARGC_COMPLETIONS_ROOT/bin"
+# To add completions for only the specified command, modify next line e.g. set argc_scripts cargo git
+set argc_scripts (ls -p -1 "$ARGC_COMPLETIONS_ROOT/completions/macos" "$ARGC_COMPLETIONS_ROOT/completions" | sed -n 's/\.sh$//p')
+argc --argc-completions fish $argc_scripts | source

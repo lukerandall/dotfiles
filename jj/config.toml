@@ -13,10 +13,6 @@ ll = ["log", "-r", "::@ & ~remote_bookmarks()"]
 llb = ["log", "-r", "bookmarks() & ~(main | remote_bookmarks())"]
 lrb = ["log", "-r", "@ | ancestors(remote_bookmarks().., 2) | trunk()"]
 
-[git]
-auto-local-bookmark = true
-auto-local-branch = true   # remove once 0.23/0.24 is released
-
 [ui]
 default-command = "log"
 

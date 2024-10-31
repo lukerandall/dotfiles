@@ -96,6 +96,12 @@ config.keys = {
 		action = wezterm.action.SendKey({ key = "a", mods = "CTRL" }),
 	},
 
+	{
+		key = "d",
+		mods = "LEADER",
+		action = wezterm.action.CloseCurrentPane({ confirm = true }),
+	},
+
 	switch_pane("j", "Down"),
 	switch_pane("k", "Up"),
 	switch_pane("h", "Left"),

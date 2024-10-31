@@ -13,6 +13,14 @@ ll = ["log", "-r", "::@ & ~remote_bookmarks()"]
 llb = ["log", "-r", "bookmarks() & ~(main | remote_bookmarks())"]
 lrb = ["log", "-r", "@ | ancestors(remote_bookmarks().., 2) | trunk()"]
 
+[revset-aliases]
+"lagging_bookmarks" = '''
+  ::bookmarks()
+  & mutable()
+  & mine()
+  ~ trunk()::
+  '''
+
 [ui]
 default-command = "log"
 

@@ -4,10 +4,6 @@ format = """\
   $hostname\
   $kubernetes\
   $custom\
-  $git_branch\
-  $git_commit\
-  $git_state\
-  $git_status\
   $docker_context\
   $package\
   $elixir\

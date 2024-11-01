@@ -44,14 +44,10 @@ abbr --add mr mise run
 abbr --add serve python3 -m http.server -b localhost
 abbr --add fetch_db "heroku pg:backups capture --expire && curl -o latest.dump (heroku pg:backups public-url)"
 abbr --add restore_db "pg_restore --verbose --clean --no-acl --no-owner -h localhost -U $USER latest.dump -d"
-abbr --add tag-staging "git tag -d staging; git tag staging && git push --tags --force"
-abbr --add tag-test "git tag -d test; git tag test && git push --tags --force"
 abbr --add ls eza
+abbr --add vim nvim
 
-alias icat "kitty +kitten icat"
-alias diff "kitty +kitten diff"
 alias gist "gh gist create"
-alias vim nvim
 alias cat bat
 alias less bat
 

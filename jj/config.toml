@@ -4,8 +4,8 @@ gp = ["git", "push"]
 gpc = ["git", "push", "-c"]
 gf = ["git", "fetch"]
 
-d = ["desc"]
-dm = ["desc", "-m"]
+commitid = ["log", "--no-graph", "--template", "commit_id"]
+movemain = ["bookmark", "move", "main"]
 
 all = ["log", "-r", "all()"]
 l = ["log", "-r", "main..@"]

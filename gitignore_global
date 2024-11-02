@@ -18,3 +18,5 @@ TAGS
 .mise.*.local.toml
 /.ruby-lsp/**
 /.zed/
+.yarn/
+profile.*.json

@@ -27,3 +27,6 @@ default-command = "log"
 [user]
 name = "Luke Randall"
 email = "luke.randall@gmail.com"
+
+[git]
+private-commits = "description(glob:\"private:*\")"

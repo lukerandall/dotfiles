@@ -23,6 +23,7 @@ lrb = ["log", "-r", "@ | ancestors(remote_bookmarks().., 2) | trunk()"]
 
 [ui]
 default-command = "log"
+diff-editor = ["nvim", "-c", "DiffEditor $left $right $output"]
 
 [user]
 name = "Luke Randall"

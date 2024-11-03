@@ -52,23 +52,11 @@ return {
         desc = "Grep String",
       },
       {
-        "<leader>sp",
-        "<cmd>Telescope pickers<cr>",
-        desc = "Pickers",
-      },
-      {
         "<leader>sP",
         function()
           t.extensions.luasnip.luasnip({})
         end,
         desc = "Snippets",
-      },
-      {
-        "<leader>sT",
-        function()
-          require("telescope-tabs").list_tabs()
-        end,
-        desc = "Tabs",
       },
       {
         "<leader>fF",

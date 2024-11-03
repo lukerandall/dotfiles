@@ -1,4 +1,17 @@
 local t = require("telescope")
+local builtin = require("telescope.builtin")
+
+local vcs_picker = function(opts)
+  local jj_pick_status, jj_res = pcall(t.extensions.jj.files, opts)
+  if jj_pick_status then
+    return
+  end
+
+  local git_files_status, git_res = pcall(builtin.git_files, opts)
+  if not git_files_status then
+    error("Could not launch jj/git files: \n" .. jj_res .. "\n" .. git_res)
+  end
+end
 
 return {
   {
@@ -14,7 +27,7 @@ return {
       {
         "<leader>fP",
         function()
-          require("telescope.builtin").find_files({ cwd = require("lazy.core.config").options.root })
+          builtin.find_files({ cwd = require("lazy.core.config").options.root })
         end,
         desc = "Find Plugin File",
       },
@@ -32,7 +45,7 @@ return {
           if input_string == "" then
             return
           end
-          require("telescope.builtin").grep_string({
+          builtin.grep_string({
             search = input_string,
           })
         end,
@@ -46,7 +59,7 @@ return {
       {
         "<leader>sP",
         function()
-          require("telescope").extensions.luasnip.luasnip({})
+          t.extensions.luasnip.luasnip({})
         end,
         desc = "Snippets",
       },
@@ -162,7 +175,7 @@ return {
   {
     "danielfalk/smart-open.nvim",
     config = function()
-      require("telescope").load_extension("smart_open")
+      t.load_extension("smart_open")
     end,
     dependencies = {
       "kkharji/sqlite.lua",
@@ -172,14 +185,14 @@ return {
       {
         "<leader><leader>",
         function()
-          require("telescope").extensions.smart_open.smart_open()
+          t.extensions.smart_open.smart_open()
         end,
         desc = "Find Files",
       },
       {
         "<leader>ff",
         function()
-          require("telescope").extensions.smart_open.smart_open()
+          t.extensions.smart_open.smart_open()
         end,
         desc = "Find Files",
       },
@@ -191,7 +204,7 @@ return {
       "nvim-telescope/telescope.nvim",
     },
     config = function()
-      require("telescope").load_extension("emoji")
+      t.load_extension("emoji")
     end,
     keys = {
       {
@@ -209,13 +222,28 @@ return {
       "nvim-telescope/telescope.nvim",
     },
     config = function()
-      require("telescope").load_extension("file_browser")
+      t.load_extension("file_browser")
     end,
     keys = {
       {
         "<leader>fB",
         "<cmd>Telescope file_browser<cr>",
         desc = "File Browser",
+      },
+    },
+  },
+  {
+    "zschreur/telescope-jj.nvim",
+    config = function()
+      t.load_extension("jj")
+    end,
+    keys = {
+      {
+        "<leader>fg",
+        function()
+          vcs_picker()
+        end,
+        desc = "Find Files (jj/git-files)",
       },
     },
   },

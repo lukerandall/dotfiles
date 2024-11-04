@@ -23,9 +23,10 @@ if test -e $LOCAL_CONFIG
     source $LOCAL_CONFIG
 end
 
-zoxide init fish | source
-starship init fish | source
 atuin init fish | source
+jj util completion fish | source
+starship init fish | source
+zoxide init fish | source
 
 if status is-interactive
     mise activate fish | source

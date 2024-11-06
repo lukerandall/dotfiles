@@ -177,13 +177,6 @@ return {
         end,
         desc = "Find Files",
       },
-      {
-        "<leader>ff",
-        function()
-          t.extensions.smart_open.smart_open()
-        end,
-        desc = "Find Files",
-      },
     },
   },
   {

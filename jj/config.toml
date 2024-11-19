@@ -15,6 +15,11 @@ llb = ["log", "-r", "bookmarks() & ~(main | remote_bookmarks())"]
 lrb = ["log", "-r", "@ | ancestors(remote_bookmarks().., 2) | trunk()"]
 lt = ["log", "-r", "tags()"]
 
+[merge-tools.diffconflicts]
+program = "nvim"
+merge-args = ["-c", "JJDiffConflicts!", "$output", "$base", "$left", "$right"]
+merge-tool-edits-conflict-markers = true
+
 [revset-aliases]
 "lagging_bookmarks" = '''
   ::bookmarks()

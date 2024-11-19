@@ -3,6 +3,7 @@ bootstrap = ["git", "init", "--colocate"]
 gp = ["git", "push"]
 gpc = ["git", "push", "-c"]
 gf = ["git", "fetch"]
+tug = ["bookmark", "move", "--from", "heads(::@- & bookmarks())", "--to", "@-"]
 
 commitid = ["log", "--no-graph", "--template", "commit_id"]
 movemain = ["bookmark", "move", "main"]
@@ -12,6 +13,7 @@ l = ["log", "-r", "main..@"]
 ll = ["log", "-r", "::@ & ~remote_bookmarks()"]
 llb = ["log", "-r", "bookmarks() & ~(main | remote_bookmarks())"]
 lrb = ["log", "-r", "@ | ancestors(remote_bookmarks().., 2) | trunk()"]
+lt = ["log", "-r", "tags()"]
 
 [revset-aliases]
 "lagging_bookmarks" = '''

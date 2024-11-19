@@ -28,6 +28,24 @@ merge-tool-edits-conflict-markers = true
   ~ trunk()::
   '''
 
+[templates]
+draft_commit_description = "commit_description_with_diff"
+
+[template-aliases]
+commit_description_with_diff = '''
+concat(
+  description,
+  surround(
+    "\nJJ: This commit contains the following changes:\n", "",
+    indent("JJ:     ", diff.stat(72)),
+  ),
+  surround(
+    "\nJJ: Diff:\n", "",
+    indent("JJ:     ", diff.git(72)),
+  ),
+)
+'''
+
 [ui]
 default-command = "log"
 

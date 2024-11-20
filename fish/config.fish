@@ -23,6 +23,8 @@ if test -e $LOCAL_CONFIG
     source $LOCAL_CONFIG
 end
 
+source $HOME/.config/fish/jj.fish
+
 atuin init fish | source
 jj util completion fish | source
 starship init fish | source

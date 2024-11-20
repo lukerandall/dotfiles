@@ -6,5 +6,6 @@ Fonts.brewfile.lock.json
 fish/local.fish
 fish/fish_variables
 fish/completions/
-fish/functions/
+fish/functions/_fzf*
+fish/functions/fzf*
 fish/conf.d/

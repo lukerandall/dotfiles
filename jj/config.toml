@@ -4,6 +4,7 @@ gp = ["git", "push"]
 gpc = ["git", "push", "-c"]
 gf = ["git", "fetch"]
 tug = ["bookmark", "move", "--from", "heads(::@- & bookmarks())", "--to", "@-"]
+up = ["rebase", "-d", "main"]
 
 commitid = ["log", "--no-graph", "--template", "commit_id"]
 movemain = ["bookmark", "move", "main"]

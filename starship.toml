@@ -3,6 +3,7 @@ format = """\
   $username\
   $hostname\
   $kubernetes\
+  $aws\
   $custom\
   $docker_context\
   $package\
@@ -15,7 +16,6 @@ format = """\
   $rust\
   $terraform\
   $memory_usage\
-  $aws\
   $env_var\
   $cmd_duration\
   $line_break\
@@ -100,4 +100,3 @@ jj log -r@ -l1 --ignore-working-copy --no-graph --color always  -T '
 
 detect_folders = [".jj"]
 symbol = "jj"
-

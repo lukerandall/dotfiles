@@ -1,13 +1,12 @@
 [aliases]
 bootstrap = ["git", "init", "--colocate"]
-gp = ["git", "push"]
-gpc = ["git", "push", "-c"]
+fresh = ["new", "main"]
 gf = ["git", "fetch"]
+gp = ["git", "push"]
 tug = ["bookmark", "move", "--from", "heads(::@- & bookmarks())", "--to", "@-"]
 up = ["rebase", "-d", "main"]
 
 commitid = ["log", "--no-graph", "--template", "commit_id"]
-movemain = ["bookmark", "move", "main"]
 
 all = ["log", "-r", "all()"]
 l = ["log", "-r", "main..@"]

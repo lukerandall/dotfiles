@@ -3,7 +3,7 @@ bootstrap = ["git", "init", "--colocate"]
 fresh = ["new", "main"]
 gf = ["git", "fetch"]
 gp = ["git", "push"]
-tug = ["bookmark", "move", "--from", "heads(::@- & bookmarks())", "--to", "@-"]
+tug = ["bookmark", "move", "--from", "tuggable()", "--to", "tug_target()"]
 up = ["rebase", "-d", "main"]
 
 commitid = ["log", "--no-graph", "--template", "commit_id"]
@@ -21,6 +21,8 @@ merge-args = ["-c", "JJDiffConflicts!", "$output", "$base", "$left", "$right"]
 merge-tool-edits-conflict-markers = true
 
 [revset-aliases]
+"tug_target()" = "@- & ~private()"
+"tuggable()" = "heads(::@- & bookmarks() & ~private())"
 "private()" = "description(glob:\"private:*\")"
 "lagging_bookmarks()" = '''
   ::bookmarks()

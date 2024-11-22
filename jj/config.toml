@@ -3,6 +3,7 @@ bootstrap = ["git", "init", "--colocate"]
 fresh = ["new", "main"]
 gf = ["git", "fetch"]
 gp = ["git", "push"]
+pushdown = ["rebase", "-r", "@-", "--insert-after"]
 tug = ["bookmark", "move", "--from", "tuggable()", "--to", "tug_target()"]
 up = ["rebase", "-d", "main"]
 

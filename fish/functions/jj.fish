@@ -16,12 +16,17 @@ function jjpr
     gh pr create --head $bookmark
 end
 
+function grepsha
+    grep -oE "\b[0-9a-f]{7,}\b"
+end
+
 function jjevo
     set rev $argv[1]
     if test -z "$rev"
         set rev "@"
     end
 
-    jj evolog --no-graph --template="builtin_log_oneline" -r $rev | fzf --preview 'echo {} | grep -oE "\b[0-9a-f]{7,}\b" | head -n 1 | xargs jj show --git | bat --language=diff --style=plain --paging=always --wrap=never --color=always' \
-        --bind "enter:execute(echo {} | grep -oE '\b[0-9a-f]{7,}\b' | head -n 1 | tr -d '\n' | pbcopy)+abort"
+    jj evolog --no-graph --template="builtin_log_oneline" -r $rev |
+        fzf --preview 'echo {} | grepsha | head -n 1 | xargs jj show --git | bat --language=diff --style=plain --paging=always --wrap=never --color=always' \
+            --bind "enter:execute(echo {} | grepsha | head -n 1 | tr -d '\n' | pbcopy)+abort"
 end

@@ -1,5 +1,6 @@
 [aliases]
 bootstrap = ["git", "init", "--colocate"]
+bump = ["rebase", "-b", "bumpable()", "-d", "trunk()"]
 fresh = ["new", "main"]
 gf = ["git", "fetch"]
 gp = ["git", "push"]
@@ -22,15 +23,11 @@ merge-args = ["-c", "JJDiffConflicts!", "$output", "$base", "$left", "$right"]
 merge-tool-edits-conflict-markers = true
 
 [revset-aliases]
+"bumpable()" = 'all:mutable() & mine()'
+"lagging_bookmarks()" = "::bookmarks() & mutable() & mine() ~ trunk()::"
+"private()" = "description(glob:\"private:*\")"
 "tug_target()" = "@- & ~private()"
 "tuggable()" = "heads(::@- & bookmarks() & ~private())"
-"private()" = "description(glob:\"private:*\")"
-"lagging_bookmarks()" = '''
-  ::bookmarks()
-  & mutable()
-  & mine()
-  ~ trunk()::
-  '''
 
 [templates]
 draft_commit_description = "commit_description_with_diff"

@@ -45,7 +45,7 @@ concat(
   ),
   surround(
     "\nJJ: Diff:\n", "",
-    indent("JJ:     ", diff.git(72)),
+    indent("JJ:     ", diff.git()),
   ),
 )
 '''

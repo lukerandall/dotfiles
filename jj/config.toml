@@ -12,7 +12,11 @@ commitid = ["log", "--no-graph", "--template", "commit_id"]
 
 all = ["log", "-r", "all()"]
 l = ["log", "-r", "main..@"]
-ll = ["log", "-r", "::@ & ~remote_bookmarks()"]
+ll = [
+  "log",
+  "-r",
+  "@ | ancestors(reachable(@ | mine(), mutable()), 2) | trunk()",
+]
 llb = ["log", "-r", "bookmarks() & ~(main | remote_bookmarks())"]
 lrb = ["log", "-r", "@ | ancestors(remote_bookmarks().., 2) | trunk()"]
 lt = ["log", "-r", "tags()"]
@@ -23,6 +27,10 @@ merge-args = ["-c", "JJDiffConflicts!", "$output", "$base", "$left", "$right"]
 merge-tool-edits-conflict-markers = true
 
 [revset-aliases]
+"here()" = "trunk()..@"
+"near()" = "reachable(@, mutable())"
+"orphans()" = "mutable() ~ ::bookmarks()"
+"stale()" = "bookmarks() ~ trunk()::"
 "bumpable()" = 'all:mutable() & mine()'
 "lagging_bookmarks()" = "::bookmarks() & mutable() & mine() ~ trunk()::"
 "private()" = "description(glob:\"private:*\")"

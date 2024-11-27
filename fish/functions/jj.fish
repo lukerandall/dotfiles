@@ -16,6 +16,11 @@ function jjpr
     gh pr create --head $bookmark
 end
 
+function jjfr
+    jj git fetch
+    jj new main
+end
+
 function grepsha
     grep -oE "\b[0-9a-f]{7,}\b"
 end

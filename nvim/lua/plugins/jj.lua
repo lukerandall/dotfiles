@@ -13,6 +13,9 @@ local function set_jumpable_lines(context)
 end
 return {
   {
+    "avm99963/vim-jjdescription",
+  },
+  {
     "julienvincent/hunk.nvim",
     cmd = { "DiffEditor" },
     config = function()

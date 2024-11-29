@@ -16,6 +16,9 @@ return {
     "avm99963/vim-jjdescription",
   },
   {
+    "will133/vim-dirdiff",
+  },
+  {
     "julienvincent/hunk.nvim",
     cmd = { "DiffEditor" },
     config = function()

@@ -1,37 +1,23 @@
-[aliases]
-bootstrap = ["git", "init", "--colocate"]
-gf = ["git", "fetch"]
-gp = ["git", "push"]
-
-bump = ["rebase", "-b", "bumpable()", "-d", "trunk()"]
-fresh = ["new", "main"]
-pushdown = ["rebase", "-r", "@-", "--insert-after"]
-tug = ["bookmark", "move", "--from", "tuggable()", "--to", "tug_target()"]
-up = ["rebase", "-d", "main"]
-
-commitid = ["log", "--no-graph", "--template", "commit_id"]
-
-all = ["log", "-r", "all()"]
-
-[merge-tools.diffconflicts]
-program = "nvim"
-merge-args = ["-c", "JJDiffConflicts!", "$output", "$base", "$left", "$right"]
-merge-tool-edits-conflict-markers = true
-
 [revset-aliases]
+# revsets for working with git branches
+# see jj bump & jj tug aliases
 "bumpable()" = 'all:mutable() & mine()'
 "tug_target()" = "@- & ~private()"
 "tuggable()" = "heads(::@- & bookmarks() & ~private())"
 
-"here()" = "trunk()..@"
+# current branch with a bit of context
 "slice()" = "slice(@)"
 "slice(from)" = "ancestors(reachable(from, mutable()), 2)"
 
+# commits that haven't been merged into trunk
 "open()" = "open(mine())"
 "open(domain)" = "domain ~ ::immutable_heads()"
+
+# commits that have been merged into trunk
 "merged()" = "merged(trunk())"
 "merged(into)" = "bookmarks() & ..into"
 
+# recent commits
 "last()" = "last(20)"
 "last(n)" = "ancestors(@, n)"
 
@@ -45,6 +31,7 @@ merge-tool-edits-conflict-markers = true
     | trunk()
 '''
 
+# view revisions ancestry from where it diverged from trunk
 "stack()" = "stack(@)"
 "stack(from)" = "ancestors((immutable()..from) | from::, 2)"
 
@@ -52,12 +39,37 @@ merge-tool-edits-conflict-markers = true
 # usage: compare(abc | foo | bar)
 "compare(heads)" = "connected(ancestors(::heads ~ ::trunk(), 2)) | heads"
 
+# some helpers for finding forgotten/unloved bookmarks
 "orphans()" = "mutable() ~ ::bookmarks()"
 "stale()" = "bookmarks() ~ trunk()::"
 "lagging_bookmarks()" = "::bookmarks() & mutable() & mine() ~ trunk()::"
 
+# commits considered private by git.private-commits
 "private()" = "description(glob:\"private:*\")"
 "wip()" = 'description(glob:"wip:*") ~ ::immutable_heads()'
+
+[aliases]
+bootstrap = ["git", "init", "--colocate"]
+gf = ["git", "fetch"]
+gp = ["git", "push"]
+
+# rebase bumpable branches on top of trunk
+bump = ["rebase", "-b", "bumpable()", "-d", "trunk()"]
+fresh = ["new", "main"]
+pushdown = ["rebase", "-r", "@-", "--insert-after"]
+# move tuggable bookmarks forward to latest non-private non-current commits
+tug = ["bookmark", "move", "--from", "tuggable()", "--to", "tug_target()"]
+up = ["rebase", "-d", "main"]
+
+commitid = ["log", "--no-graph", "--template", "commit_id"]
+
+all = ["log", "-r", "all()"]
+
+[merge-tools.diffconflicts]
+program = "nvim"
+merge-args = ["-c", "JJDiffConflicts!", "$output", "$base", "$left", "$right"]
+merge-tool-edits-conflict-markers = true
+
 
 [templates]
 draft_commit_description = "commit_description_with_diff"

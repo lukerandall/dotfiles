@@ -38,7 +38,7 @@ end
 
 function jjedit
     if test -d .jj
-        set -l name (jj log --no-graph -T 'change_id.shortest() ++ "\t" ++ description.first_line() ++ " "  ++ branches.join("  ") ++ "\n"' --color always | fzf --ansi | cut -f1)
+        set -l name (jj log -r "all()" --no-graph -T 'change_id.shortest() ++ "\t" ++ description.first_line() ++ " "  ++ bookmarks.join("  ") ++ "\n"' --color always | fzf --ansi | cut -f1)
         commandline -it "$name"
     else
         commandline -it "# not in a jj directory"

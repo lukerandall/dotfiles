@@ -7,6 +7,3 @@ usage = "latest"
 
 [settings]
 experimental = true
-
-[alias]
-erlang = "asdf:michallepicki/asdf-erlang-prebuilt-macos"

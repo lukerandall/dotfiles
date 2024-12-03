@@ -35,3 +35,13 @@ function jjevo
         fzf --preview 'echo {} | grepsha | head -n 1 | xargs jj show --git | bat --language=diff --style=plain --paging=always --wrap=never --color=always' \
             --bind "enter:execute(echo {} | grepsha | head -n 1 | tr -d '\n' | pbcopy)+abort"
 end
+
+function jjedit
+    if test -d .jj
+        set -l name (jj log --no-graph -T 'change_id.shortest() ++ "\t" ++ description.first_line() ++ " "  ++ branches.join("  ") ++ "\n"' --color always | fzf --ansi | cut -f1)
+        commandline -it "$name"
+    else
+        commandline -it "# not in a jj directory"
+    end
+end
+bind \cj jjedit

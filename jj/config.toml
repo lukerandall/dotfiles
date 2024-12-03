@@ -1,9 +1,10 @@
 [aliases]
 bootstrap = ["git", "init", "--colocate"]
-bump = ["rebase", "-b", "bumpable()", "-d", "trunk()"]
-fresh = ["new", "main"]
 gf = ["git", "fetch"]
 gp = ["git", "push"]
+
+bump = ["rebase", "-b", "bumpable()", "-d", "trunk()"]
+fresh = ["new", "main"]
 pushdown = ["rebase", "-r", "@-", "--insert-after"]
 tug = ["bookmark", "move", "--from", "tuggable()", "--to", "tug_target()"]
 up = ["rebase", "-d", "main"]
@@ -11,15 +12,6 @@ up = ["rebase", "-d", "main"]
 commitid = ["log", "--no-graph", "--template", "commit_id"]
 
 all = ["log", "-r", "all()"]
-l = ["log", "-r", "main..@"]
-ll = [
-  "log",
-  "-r",
-  "@ | ancestors(reachable(@ | mine(), mutable()), 2) | trunk()",
-]
-llb = ["log", "-r", "bookmarks() & ~(main | remote_bookmarks())"]
-lrb = ["log", "-r", "@ | ancestors(remote_bookmarks().., 2) | trunk()"]
-lt = ["log", "-r", "tags()"]
 
 [merge-tools.diffconflicts]
 program = "nvim"
@@ -27,15 +19,45 @@ merge-args = ["-c", "JJDiffConflicts!", "$output", "$base", "$left", "$right"]
 merge-tool-edits-conflict-markers = true
 
 [revset-aliases]
-"here()" = "trunk()..@"
-"near()" = "reachable(@, mutable())"
-"orphans()" = "mutable() ~ ::bookmarks()"
-"stale()" = "bookmarks() ~ trunk()::"
 "bumpable()" = 'all:mutable() & mine()'
-"lagging_bookmarks()" = "::bookmarks() & mutable() & mine() ~ trunk()::"
-"private()" = "description(glob:\"private:*\")"
 "tug_target()" = "@- & ~private()"
 "tuggable()" = "heads(::@- & bookmarks() & ~private())"
+
+"here()" = "trunk()..@"
+"slice()" = "slice(@)"
+"slice(from)" = "ancestors(reachable(from, mutable()), 2)"
+
+"open()" = "open(mine())"
+"open(domain)" = "domain ~ ::immutable_heads()"
+"merged()" = "merged(trunk())"
+"merged(into)" = "bookmarks() & ..into"
+
+"last()" = "last(20)"
+"last(n)" = "ancestors(@, n)"
+
+"recent()" = 'recent(after:"14 days ago")'
+"recent(when)" = '''
+    ancestors(
+        reachable(
+            immutable_heads()..(@ | committer_date(when)::),
+            mutable()),
+        2)
+    | trunk()
+'''
+
+"stack()" = "stack(@)"
+"stack(from)" = "ancestors((immutable()..from) | from::, 2)"
+
+# see the ancestry of two heads back to where they diverged
+# usage: compare(abc | foo | bar)
+"compare(heads)" = "connected(ancestors(::heads ~ ::trunk(), 2)) | heads"
+
+"orphans()" = "mutable() ~ ::bookmarks()"
+"stale()" = "bookmarks() ~ trunk()::"
+"lagging_bookmarks()" = "::bookmarks() & mutable() & mine() ~ trunk()::"
+
+"private()" = "description(glob:\"private:*\")"
+"wip()" = 'description(glob:"wip:*") ~ ::immutable_heads()'
 
 [templates]
 draft_commit_description = "commit_description_with_diff"

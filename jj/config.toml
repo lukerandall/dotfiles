@@ -48,6 +48,7 @@
 "private()" = "description(glob:\"private:*\")"
 "wip()" = 'description(glob:"wip:*") ~ ::immutable_heads()'
 
+
 [aliases]
 bootstrap = ["git", "init", "--colocate"]
 gf = ["git", "fetch"]
@@ -57,10 +58,14 @@ gp = ["git", "push"]
 bump = ["rebase", "-b", "bumpable()", "-d", "trunk()"]
 fresh = ["new", "main"]
 pushdown = ["rebase", "-r", "@-", "--insert-after"]
+
 # move tuggable bookmarks forward to latest non-private non-current commits
 tug = ["bookmark", "move", "--from", "tuggable()", "--to", "tug_target()"]
-up = ["rebase", "-d", "main"]
 
+# bring a branch up to date with trunk()
+up = ["rebase", "--skip-emptied", "-d", "trunk()"]
+
+changed = ["diff", "--name-only"]
 commitid = ["log", "--no-graph", "--template", "commit_id"]
 
 all = ["log", "-r", "all()"]
@@ -73,6 +78,7 @@ merge-tool-edits-conflict-markers = true
 
 [templates]
 draft_commit_description = "commit_description_with_diff"
+
 
 [template-aliases]
 commit_description_with_diff = '''
@@ -89,12 +95,15 @@ concat(
 )
 '''
 
+
 [ui]
 default-command = "log"
+
 
 [user]
 name = "Luke Randall"
 email = "luke.randall@gmail.com"
+
 
 [git]
 private-commits = "private()"

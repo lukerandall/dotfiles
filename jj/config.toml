@@ -66,8 +66,6 @@ tug = ["bookmark", "move", "--from", "tuggable()", "--to", "tug_target()"]
 up = ["rebase", "--skip-emptied", "-d", "trunk()"]
 
 changed = ["diff", "--name-only"]
-commitid = ["log", "--no-graph", "-T", 'commit_id ++ "\n"']
-changeid = ["log", "--no-graph", "-T", 'change_id ++ "\n"']
 
 all = ["log", "-r", "all()"]
 

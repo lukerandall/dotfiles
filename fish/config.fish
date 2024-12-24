@@ -24,7 +24,7 @@ if test -e $LOCAL_CONFIG
 end
 
 atuin init fish | source
-jj util completion fish | source
+COMPLETE=fish jj | source
 starship init fish | source
 zoxide init fish | source
 

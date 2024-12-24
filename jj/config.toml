@@ -66,6 +66,12 @@ tug = ["bookmark", "move", "--from", "tuggable()", "--to", "tug_target()"]
 up = ["rebase", "--skip-emptied", "-d", "trunk()"]
 
 changed = ["diff", "--name-only"]
+commitid = ["log", "--no-graph", "-T", 'commit_id ++ "\n"']
+changeid = ["log", "--no-graph", "-T", 'change_id ++ "\n"']
+dv = [
+  "--config=templates.draft_commit_description=commit_description_verbose",
+  "describe",
+]
 
 all = ["log", "-r", "all()"]
 
@@ -76,21 +82,18 @@ merge-tool-edits-conflict-markers = true
 
 
 [templates]
-draft_commit_description = "commit_description_with_diff"
+# draft_commit_description = "commit_description_verbose"
 
 
 [template-aliases]
-commit_description_with_diff = '''
+commit_description_verbose = '''
 concat(
   description,
-  surround(
-    "\nJJ: This commit contains the following changes:\n", "",
-    indent("JJ:     ", diff.stat(72)),
-  ),
-  surround(
-    "\nJJ: Diff:\n", "",
-    indent("JJ:     ", diff.git()),
-  ),
+  "\n",
+  "JJ: This commit contains the following changes:\n",
+  indent("JJ:    ", diff.stat(72)),
+  "JJ: ignore-rest\n",
+  diff.git(),
 )
 '''
 

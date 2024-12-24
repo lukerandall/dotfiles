@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
-dirs = %w[atuin bin bat fish kitty mise nvim wezterm]
+dirs = %w[atuin bin bat fish ghostty kitty mise nvim wezterm]
 app_support_dirs = %w[jj]
 config_files = %w[starship.toml]
 ignored = %w[

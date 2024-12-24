@@ -1,0 +1,6 @@
+font-family = "Fira Code"
+font-size = 12
+theme = tokyonight
+background-opacity = 0.95
+
+keybind = global:cmd+shift+t=toggle_quick_terminal

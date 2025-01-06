@@ -3,4 +3,6 @@ font-size = 12
 theme = tokyonight
 background-opacity = 0.95
 
+macos-titlebar-style = tabs
+
 keybind = global:cmd+shift+t=toggle_quick_terminal

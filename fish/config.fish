@@ -47,6 +47,7 @@ abbr --add fetch_db "heroku pg:backups capture --expire && curl -o latest.dump (
 abbr --add restore_db "pg_restore --verbose --clean --no-acl --no-owner -h localhost -U $USER latest.dump -d"
 abbr --add ls eza
 abbr --add vim nvim
+abbr --add ungron gron --ungron
 
 alias gist "gh gist create"
 alias cat bat

@@ -20,3 +20,4 @@ TAGS
 /.zed/
 .yarn/
 profile.*.json
+.rgignore

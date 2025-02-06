@@ -103,6 +103,7 @@ concat(
 
 [ui]
 default-command = "log"
+diff-editor = ":builtin"
 
 
 [user]

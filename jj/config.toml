@@ -67,6 +67,7 @@ tug = ["bookmark", "move", "--from", "tuggable()", "--to", "tug_target()"]
 # bring a branch up to date with trunk()
 up = ["rebase", "--skip-emptied", "-d", "trunk()"]
 
+blame = ["file", "annotate"]
 changed = ["diff", "--name-only"]
 commitid = ["log", "--no-graph", "-T", 'commit_id ++ "\n"']
 changeid = ["log", "--no-graph", "-T", 'change_id ++ "\n"']

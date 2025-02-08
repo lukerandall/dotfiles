@@ -1,0 +1,160 @@
+{
+  "actions" : [
+    {
+      "value" : "/Applications/Ghostty.app",
+      "key" : "t",
+      "type" : "application",
+      "label" : "Ghostty"
+    },
+    {
+      "label" : "Open",
+      "type" : "group",
+      "key" : "o",
+      "actions" : [
+        {
+          "key" : "s",
+          "value" : "/Applications/Safari.app",
+          "type" : "application",
+          "label" : ""
+        },
+        {
+          "type" : "application",
+          "label" : "",
+          "key" : "e",
+          "value" : "/Applications/Mail.app"
+        },
+        {
+          "label" : "",
+          "key" : "i",
+          "type" : "application",
+          "value" : "/System/Applications/Music.app"
+        },
+        {
+          "type" : "application",
+          "key" : "m",
+          "value" : "/System/Applications/Messages.app",
+          "label" : ""
+        },
+        {
+          "type" : "application",
+          "key" : "c",
+          "label" : "",
+          "value" : "/Applications/Notion Calendar.app"
+        },
+        {
+          "key" : "z",
+          "label" : "",
+          "value" : "/Applications/Zen Browser.app",
+          "type" : "application"
+        },
+        {
+          "key" : "g",
+          "label" : "",
+          "type" : "application",
+          "value" : "/Applications/ChatGPT.app"
+        },
+        {
+          "value" : "/Applications/Ghostty.app",
+          "label" : "",
+          "type" : "application",
+          "key" : "t"
+        },
+        {
+          "type" : "application",
+          "key" : "l",
+          "value" : "/Applications/Slack.app",
+          "label" : ""
+        }
+      ]
+    },
+    {
+      "actions" : [
+        {
+          "type" : "url",
+          "value" : "raycast://extensions/raycast/emoji-symbols/search-emoji-symbols",
+          "label" : "Emoji",
+          "key" : "e"
+        },
+        {
+          "key" : "p",
+          "type" : "url",
+          "value" : "raycast://extensions/raycast/raycast/confetti",
+          "label" : "Party (Confetti)"
+        },
+        {
+          "label" : "AI Chat",
+          "value" : "raycast://extensions/raycast/raycast-ai/ai-chat",
+          "type" : "url",
+          "key" : "a"
+        },
+        {
+          "label" : "Clipboard History",
+          "value" : "raycast://extensions/raycast/clipboard-history/clipboard-history",
+          "type" : "url",
+          "key" : "h"
+        },
+        {
+          "value" : "raycast://extensions/raycast/system/open-camera",
+          "key" : "c",
+          "label" : "Camera (Open)",
+          "type" : "url"
+        },
+        {
+          "label" : "Day (My Schedule)",
+          "type" : "url",
+          "value" : "raycast://extensions/raycast/calendar/my-schedule",
+          "key" : "d"
+        },
+        {
+          "value" : "raycast://ai-commands/summarize-webpage",
+          "type" : "url",
+          "key" : "s",
+          "label" : "Summarize Webpage"
+        },
+        {
+          "key" : "g",
+          "value" : "raycast://extensions/jarry_chung/ghostty/search-ghostty-tab",
+          "type" : "url",
+          "label" : "Ghostty Search Tabs"
+        },
+        {
+          "value" : "raycast://extensions/erics118/change-case/change-case",
+          "type" : "url",
+          "key" : "x",
+          "label" : "X Case"
+        },
+        {
+          "type" : "group",
+          "key" : "q",
+          "label" : "Quicklinks",
+          "actions" : [
+            {
+              "type" : "url",
+              "label" : "Create",
+              "value" : "raycast://extensions/raycast/raycast/create-quicklink",
+              "key" : "c"
+            },
+            {
+              "label" : "Search",
+              "type" : "url",
+              "key" : "s",
+              "value" : "raycast://extensions/raycast/raycast/search-quicklinks"
+            }
+          ]
+        }
+      ],
+      "key" : "r",
+      "type" : "group",
+      "label" : "Raycast"
+    },
+    {
+      "label" : "Go",
+      "actions" : [
+
+      ],
+      "key" : "g",
+      "type" : "group"
+    }
+  ],
+  "type" : "group"
+}

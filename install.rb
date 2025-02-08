@@ -2,7 +2,7 @@
 # frozen_string_literal: true
 
 dirs = %w[atuin bin bat fish ghostty kitty mise nvim wezterm]
-app_support_dirs = %w[jj]
+app_support_dirs = ['jj', 'Leader Key']
 config_files = %w[starship.toml]
 ignored = %w[
   install.rb README.md Brewfile Brewfile.lock.json Brewfile.local Brewfile.local.lock.json Fonts.brewfile
@@ -38,7 +38,7 @@ puts
 app_support_dirs.each do |dir|
   next if dir == 'bin'
 
-  puts `ln -svf #{File.expand_path dir} '#{home}/Library/Application Support'`
+  puts `ln -svf '#{File.expand_path dir}' '#{home}/Library/Application Support'`
 end
 
 puts

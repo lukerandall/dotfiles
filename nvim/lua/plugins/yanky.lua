@@ -6,16 +6,12 @@ wk.add({
 
 return {
   "gbprod/yanky.nvim",
-  dependencies = {
-    "nvim-telescope/telescope.nvim",
-  },
   config = function()
     require("yanky").setup({
       ring = {
         history_length = 100,
       },
     })
-    require("telescope").load_extension("yank_history")
   end,
   keys = {
     {

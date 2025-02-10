@@ -1,160 +1,160 @@
 {
+  "type" : "group",
   "actions" : [
     {
-      "value" : "/Applications/Ghostty.app",
-      "key" : "t",
       "type" : "application",
-      "label" : "Ghostty"
+      "key" : "t",
+      "label" : "Ghostty",
+      "value" : "/Applications/Ghostty.app"
     },
     {
-      "label" : "Open",
       "type" : "group",
-      "key" : "o",
+      "label" : "Open",
       "actions" : [
         {
           "key" : "s",
-          "value" : "/Applications/Safari.app",
           "type" : "application",
+          "value" : "/System/Volumes/Preboot/Cryptexes/App/System/Applications/Safari.app",
           "label" : ""
         },
         {
-          "type" : "application",
-          "label" : "",
           "key" : "e",
-          "value" : "/Applications/Mail.app"
+          "label" : "",
+          "type" : "application",
+          "value" : "/System/Applications/Mail.app"
         },
         {
+          "value" : "/System/Applications/Music.app",
           "label" : "",
           "key" : "i",
-          "type" : "application",
-          "value" : "/System/Applications/Music.app"
-        },
-        {
-          "type" : "application",
-          "key" : "m",
-          "value" : "/System/Applications/Messages.app",
-          "label" : ""
-        },
-        {
-          "type" : "application",
-          "key" : "c",
-          "label" : "",
-          "value" : "/Applications/Notion Calendar.app"
-        },
-        {
-          "key" : "z",
-          "label" : "",
-          "value" : "/Applications/Zen Browser.app",
           "type" : "application"
         },
         {
-          "key" : "g",
-          "label" : "",
           "type" : "application",
-          "value" : "/Applications/ChatGPT.app"
+          "value" : "/System/Applications/Messages.app",
+          "label" : "",
+          "key" : "m"
+        },
+        {
+          "type" : "application",
+          "label" : "",
+          "key" : "c",
+          "value" : "/Applications/Notion Calendar.app"
+        },
+        {
+          "type" : "application",
+          "label" : "",
+          "value" : "/Applications/Zen Browser.app",
+          "key" : "z"
+        },
+        {
+          "value" : "/Applications/ChatGPT.app",
+          "type" : "application",
+          "label" : "AI (ChatGPT)",
+          "key" : "a"
         },
         {
           "value" : "/Applications/Ghostty.app",
           "label" : "",
-          "type" : "application",
-          "key" : "t"
+          "key" : "t",
+          "type" : "application"
         },
         {
-          "type" : "application",
           "key" : "l",
           "value" : "/Applications/Slack.app",
+          "type" : "application",
           "label" : ""
+        }
+      ],
+      "key" : "o"
+    },
+    {
+      "type" : "group",
+      "key" : "r",
+      "label" : "Raycast",
+      "actions" : [
+        {
+          "label" : "Emoji",
+          "type" : "url",
+          "value" : "raycast://extensions/raycast/emoji-symbols/search-emoji-symbols",
+          "key" : "e"
+        },
+        {
+          "value" : "raycast://extensions/raycast/raycast/confetti",
+          "key" : "p",
+          "label" : "Party (Confetti)",
+          "type" : "url"
+        },
+        {
+          "value" : "raycast://extensions/raycast/raycast-ai/ai-chat",
+          "label" : "AI Chat",
+          "key" : "a",
+          "type" : "url"
+        },
+        {
+          "label" : "Clipboard History",
+          "type" : "url",
+          "value" : "raycast://extensions/raycast/clipboard-history/clipboard-history",
+          "key" : "h"
+        },
+        {
+          "key" : "c",
+          "type" : "url",
+          "value" : "raycast://extensions/raycast/system/open-camera",
+          "label" : "Camera (Open)"
+        },
+        {
+          "label" : "Day (My Schedule)",
+          "type" : "url",
+          "key" : "d",
+          "value" : "raycast://extensions/raycast/calendar/my-schedule"
+        },
+        {
+          "key" : "s",
+          "type" : "url",
+          "value" : "raycast://ai-commands/summarize-webpage",
+          "label" : "Summarize Webpage"
+        },
+        {
+          "label" : "Ghostty Search Tabs",
+          "type" : "url",
+          "value" : "raycast://extensions/jarry_chung/ghostty/search-ghostty-tab",
+          "key" : "g"
+        },
+        {
+          "key" : "x",
+          "value" : "raycast://extensions/erics118/change-case/change-case",
+          "label" : "X Case",
+          "type" : "url"
+        },
+        {
+          "actions" : [
+            {
+              "label" : "Create",
+              "type" : "url",
+              "key" : "c",
+              "value" : "raycast://extensions/raycast/raycast/create-quicklink"
+            },
+            {
+              "label" : "Search",
+              "value" : "raycast://extensions/raycast/raycast/search-quicklinks",
+              "key" : "s",
+              "type" : "url"
+            }
+          ],
+          "type" : "group",
+          "key" : "q",
+          "label" : "Quicklinks"
         }
       ]
     },
     {
       "actions" : [
-        {
-          "type" : "url",
-          "value" : "raycast://extensions/raycast/emoji-symbols/search-emoji-symbols",
-          "label" : "Emoji",
-          "key" : "e"
-        },
-        {
-          "key" : "p",
-          "type" : "url",
-          "value" : "raycast://extensions/raycast/raycast/confetti",
-          "label" : "Party (Confetti)"
-        },
-        {
-          "label" : "AI Chat",
-          "value" : "raycast://extensions/raycast/raycast-ai/ai-chat",
-          "type" : "url",
-          "key" : "a"
-        },
-        {
-          "label" : "Clipboard History",
-          "value" : "raycast://extensions/raycast/clipboard-history/clipboard-history",
-          "type" : "url",
-          "key" : "h"
-        },
-        {
-          "value" : "raycast://extensions/raycast/system/open-camera",
-          "key" : "c",
-          "label" : "Camera (Open)",
-          "type" : "url"
-        },
-        {
-          "label" : "Day (My Schedule)",
-          "type" : "url",
-          "value" : "raycast://extensions/raycast/calendar/my-schedule",
-          "key" : "d"
-        },
-        {
-          "value" : "raycast://ai-commands/summarize-webpage",
-          "type" : "url",
-          "key" : "s",
-          "label" : "Summarize Webpage"
-        },
-        {
-          "key" : "g",
-          "value" : "raycast://extensions/jarry_chung/ghostty/search-ghostty-tab",
-          "type" : "url",
-          "label" : "Ghostty Search Tabs"
-        },
-        {
-          "value" : "raycast://extensions/erics118/change-case/change-case",
-          "type" : "url",
-          "key" : "x",
-          "label" : "X Case"
-        },
-        {
-          "type" : "group",
-          "key" : "q",
-          "label" : "Quicklinks",
-          "actions" : [
-            {
-              "type" : "url",
-              "label" : "Create",
-              "value" : "raycast://extensions/raycast/raycast/create-quicklink",
-              "key" : "c"
-            },
-            {
-              "label" : "Search",
-              "type" : "url",
-              "key" : "s",
-              "value" : "raycast://extensions/raycast/raycast/search-quicklinks"
-            }
-          ]
-        }
-      ],
-      "key" : "r",
-      "type" : "group",
-      "label" : "Raycast"
-    },
-    {
-      "label" : "Go",
-      "actions" : [
 
       ],
       "key" : "g",
+      "label" : "Go",
       "type" : "group"
     }
-  ],
-  "type" : "group"
+  ]
 }

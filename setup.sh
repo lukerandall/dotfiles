@@ -6,8 +6,8 @@ echo "Installing homebrew"
 echo "Installing apps"
 brew bundle
 
-echo "Installing dotfiles"
-./install.rb
+echo "Linking dotfiles"
+./link_dotfiles.rb
 
 echo "Applying macOS settings"
 ./settings.sh

@@ -5,7 +5,7 @@ dirs = %w[atuin bin bat fish ghostty kitty mise nvim wezterm]
 app_support_dirs = ['jj', 'Leader Key']
 config_files = %w[starship.toml]
 ignored = %w[
-  install.rb README.md Brewfile Brewfile.lock.json Brewfile.local Brewfile.local.lock.json Fonts.brewfile
+  link_dotfiles.rb README.md Brewfile Brewfile.lock.json Brewfile.local Brewfile.local.lock.json Fonts.brewfile
   Fonts.brewfile.lock.json print_settings.rb settings.json settings.sh setup.sh keybindings.json
   aws-sso
 ]

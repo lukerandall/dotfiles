@@ -10,3 +10,4 @@ fish/functions/_fzf*
 fish/functions/fzf*
 fish/conf.d/
 mise/age.txt
+jj/conf.d/*.toml

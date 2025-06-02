@@ -4,8 +4,11 @@
 # revsets for working with git branches
 # see jj bump & jj tug aliases
 "bumpable()" = 'all:mutable() & mine()'
-"tug_target()" = "@- & ~private()"
-"tuggable()" = "heads(::@- & bookmarks() & ~private())"
+"closest_bookmark(to)" = "heads(::to & bookmarks())"
+"tug_target()" = "tug_target(@-)"
+"tug_target(to)" = "to & ~private()"
+"tuggable()" = "tuggable(@-)"
+"tuggable(to)" = "heads(closest_bookmark(to) & ~private())"
 
 # current branch with a bit of context
 "slice()" = "slice(@)"

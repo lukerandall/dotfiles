@@ -61,7 +61,11 @@ gp = ["git", "push"]
 
 # rebase bumpable branches on top of trunk
 bump = ["rebase", "-b", "bumpable()", "-d", "trunk()"]
+
+# various convenience commands
 fresh = ["new", "main"]
+pop = ["rebase", "-r", "@", "-d", "trunk()"]
+ppop = ["rebase", "-r", "@-", "-d", "trunk()"]
 pushdown = ["rebase", "-r", "@-", "--insert-after"]
 
 # move tuggable bookmarks forward to latest non-private non-current commits

@@ -86,6 +86,13 @@ dv = [
 
 all = ["log", "-r", "all()"]
 
+
+fr = ["util", "exec", "--", "bash", "-c", """
+set -euo pipefail
+jj git fetch
+jj new "trunk()"
+""", ""]
+
 pr = ["util", "exec", "--", "bash", "-c", """
 set -euo pipefail
 rev=${1:-"@-"}

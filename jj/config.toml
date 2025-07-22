@@ -52,6 +52,7 @@
 # commits considered private by git.private-commits
 "private()" = "description(glob:\"private:*\")"
 "wip()" = 'description(glob:"wip:*") ~ ::immutable_heads()'
+"trash()" = 'description(glob:"trash:*") ~ ::immutable_heads()'
 
 
 [aliases]

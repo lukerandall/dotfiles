@@ -21,3 +21,7 @@ TAGS
 .yarn/
 profile.*.json
 .rgignore
+
+.claude/settings.local.json
+CLAUDE.local.md
+.todo.local/*

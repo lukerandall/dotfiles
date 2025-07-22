@@ -1,9 +1,10 @@
 [tools]
 go = "latest"
-node = "20"
-ruby = "3.4"
+node = "latest"
+ruby = "latest"
 rust = "latest"
 usage = "latest"
+uv = "latest"
 
 [settings]
 experimental = true

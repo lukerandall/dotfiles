@@ -26,6 +26,8 @@
 "last()" = "last(20)"
 "last(n)" = "ancestors(@, n)"
 
+"overview()" = "last() | orphans() | stale()"
+
 "recent()" = 'recent(after:"14 days ago")'
 "recent(when)" = '''
     ancestors(
@@ -82,6 +84,7 @@ changeid = ["log", "--no-graph", "-T", 'change_id ++ "\n"']
 difft = ["--config", "ui.diff.tool='difft --color=always $left $right'", "diff"]
 
 all = ["log", "-r", "all()"]
+l = ["log", "-r", "overview()"]
 
 
 fr = ["util", "exec", "--", "bash", "-c", """

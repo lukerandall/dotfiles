@@ -93,6 +93,18 @@ jj git fetch
 jj new "trunk()"
 """, ""]
 
+go = ["util", "exec", "--", "bash", "-c", """
+set -euo pipefail
+ if [ $# -eq 0 ]; then
+    echo "Error: Please provide a bookmark name as an argument" >&2
+    exit 1
+fi
+
+bookmark="$1"
+jj bookmark track "${bookmark}@origin"
+jj new "$bookmark"
+""", ""]
+
 pr = ["util", "exec", "--", "bash", "-c", """
 set -euo pipefail
 rev=${1:-"@-"}

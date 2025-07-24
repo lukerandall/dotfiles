@@ -6,35 +6,32 @@ function jjpr
     set auto false
     set gh_extra_args
 
-    set parsing_jjpr_args true
     set i 1
     while test $i -le (count $argv)
-        if test "$parsing_jjpr_args" = "true"
-            switch $argv[$i]
-                case --revision -r
+        switch $argv[$i]
+            case --revision -r
+                set i (math $i + 1)
+                set rev $argv[$i]
+            case --bookmark -b
+                set i (math $i + 1)
+                set bookmark $argv[$i]
+            case --base
+                # Don't consume this - let it pass through to gh
+                set gh_extra_args $gh_extra_args $argv[$i]
+                if test $i -lt (count $argv)
                     set i (math $i + 1)
-                    set rev $argv[$i]
-                case --bookmark -b
-                    set i (math $i + 1)
-                    set bookmark $argv[$i]
-                case --base
-                    set i (math $i + 1)
-                    set base $argv[$i]
-                case --auto -a
-                    set auto true
-                case --force -f
-                    set force true
-                case --help -h
-                    echo "Usage: jjpr [--revision|-r REV] [--bookmark|-b BOOKMARK] [--base BASE] [--auto|-a] [--force|-f] [-- GH_FLAGS...]"
-                    return 0
-                case --
-                    set parsing_jjpr_args false
-                case '*'
-                    echo "Unknown jjpr option: $argv[$i]. Use -- to separate jjpr options from gh pr create options." >&2
-                    return 1
-            end
-        else
-            set gh_extra_args $gh_extra_args $argv[$i]
+                    set gh_extra_args $gh_extra_args $argv[$i]
+                end
+            case --auto -a
+                set auto true
+            case --force -f
+                set force true
+            case --help -h
+                echo "Usage: jjpr [--revision|-r REV] [--bookmark|-b BOOKMARK] [--auto|-a] [--force|-f] [GH_PR_CREATE_FLAGS...]"
+                return 0
+            case '*'
+                # Pass everything else to gh pr create
+                set gh_extra_args $gh_extra_args $argv[$i]
         end
         set i (math $i + 1)
     end
@@ -58,9 +55,6 @@ function jjpr
     end
     
     set gh_args --head $bookmark
-    if test -n "$base"
-        set gh_args $gh_args --base $base
-    end
     if test "$auto" = "true"
         set title (jj log -r $rev --no-graph -T "description.first_line()")
         set gh_args $gh_args --title "$title"
@@ -105,6 +99,16 @@ bind \cj jjedit
 # Completions for jjpr
 complete -c jjpr -s r -l revision -d 'Revision to create PR for' -f -r -k -a '(jj log -r "(open() | recent() | mutable() | last(20)) & ~empty()" --no-graph -T "change_id.shortest() ++ \"\\t(\" ++ description.first_line() ++ \")\\n\"" 2>/dev/null)'
 complete -c jjpr -s b -l bookmark -d 'Bookmark name for the PR' -f -r -k -a '(jj log -r "bookmarks()" --no-graph -T "bookmarks.join(\"\\n\") ++ \"\\n\"" 2>/dev/null)'
-complete -c jjpr -l base -d 'Base branch for the PR' -f -r -k -a '(jj log -r "bookmarks()" --no-graph -T "bookmarks.join(\"\\n\") ++ \"\\n\"" 2>/dev/null)'
 complete -c jjpr -s a -l auto -d 'Use commit message as PR title' -f
 complete -c jjpr -s f -l force -d 'Force move existing bookmark' -f
+
+# gh pr create flags
+complete -c jjpr -l base -d 'Base branch for the PR' -f -r -k -a '(jj log -r "bookmarks()" --no-graph -T "bookmarks.join(\"\\n\") ++ \"\\n\"" 2>/dev/null)'
+complete -c jjpr -l draft -d 'Create a draft pull request'
+complete -c jjpr -l title -d 'Title for the pull request' -r
+complete -c jjpr -l body -d 'Body for the pull request' -r  
+complete -c jjpr -l assignee -d 'Assign pull request to people' -r
+complete -c jjpr -l label -d 'Add labels to pull request' -r
+complete -c jjpr -l reviewer -d 'Request reviews from people' -r
+complete -c jjpr -l milestone -d 'Add the pull request to a milestone' -r
+complete -c jjpr -l project -d 'Add the pull request to projects' -r

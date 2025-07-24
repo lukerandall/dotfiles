@@ -80,10 +80,6 @@ changed = ["diff", "--name-only"]
 commitid = ["log", "--no-graph", "-T", 'commit_id ++ "\n"']
 changeid = ["log", "--no-graph", "-T", 'change_id ++ "\n"']
 difft = ["--config", "ui.diff.tool='difft --color=always $left $right'", "diff"]
-dv = [
-  "--config=templates.draft_commit_description=commit_description_verbose",
-  "describe",
-]
 
 all = ["log", "-r", "all()"]
 
@@ -115,6 +111,21 @@ else
 fi
 """, ""]
 
+
+[fix.tools.rubocop]
+command = [
+  "bundle",
+  "exec",
+  "rubocop",
+  "--autocorrect-all",
+  "--format",
+  "quiet",
+  "--stderr",
+  "--stdin",
+  "$path",
+]
+patterns = ["glob:'**/*.rb'"]
+
 [merge-tools.diffconflicts]
 program = "nvim"
 merge-args = ["-c", "JJDiffConflicts!", "$output", "$base", "$left", "$right"]
@@ -122,17 +133,14 @@ merge-tool-edits-conflict-markers = true
 
 
 [templates]
-# draft_commit_description = "commit_description_verbose"
-
-
-[template-aliases]
-commit_description_verbose = '''
+draft_commit_description = '''
 concat(
-  description,
-  "\n",
-  "JJ: This commit contains the following changes:\n",
-  indent("JJ:    ", diff.stat(72)),
-  "JJ: ignore-rest\n",
+  coalesce(description, default_commit_description, "\n"),
+  surround(
+    "\nJJ: This commit contains the following changes:\n", "",
+    indent("JJ:     ", diff.stat(72)),
+  ),
+  "\nJJ: ignore-rest\n",
   diff.git(),
 )
 '''

@@ -105,26 +105,6 @@ jj bookmark track "${bookmark}@origin"
 jj new "$bookmark"
 """, ""]
 
-pr = ["util", "exec", "--", "bash", "-c", """
-set -euo pipefail
-rev=${1:-"@-"}
-bookmark=${2:-""}
-base=${3:-""}
-
-if [[ -z "$bookmark" ]]; then
-    jj git push -c "$rev"
-    bookmark=$(jj bookmark list -r "$rev" | cut -d : -f 1)
-else
-    jj bookmark create "$bookmark" -r "$rev"
-    jj git push --bookmark "$bookmark" --allow-new
-fi
-
-if [[ -n "$base" ]]; then
-    gh pr create --head "$bookmark" --base "$base"
-else
-    gh pr create --head "$bookmark"
-fi
-""", ""]
 
 
 [fix.tools.rubocop]

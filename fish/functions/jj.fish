@@ -1,16 +1,39 @@
 function jjpr
-    set rev $argv[1]
-    if test -z "$rev"
-        set rev "@"
-    end
+    set rev "@-"
+    set bookmark ""
+    set force false
 
-    set bookmark $argv[2]
+    for i in (seq (count $argv))
+        switch $argv[$i]
+            case --revision -r
+                set i (math $i + 1)
+                set rev $argv[$i]
+            case --bookmark -b
+                set i (math $i + 1)
+                set bookmark $argv[$i]
+            case --force -f
+                set force true
+            case --help -h
+                echo "Usage: jjpr [--revision|-r REV] [--bookmark|-b BOOKMARK] [--force|-f]"
+                return 0
+        end
+    end
 
     if test -z "$bookmark"
         jj git push -c $rev
         set bookmark (jj bookmark list -r $rev | cut -d : -f 1)
     else
-        jj bookmark create $bookmark -r $rev
+        # Check if bookmark already exists
+        if jj bookmark list $bookmark 2>/dev/null | grep -q .
+            if test "$force" = "true"
+                jj bookmark move -B $bookmark --to $rev
+            else
+                echo "Error: Bookmark '$bookmark' already exists. Use --force/-f to move it." >&2
+                return 1
+            end
+        else
+            jj bookmark create $bookmark -r $rev
+        end
         jj git push --bookmark $bookmark --allow-new
     end
     gh pr create --head $bookmark
@@ -45,3 +68,8 @@ function jjedit
     end
 end
 bind \cj jjedit
+
+# Completions for jjpr
+complete -c jjpr -s r -l revision -d 'Revision to create PR for' -f -r -k -a '(jj log -r "(open() | recent() | mutable() | last(20)) & ~empty()" --no-graph -T "change_id.shortest() ++ \"\\t(\" ++ description.first_line() ++ \")\\n\"" 2>/dev/null)'
+complete -c jjpr -s b -l bookmark -d 'Bookmark name for the PR' -f -r -k -a '(jj log -r "bookmarks()" --no-graph -T "bookmarks.join(\"\\n\") ++ \"\\n\"" 2>/dev/null)'
+complete -c jjpr -s f -l force -d 'Force move existing bookmark' -f

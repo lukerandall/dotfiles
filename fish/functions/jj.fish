@@ -42,7 +42,7 @@ function jjpr
     else
         # Check if bookmark already exists
         if jj bookmark list $bookmark 2>/dev/null | grep -q .
-            if test "$force" = "true"
+            if test "$force" = true
                 jj bookmark move -B $bookmark --to $rev
             else
                 echo "Error: Bookmark '$bookmark' already exists. Use --force/-f to move it." >&2
@@ -53,16 +53,16 @@ function jjpr
         end
         jj git push --bookmark $bookmark --allow-new
     end
-    
+
     set gh_args --head $bookmark
-    if test "$auto" = "true"
+    if test "$auto" = true
         set title (jj log -r $rev --no-graph -T "description.first_line()")
         set gh_args $gh_args --title "$title"
     end
     if test (count $gh_extra_args) -gt 0
         set gh_args $gh_args $gh_extra_args
     end
-    
+
     gh pr create $gh_args
 end
 
@@ -106,7 +106,7 @@ complete -c jjpr -s f -l force -d 'Force move existing bookmark' -f
 complete -c jjpr -l base -d 'Base branch for the PR' -f -r -k -a '(jj log -r "bookmarks()" --no-graph -T "bookmarks.join(\"\\n\") ++ \"\\n\"" 2>/dev/null)'
 complete -c jjpr -l draft -d 'Create a draft pull request'
 complete -c jjpr -l title -d 'Title for the pull request' -r
-complete -c jjpr -l body -d 'Body for the pull request' -r  
+complete -c jjpr -l body -d 'Body for the pull request' -r
 complete -c jjpr -l assignee -d 'Assign pull request to people' -r
 complete -c jjpr -l label -d 'Add labels to pull request' -r
 complete -c jjpr -l reviewer -d 'Request reviews from people' -r

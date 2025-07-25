@@ -5,6 +5,6 @@ background-opacity = 0.95
 
 macos-titlebar-style = tabs
 
-scrollback-limit = 200_000_000
+scrollback-limit = 1_000_000_000
 
 keybind = shift+enter=text:\n

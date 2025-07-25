@@ -1,0 +1,47 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(bundle exec erblint:*)",
+      "Bash(bundle exec rspec:*)",
+      "Bash(bundle exec rspec:*)",
+      "Bash(bundle exec rubocop:*)",
+      "Bash(bundle install)",
+      "Bash(bundle install:*)",
+      "Bash(find:*)",
+      "Bash(jj diff:*)",
+      "Bash(jj log:*)",
+      "Bash(jj pop)",
+      "Bash(jj show:*)",
+      "Bash(jj status)",
+      "Bash(jj status:*)",
+      "Bash(jj up)",
+      "Bash(ls:*)",
+      "Bash(mkdir:*)",
+      "Bash(rspec:*)",
+      "Bash(rubocop -A)",
+      "Bash(rubocop:*)",
+      "WebFetch(domain:docs.anthropic.com)",
+      "WebFetch(domain:docs.anthropic.com)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:github.com)"
+    ],
+    "deny": []
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "(Edit|Write|MultiEdit)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bundle exec rubocop --autocorrect-all \"${tool.file_path}\""
+          }
+        ]
+      }
+    ]
+  },
+  "includeCoAuthoredBy": false,
+  "env": {
+    "DISABLE_TELEMETRY": "1"
+  }
+}

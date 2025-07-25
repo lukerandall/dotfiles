@@ -6,7 +6,7 @@ config_files = %w[starship.toml]
 ignored = %w[
   link_dotfiles.rb README.md Brewfile Brewfile.lock.json Brewfile.local Brewfile.local.lock.json Fonts.brewfile
   Fonts.brewfile.lock.json print_settings.rb settings.json settings.sh setup.sh keybindings.json
-  aws-sso
+  aws-sso claude
 ]
 
 home = File.expand_path('~')
@@ -18,13 +18,11 @@ Dir['*'].each do |file|
   puts `ln -svf #{File.expand_path file} #{target}`
 end
 
-puts
-`mkdir -p ~/.config`
+puts `mkdir -p ~/.config`
 config_files.each do |file|
   puts `ln -svf #{File.expand_path file} #{home}/.config/#{file}`
 end
 
-puts
 dirs.each do |dir|
   next if dir == 'bin'
 
@@ -34,4 +32,12 @@ end
 puts
 Dir['bin/*'].each do |file|
   puts `ln -svf #{File.expand_path file} #{home}/.local/#{file}`
+end
+
+`mkdir -p ~/.claude`
+Dir['claude/*'].each do |file|
+  next if File.directory?(file)
+
+  basename = File.basename(file)
+  puts `ln -svf #{File.expand_path file} #{home}/.claude/#{basename}`
 end

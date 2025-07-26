@@ -7,6 +7,7 @@
 
 ## Custom Commands
 
+- `jj last` - Show the last (not current) commit
 - `jj pop` - Rebase the current commit onto main
 - `jj up` - Rebase current commit on top of main
 - jj tug - Move bookmark forward

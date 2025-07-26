@@ -34,7 +34,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bundle exec rubocop --autocorrect-all \"${tool.file_path}\""
+            "command": "~/.claude/format-file.sh"
           }
         ]
       }

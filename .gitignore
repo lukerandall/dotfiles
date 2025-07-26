@@ -11,4 +11,3 @@ fish/functions/fzf*
 fish/conf.d/
 mise/age.txt
 jj/conf.d/*.toml
-claude/**/*

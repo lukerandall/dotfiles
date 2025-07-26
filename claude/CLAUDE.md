@@ -3,6 +3,7 @@
 ## Personal Preferences
 
 - Always use jj (Jujutsu) instead of git for version control operations unless it is not a jj repo
+- Always use rg instead of grep
 
 ## Custom Commands
 

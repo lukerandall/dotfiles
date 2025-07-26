@@ -13,12 +13,6 @@ return {
     "jghauser/mkdir.nvim",
   },
   {
-    "stevearc/oil.nvim",
-    opts = {},
-    -- Optional dependencies
-    dependencies = { "nvim-tree/nvim-web-devicons" },
-  },
-  {
     "rgroli/other.nvim",
     config = function()
       require("other-nvim").setup({
@@ -36,34 +30,78 @@ return {
           {
             pattern = "(.+)/spec/(.*)/(.*)_spec.rb",
             target = {
-              { target = "%1/db/%2/%3.rb" },
-              { target = "%1/app/%2/%3.rb" },
+              { target = "%1/app/%2/%3.rb", context = "class" },
               { target = "%1/lib/%2/%3.rb" },
             },
           },
           {
             pattern = "(.+)/spec/(.*)/(.*)_(.*)_spec.rb",
             target = {
-              { target = "%1/app/%4s/%3_%4.rb" },
+              { target = "%1/app/%4s/%3_%4.rb", context = "class" },
             },
           },
           -- project: call-flow
           {
             pattern = "(.+)/spec/requests/(.*)_spec.rb",
             target = {
-              { target = "%1/app/models/flow/%2.yml" },
+              { target = "%1/app/models/flow/%2.yml", context = "flow" },
             },
           },
           {
             pattern = "(.+)/app/models/flow/(.*).yml",
             target = {
-              { target = "%1/spec/requests/%2_spec.rb" },
+              { target = "%1/spec/requests/%2_spec.rb", context = "spec" },
+            },
+          },
+          -- component controller
+          {
+            pattern = "(.+)/app/components/(.*)/(.*).rb",
+            target = {
+              { target = "%1/app/components/%2/%3.html.erb", context = "view" },
+              { target = "%1/spec/components/%2/%3_spec.rb", context = "spec" },
+            },
+          },
+          {
+            pattern = "(.+)/app/components/(.+).rb",
+            target = {
+              { target = "%1/app/components/%2.html.erb", context = "view" },
+              { target = "%1/spec/components/%2_spec.rb", context = "spec" },
+            },
+          },
+          -- component view
+          {
+            pattern = "(.+)/app/components/(.*)/(.*).html.erb",
+            target = {
+              { target = "%1/app/components/%2/%3.rb", context = "controller" },
+              { target = "%1/spec/components/%2/%3_spec.rb", context = "spec" },
+            },
+          },
+          {
+            pattern = "(.+)/app/components/(.*).html.erb",
+            target = {
+              { target = "%1/app/components/%2.rb", context = "controller" },
+              { target = "%1/spec/components/%2_spec.rb", context = "spec" },
+            },
+          },
+          -- component spec
+          {
+            pattern = "(.+)/spec/components/(.*)/(.*)_spec.rb",
+            target = {
+              { target = "%1/app/components/%2/%3.rb", context = "controller" },
+              { target = "%1/app/components/%2/%3.html.erb", context = "view" },
+            },
+          },
+          {
+            pattern = "(.+)/spec/components/(.*)_spec.rb",
+            target = {
+              { target = "%1/app/components/%2.rb", context = "controller" },
+              { target = "%1/app/components/%2.html.erb", context = "view" },
             },
           },
           {
             pattern = "lib/(.*)_web/live/(.*)_live/(.*).ex",
             target = {
-              { target = "lib/%1_web/live/%2_live/%3.html.heex" },
+              { target = "lib/%1_web/live/%2_live/%3.html.heex", context = "view" },
             },
           },
           -- elixir & phoenix
@@ -73,7 +111,7 @@ return {
           },
           {
             pattern = "lib/(.*)/(.*).ex",
-            target = { { target = "test/%1/%2_test.exs" } },
+            target = { { target = "test/%1/%2_test.exs", context = "test" } },
           },
           {
             pattern = "test/(.*)_test.exs",

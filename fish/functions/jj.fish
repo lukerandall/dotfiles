@@ -31,8 +31,9 @@ function jjpr
                 echo "  --auto/-a: Use commit message first line as title and rest as body (if not already specified)"
                 return 0
             case '*'
-                # Pass everything else to gh pr create
-                set gh_extra_args $gh_extra_args $argv[$i]
+                echo "Error: Unknown argument '$argv[$i]'" >&2
+                echo "Usage: jjpr [--revision|-r REV] [--bookmark|-b BOOKMARK] [--auto|-a] [--force|-f] [GH_PR_CREATE_FLAGS...]" >&2
+                return 1
         end
         set i (math $i + 1)
     end

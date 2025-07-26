@@ -3,9 +3,7 @@
     "allow": [
       "Bash(bundle exec erblint:*)",
       "Bash(bundle exec rspec:*)",
-      "Bash(bundle exec rspec:*)",
       "Bash(bundle exec rubocop:*)",
-      "Bash(bundle install)",
       "Bash(bundle install:*)",
       "Bash(find:*)",
       "Bash(jj diff:*)",
@@ -21,8 +19,7 @@
       "Bash(rubocop -A)",
       "Bash(rubocop:*)",
       "WebFetch(domain:docs.anthropic.com)",
-      "WebFetch(domain:docs.anthropic.com)",
-      "WebFetch(domain:github.com)",
+      "WebFetch(domain:docs.github.com)",
       "WebFetch(domain:github.com)"
     ],
     "deny": []

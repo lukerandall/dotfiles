@@ -3,16 +3,17 @@
 
 dirs = %w[atuin bin bat fish ghostty jj kitty mise nvim wezterm]
 config_files = %w[starship.toml]
+sparse_dirs = %w[claude]
 ignored = %w[
   link_dotfiles.rb README.md Brewfile Brewfile.lock.json Brewfile.local Brewfile.local.lock.json Fonts.brewfile
   Fonts.brewfile.lock.json print_settings.rb settings.json settings.sh setup.sh keybindings.json
-  aws-sso claude
+  aws-sso
 ]
 
 home = File.expand_path('~')
 
 Dir['*'].each do |file|
-  next if dirs.include?(file) || config_files.include?(file) || ignored.include?(file)
+  next if dirs.include?(file) || config_files.include?(file) || sparse_dirs.include?(file) || ignored.include?(file)
 
   target = File.join(home, ".#{File.basename(file)}")
   puts `ln -svf #{File.expand_path file} #{target}`
@@ -34,10 +35,15 @@ Dir['bin/*'].each do |file|
   puts `ln -svf #{File.expand_path file} #{home}/.local/#{file}`
 end
 
-`mkdir -p ~/.claude`
-Dir['claude/*'].each do |file|
-  next if File.directory?(file)
+sparse_dirs.each do |sparse_dir|
+  `mkdir -p ~/.#{sparse_dir}`
+  Dir["#{sparse_dir}/*"].each do |file|
+    basename = File.basename(file)
 
-  basename = File.basename(file)
-  puts `ln -svf #{File.expand_path file} #{home}/.claude/#{basename}`
+    if File.directory?(file)
+      puts `ln -svf #{File.expand_path file} #{home}/.#{sparse_dir}`
+    else
+      puts `ln -svf #{File.expand_path file} #{home}/.#{sparse_dir}/#{basename}`
+    end
+  end
 end

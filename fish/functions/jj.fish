@@ -28,6 +28,7 @@ function jjpr
                 set force true
             case --help -h
                 echo "Usage: jjpr [--revision|-r REV] [--bookmark|-b BOOKMARK] [--auto|-a] [--force|-f] [GH_PR_CREATE_FLAGS...]"
+                echo "  --auto/-a: Use commit message first line as title and rest as body (if not already specified)"
                 return 0
             case '*'
                 # Pass everything else to gh pr create
@@ -56,8 +57,19 @@ function jjpr
 
     set gh_args --head $bookmark
     if test "$auto" = true
-        set title (jj log -r $rev --no-graph -T "description.first_line()")
-        set gh_args $gh_args --title "$title"
+        # Add title if not already specified in gh_extra_args
+        if not string match -q "*--title*" -- $gh_extra_args
+            set title (jj log -r $rev --no-graph -T "description.first_line()")
+            set gh_args $gh_args --title "$title"
+        end
+        
+        # Add body if not already specified in gh_extra_args
+        if not string match -q "*--body*" -- $gh_extra_args
+            set body (jj log -r $rev --no-graph -T "description" | tail -n +2 | string join "\n")
+            if test -n "$body"
+                set gh_args $gh_args --body "$body"
+            end
+        end
     end
     if test (count $gh_extra_args) -gt 0
         set gh_args $gh_args $gh_extra_args
@@ -99,7 +111,7 @@ bind \cj jjedit
 # Completions for jjpr
 complete -c jjpr -s r -l revision -d 'Revision to create PR for' -f -r -k -a '(jj log -r "(open() | recent() | mutable() | last(20)) & ~empty()" --no-graph -T "change_id.shortest() ++ \"\\t(\" ++ description.first_line() ++ \")\\n\"" 2>/dev/null)'
 complete -c jjpr -s b -l bookmark -d 'Bookmark name for the PR' -f -r -k -a '(jj log -r "bookmarks()" --no-graph -T "bookmarks.join(\"\\n\") ++ \"\\n\"" 2>/dev/null)'
-complete -c jjpr -s a -l auto -d 'Use commit message as PR title' -f
+complete -c jjpr -s a -l auto -d 'Use commit message as PR title and body (if not specified)' -f
 complete -c jjpr -s f -l force -d 'Force move existing bookmark' -f
 
 # gh pr create flags

@@ -3,6 +3,7 @@
 [revset-aliases]
 # revsets for working with git branches
 # see jj bump & jj tug aliases
+"main()" = 'main'
 "bumpable()" = 'all:mutable() & mine()'
 "closest_bookmark(to)" = "heads(::to & bookmarks())"
 "tug_target()" = "tug_target(@-)"
@@ -53,6 +54,7 @@
 
 # commits considered private by git.private-commits
 "private()" = "description(glob:\"private:*\")"
+"always_include()" = "description(glob:\"private:include:*\")"
 "wip()" = 'description(glob:"wip:*") ~ ::immutable_heads()'
 "trash()" = 'description(glob:"trash:*") ~ ::immutable_heads()'
 
@@ -66,7 +68,7 @@ gp = ["git", "push"]
 bump = ["rebase", "-b", "bumpable()", "-d", "trunk()"]
 
 # various convenience commands
-fresh = ["new", "main"]
+fresh = ["new", "all:main() | always_include()"]
 pop = ["rebase", "-r", "@", "-d", "trunk()"]
 ppop = ["rebase", "-r", "@-", "-d", "trunk()"]
 pushdown = ["rebase", "-r", "@-", "--insert-after"]
@@ -90,7 +92,7 @@ l = ["log", "-r", "overview()"]
 fr = ["util", "exec", "--", "bash", "-c", """
 set -euo pipefail
 jj git fetch
-jj new "trunk()"
+jj new "all:main() | always_include()"
 """, ""]
 
 go = ["util", "exec", "--", "bash", "-c", """

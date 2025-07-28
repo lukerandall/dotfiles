@@ -2,30 +2,6 @@
 	name = Luke Randall
 	email = luke.randall@gmail.com
 
-[diff]
-	renames = true
-	tool = Kaleidoscope
-	algorithm = histogram
-
-[color]
-	branch = auto
-	diff = auto
-	status = auto
-	ui = auto
-[color "branch"]
-	current = magenta
-	local = yellow
-	remote = green
-[color "diff"]
-	meta = yellow
-	frag = magenta
-	old = red
-	new = green
-[color "status"]
-	added = yellow
-	changed = green
-	untracked = cyan
-
 [alias]
 	br = branch
 	ci = commit
@@ -47,8 +23,7 @@
 	current-branch = symbolic-ref --short HEAD
 	pra = pull --rebase --autostash
 	pruneremote = remote prune origin
-	boost = rebase --autostash --no-autosquash --empty=drop "origin/main"
-	iboost = rebase --autostash --autosquash -i "origin/main"
+	up = rebase --autostash --no-autosquash --empty=drop "origin/main"
 
 	# show staged and unstaged changes (what would be committed with "git commit -a")
 	both = diff HEAD
@@ -58,10 +33,42 @@
 	lg = log --color --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
 	grog = log --graph --abbrev-commit --decorate --all --format=format:\"%C(bold blue)%h%C(reset) - %C(bold cyan)%aD%C(dim white) - %an%C(reset) %C(bold green)(%ar)%C(reset)%C(bold yellow)%d%C(reset)%n %C(white)%s%C(reset)\"
 
+[branch]
+	autosetuprebase = always
+  sort = -committerdate
+
+[color]
+	branch = auto
+	diff = auto
+	status = auto
+	ui = auto
+[color "branch"]
+	current = magenta
+	local = yellow
+	remote = green
+[color "diff"]
+	meta = yellow
+	frag = magenta
+	old = red
+	new = green
+[color "status"]
+	added = yellow
+	changed = green
+	untracked = cyan
+
+[column]
+  ui = auto
+
+[commit]
+  verbose = true
+
 [core]
 	editor = nvim
-	excludesfile = /Users/luke/.gitignore_global
+	excludesfile = ~/.gitignore_global
 	pager = delta
+
+[credential]
+	helper = osxkeychain
 
 [delta]
 	navigate = true
@@ -83,28 +90,19 @@
 	line-numbers-plus-style = green
 	line-numbers-left-format = "{nm:^4}| "
 
-[interactive]
-	singlekey = true
-	diffFilter = delta --color-only
-
-[push]
-	default = current
-
-[branch]
-	autosetuprebase = always
-
 [diff]
+	algorithm = histogram
 	colorMoved = default
+	renames = true
+  mnemonicPrefix = true
 
 [difftool]
 	prompt = false
 
-[merge]
-	summary = true
-	conflictstyle = zdiff3
-
-[include]
-	path = ./.gitconfig.local
+[fetch]
+  prune = true
+  pruneTags = true
+  all = true
 
 [filter "lfs"]
 	required = true
@@ -112,11 +110,39 @@
 	clean = git-lfs clean -- %f
 	smudge = git-lfs smudge -- %f
 
-[credential]
-	helper = osxkeychain
+[help]
+  autocorrect = prompt
+
+[include]
+	path = ./.gitconfig.local
+
+[init]
+	defaultBranch = main
+
+[interactive]
+	singlekey = true
+	diffFilter = delta --color-only
+
+[merge]
+	summary = true
+	conflictstyle = zdiff3
 
 [pull]
 	rebase = true
 
-[init]
-	defaultBranch = main
+[push]
+  default = simple
+  autoSetupRemote = true
+  followTags = true
+
+[rebase]
+  autoSquash = true
+  autoStash = true
+  updateRefs = true
+
+[rerere]
+  enabled = true
+  autoupdate = true
+
+[tag]
+  sort = version:refname

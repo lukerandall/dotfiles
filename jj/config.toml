@@ -11,7 +11,11 @@
 "tuggable()" = "tuggable(@-)"
 "tuggable(to)" = "heads(closest_bookmark(to) & ~private())"
 
-# current branch with a bit of context
+# ahead/behind commits relative to trunk
+"tree()" = "tree(@)"
+"tree(to)" = "trunk()..to | to..trunk() | trunk() | to:: | fork_point(trunk() | to)"
+
+# current "branch"" with a bit of context
 "slice()" = "slice(@)"
 "slice(from)" = "ancestors(reachable(from, mutable()), 2)"
 
@@ -54,12 +58,23 @@
 
 # commits considered private by git.private-commits
 "private()" = "description(glob:\"private:*\")"
+# commits that will be parent to new changes made with fresh / fr
 "always_include()" = "description(glob:\"private:include:*\")"
 "wip()" = 'description(glob:"wip:*") ~ ::immutable_heads()'
 "trash()" = 'description(glob:"trash:*") ~ ::immutable_heads()'
 
 
 [aliases]
+# quick aliases for common commands
+all = ["log", "-r", "all()"]
+c = ["commit"]
+l = ["log", "-r", "overview()"]
+n = ["new"]
+r = ["rebase"]
+s = ["status"]
+si = ["split", "-i"]
+
+# git helpers
 bootstrap = ["git", "init", "--colocate"]
 gf = ["git", "fetch"]
 gp = ["git", "push"]
@@ -81,13 +96,7 @@ up = ["rebase", "--skip-emptied", "-d", "trunk()"]
 
 blame = ["file", "annotate"]
 changed = ["diff", "--name-only"]
-commitid = ["log", "--no-graph", "-T", 'commit_id ++ "\n"']
-changeid = ["log", "--no-graph", "-T", 'change_id ++ "\n"']
 difft = ["--config", "ui.diff.tool='difft --color=always $left $right'", "diff"]
-
-all = ["log", "-r", "all()"]
-l = ["log", "-r", "overview()"]
-
 
 fr = ["util", "exec", "--", "bash", "-c", """
 set -euo pipefail

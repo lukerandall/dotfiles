@@ -84,6 +84,7 @@ bump = ["rebase", "-b", "bumpable()", "-d", "trunk()"]
 
 # various convenience commands
 fresh = ["new", "all:main() | always_include()"]
+last = ["show", "-r", "@-"]
 pop = ["rebase", "-r", "@", "-d", "trunk()"]
 ppop = ["rebase", "-r", "@-", "-d", "trunk()"]
 pushdown = ["rebase", "-r", "@-", "--insert-after"]

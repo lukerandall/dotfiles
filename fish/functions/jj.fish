@@ -63,13 +63,11 @@ function jjpr
             set title (jj log -r $rev --no-graph -T "description.first_line()")
             set gh_args $gh_args --title "$title"
         end
-        
+
         # Add body if not already specified in gh_extra_args
         if not string match -q "*--body*" -- $gh_extra_args
-            set body (jj log -r $rev --no-graph -T "description" | tail -n +2 | string join "\n")
-            if test -n "$body"
-                set gh_args $gh_args --body "$body"
-            end
+            set body (jj log -r $rev --no-graph -T "description.lines().filter(|line| line != description.first_line()).join(\"\\n\")")
+            set gh_args $gh_args --body "$body"
         end
     end
     if test (count $gh_extra_args) -gt 0

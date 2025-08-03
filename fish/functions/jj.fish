@@ -3,7 +3,6 @@ function jjpr
     set bookmark ""
     set force false
     set base ""
-    set auto false
     set gh_extra_args
 
     set i 1
@@ -12,27 +11,35 @@ function jjpr
             case --revision -r
                 set i (math $i + 1)
                 set rev $argv[$i]
-            case --bookmark -b
+            case --bookmark
                 set i (math $i + 1)
                 set bookmark $argv[$i]
-            case --base
+            case --base -B
                 # Don't consume this - let it pass through to gh
                 set gh_extra_args $gh_extra_args $argv[$i]
                 if test $i -lt (count $argv)
                     set i (math $i + 1)
                     set gh_extra_args $gh_extra_args $argv[$i]
                 end
-            case --auto -a
-                set auto true
-            case --force -f
+            case --assignee -a --body -b --body-file -F --head -H --label -l --milestone -m --project -p --reviewer -r --template -T --title -t --recover
+                # Flags that take arguments - pass through to gh
+                set gh_extra_args $gh_extra_args $argv[$i]
+                if test $i -lt (count $argv)
+                    set i (math $i + 1)
+                    set gh_extra_args $gh_extra_args $argv[$i]
+                end
+            case --draft -d --dry-run --editor -e --fill -f --fill-first --fill-verbose --no-maintainer-edit --web -w
+                # Flags that don't take arguments - pass through to gh
+                set gh_extra_args $gh_extra_args $argv[$i]
+            case --force
                 set force true
             case --help -h
-                echo "Usage: jjpr [--revision|-r REV] [--bookmark|-b BOOKMARK] [--auto|-a] [--force|-f] [GH_PR_CREATE_FLAGS...]"
-                echo "  --auto/-a: Use commit message first line as title and rest as body (if not already specified)"
+                echo "Usage: jjpr [--revision|-r REV] [--bookmark BOOKMARK] [--force] [GH_PR_CREATE_FLAGS...]"
+                echo "  Use --fill/-f to auto-populate title and body from commit message"
                 return 0
             case '*'
                 echo "Error: Unknown argument '$argv[$i]'" >&2
-                echo "Usage: jjpr [--revision|-r REV] [--bookmark|-b BOOKMARK] [--auto|-a] [--force|-f] [GH_PR_CREATE_FLAGS...]" >&2
+                echo "Usage: jjpr [--revision|-r REV] [--bookmark BOOKMARK] [--force] [GH_PR_CREATE_FLAGS...]" >&2
                 return 1
         end
         set i (math $i + 1)
@@ -57,19 +64,6 @@ function jjpr
     end
 
     set gh_args --head $bookmark
-    if test "$auto" = true
-        # Add title if not already specified in gh_extra_args
-        if not string match -q "*--title*" -- $gh_extra_args
-            set title (jj log -r $rev --no-graph -T "description.first_line()")
-            set gh_args $gh_args --title "$title"
-        end
-
-        # Add body if not already specified in gh_extra_args
-        if not string match -q "*--body*" -- $gh_extra_args
-            set body (jj log -r $rev --no-graph -T "description.lines().filter(|line| line != description.first_line()).join(\"\\n\")")
-            set gh_args $gh_args --body "$body"
-        end
-    end
     if test (count $gh_extra_args) -gt 0
         set gh_args $gh_args $gh_extra_args
     end
@@ -109,12 +103,11 @@ bind \cj jjedit
 
 # Completions for jjpr
 complete -c jjpr -s r -l revision -d 'Revision to create PR for' -f -r -k -a '(jj log -r "(open() | recent() | mutable() | last(20)) & ~empty()" --no-graph -T "change_id.shortest() ++ \"\\t(\" ++ description.first_line() ++ \")\\n\"" 2>/dev/null)'
-complete -c jjpr -s b -l bookmark -d 'Bookmark name for the PR' -f -r -k -a '(jj log -r "bookmarks()" --no-graph -T "bookmarks.join(\"\\n\") ++ \"\\n\"" 2>/dev/null)'
-complete -c jjpr -s a -l auto -d 'Use commit message as PR title and body (if not specified)' -f
-complete -c jjpr -s f -l force -d 'Force move existing bookmark' -f
+complete -c jjpr -l bookmark -d 'Bookmark name for the PR' -f -r -k -a '(jj log -r "bookmarks()" --no-graph -T "bookmarks.join(\"\\n\") ++ \"\\n\"" 2>/dev/null)'
+complete -c jjpr -l force -d 'Force move existing bookmark' -f
 
 # gh pr create flags
-complete -c jjpr -l base -d 'Base branch for the PR' -f -r -k -a '(jj log -r "bookmarks()" --no-graph -T "bookmarks.join(\"\\n\") ++ \"\\n\"" 2>/dev/null)'
+complete -c jjpr -l base -s B -d 'Base branch for the PR' -f -r -k -a '(jj log -r "bookmarks()" --no-graph -T "bookmarks.join(\"\\n\") ++ \"\\n\"" 2>/dev/null)'
 complete -c jjpr -l draft -d 'Create a draft pull request'
 complete -c jjpr -l title -d 'Title for the pull request' -r
 complete -c jjpr -l body -d 'Body for the pull request' -r

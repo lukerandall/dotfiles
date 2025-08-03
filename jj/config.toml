@@ -72,6 +72,7 @@ l = ["log", "-r", "overview()"]
 n = ["new"]
 r = ["rebase"]
 s = ["status"]
+sq = ["squash"]
 si = ["split", "-i"]
 
 # git helpers

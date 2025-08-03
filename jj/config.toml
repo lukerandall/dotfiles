@@ -78,6 +78,7 @@ si = ["split", "-i"]
 bootstrap = ["git", "init", "--colocate"]
 gf = ["git", "fetch"]
 gp = ["git", "push"]
+gpd = ["git", "push", "--deleted"]
 
 # rebase bumpable branches on top of trunk
 bump = ["rebase", "-b", "bumpable()", "-d", "trunk()"]

@@ -23,13 +23,21 @@
 "open()" = "open(mine())"
 "open(domain)" = "domain ~ ::immutable_heads()"
 
+# recent commits
+"last()" = "last(20)"
+"last(n)" = "ancestors(@, n)"
+
 # commits that have been merged into trunk
 "merged()" = "merged(trunk())"
 "merged(into)" = "bookmarks() & ..into"
 
-# recent commits
-"last()" = "last(20)"
-"last(n)" = "ancestors(@, n)"
+# stack(x, n) is the set of mutable commits reachable from 'x', with 'n'
+# parents. 'n' is often useful to customize the display and return set for
+# certain operations. 'x' can be used to target the set of 'roots' to traverse,
+# e.g. @ is the current stack.
+'stack()' = 'stack(@)'
+'stack(x)' = 'stack(x, 2)'
+'stack(x, n)' = 'ancestors(reachable(x, mutable()), n)'
 
 "overview()" = "last() | orphans() | stale()"
 
@@ -42,10 +50,6 @@
         2)
     | trunk()
 '''
-
-# view revisions ancestry from where it diverged from trunk
-"stack()" = "stack(@)"
-"stack(from)" = "ancestors((immutable()..from) | from::, 2)"
 
 # see the ancestry of two heads back to where they diverged
 # usage: compare(abc | foo | bar)
@@ -63,6 +67,8 @@
 "wip()" = 'description(glob:"wip:*") ~ ::immutable_heads()'
 "trash()" = 'description(glob:"trash:*") ~ ::immutable_heads()'
 
+[revsets]
+log = "stack(mine() | @) | trunk() | @"
 
 [aliases]
 # quick aliases for common commands
@@ -96,6 +102,24 @@ tug = ["bookmark", "move", "--from", "tuggable()", "--to", "tug_target()"]
 
 # bring a branch up to date with trunk()
 up = ["rebase", "--skip-emptied", "-d", "trunk()"]
+
+# Retrunk the current stack of work.
+reheat = [
+  "rebase",
+  "--skip-emptied",
+  "-d",
+  "trunk()",
+  "-s",
+  "roots(trunk()..stack(@))",
+]
+
+# Take content from any change, and move it into @. The inverse of 'eject'
+# - jj consume xyz path/to/file`
+consume = ["squash", "--into", "@", "--from"]
+
+# Eject content from @ into any other change. The inverse of 'consume'
+# - jj eject xyz --interactive
+eject = ["squash", "--from", "@", "--into"]
 
 blame = ["file", "annotate"]
 changed = ["diff", "--name-only"]

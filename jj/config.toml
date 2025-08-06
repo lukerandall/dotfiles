@@ -4,7 +4,7 @@
 # revsets for working with git branches
 # see jj bump & jj tug aliases
 "main()" = 'main'
-"bumpable()" = 'all:mutable() & mine()'
+"bumpable()" = 'mutable() & mine()'
 "closest_bookmark(to)" = "heads(::to & bookmarks())"
 "tug_target()" = "tug_target(@-)"
 "tug_target(to)" = "to & ~private()"
@@ -91,7 +91,7 @@ gpd = ["git", "push", "--deleted"]
 bump = ["rebase", "-b", "bumpable()", "-d", "trunk()"]
 
 # various convenience commands
-fresh = ["new", "all:main() | always_include()"]
+fresh = ["new", "main() | always_include()"]
 last = ["show", "-r", "@-"]
 pop = ["rebase", "-r", "@", "-d", "trunk()"]
 ppop = ["rebase", "-r", "@-", "-d", "trunk()"]
@@ -128,7 +128,7 @@ difft = ["--config", "ui.diff.tool='difft --color=always $left $right'", "diff"]
 fr = ["util", "exec", "--", "bash", "-c", """
 set -euo pipefail
 jj git fetch
-jj new "all:main() | always_include()"
+jj new "main() | always_include()"
 """, ""]
 
 go = ["util", "exec", "--", "bash", "-c", """

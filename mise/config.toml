@@ -1,5 +1,6 @@
 [tools]
 go = "latest"
+jjui = "latest"
 node = "latest"
 ruby = "latest"
 rust = "latest"

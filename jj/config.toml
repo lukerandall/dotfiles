@@ -177,6 +177,7 @@ concat(
   diff.git(),
 )
 '''
+log = "builtin_log_compact ++ if(!description && !empty, diff.summary())"
 
 
 [ui]

@@ -23,10 +23,25 @@ if test -e $LOCAL_CONFIG
     source $LOCAL_CONFIG
 end
 
-atuin init fish | source
-COMPLETE=fish jj | source
-starship init fish | source
-zoxide init fish | source
+if command -v atuin >/dev/null
+    atuin init fish | source
+end
+
+if command -v jj >/dev/null
+    COMPLETE=fish jj | source
+end
+
+if command -v starship >/dev/null
+    starship init fish | source
+end
+
+if command -v zoxide >/dev/null
+    zoxide init fish | source
+end
+
+if command -v fx >/dev/null
+    fx --comp fish | source
+end
 
 if status is-interactive
     mise activate fish | source
@@ -34,7 +49,9 @@ else
     mise activate fish --shims | source
 end
 
-source $HOME/.op/plugins.sh
+if test -f $HOME/.op/plugins.sh
+    source $HOME/.op/plugins.sh
+end
 
 abbr --add be bundle exec
 abbr --add dc docker compose
@@ -43,8 +60,6 @@ abbr --add nv nvim
 abbr --add v nvim
 abbr --add mr mise run
 abbr --add serve python3 -m http.server -b localhost
-abbr --add fetch_db "heroku pg:backups capture --expire && curl -o latest.dump (heroku pg:backups public-url)"
-abbr --add restore_db "pg_restore --verbose --clean --no-acl --no-owner -h localhost -U $USER latest.dump -d"
 abbr --add ls eza
 abbr --add vim nvim
 abbr --add ungron gron --ungron
@@ -54,13 +69,13 @@ alias cat bat
 alias less bat
 
 # argc-completions
-set -gx ARGC_COMPLETIONS_ROOT /Users/luke/Code/argc-completions
-set -gx ARGC_COMPLETIONS_PATH "$ARGC_COMPLETIONS_ROOT/completions/macos:$ARGC_COMPLETIONS_ROOT/completions"
-fish_add_path "$ARGC_COMPLETIONS_ROOT/bin"
-# To add completions for only the specified command, modify next line e.g. set argc_scripts cargo git
-set argc_scripts (ls -p -1 "$ARGC_COMPLETIONS_ROOT/completions/macos" "$ARGC_COMPLETIONS_ROOT/completions" | sed -n 's/\.sh$//p')
-argc --argc-completions fish $argc_scripts | source
+if test -d /Users/luke/Code/argc-completions
+    set -gx ARGC_COMPLETIONS_ROOT /Users/luke/Code/argc-completions
+    set -gx ARGC_COMPLETIONS_PATH "$ARGC_COMPLETIONS_ROOT/completions/macos:$ARGC_COMPLETIONS_ROOT/completions"
+    fish_add_path "$ARGC_COMPLETIONS_ROOT/bin"
+    # To add completions for only the specified command, modify next line e.g. set argc_scripts cargo git
+    set argc_scripts (ls -p -1 "$ARGC_COMPLETIONS_ROOT/completions/macos" "$ARGC_COMPLETIONS_ROOT/completions" | sed -n 's/\.sh$//p')
+    argc --argc-completions fish $argc_scripts | source
+end
 
-# Added by OrbStack: command-line tools and integration
-# This won't be added again if you remove it.
 source ~/.orbstack/shell/init2.fish 2>/dev/null || :

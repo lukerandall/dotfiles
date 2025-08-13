@@ -1,2 +1,10 @@
 [ui.tracer]
 enabled = true
+
+[custom_commands."move commit down"]
+key = ["J"]
+args = ["rebase", "-r", "$change_id", "--insert-before", "$change_id-"]
+
+[custom_commands."move commit up"]
+key = ["K"]
+args = ["rebase", "-r", "$change_id", "--insert-after", "$change_id+"]

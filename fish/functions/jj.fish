@@ -54,7 +54,7 @@ function jjpr
             if test "$force" = true
                 jj bookmark move -B $bookmark --to $rev
             else
-                echo "Error: Bookmark '$bookmark' already exists. Use --force/-f to move it." >&2
+                echo "Error: Bookmark '$bookmark' already exists. Use --force to move it." >&2
                 return 1
             end
         else

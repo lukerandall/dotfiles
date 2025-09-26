@@ -73,11 +73,9 @@ log = "stack(mine() | @) | trunk() | @"
 [aliases]
 # quick aliases for common commands
 all = ["log", "-r", "all()"]
-c = ["commit"]
-l = ["log", "-r", "overview()"]
+ll = ["log", "-r", "overview()"]
 n = ["new"]
 r = ["rebase"]
-s = ["status"]
 sq = ["squash"]
 si = ["split", "-i"]
 

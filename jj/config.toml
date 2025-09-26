@@ -5,10 +5,11 @@
 # see jj bump & jj tug aliases
 "main()" = 'main'
 "bumpable()" = 'mutable() & mine()'
+"closest_bookmark()" = "closest_bookmark(@)"
 "closest_bookmark(to)" = "heads(::to & bookmarks())"
-"tug_target()" = "tug_target(@-)"
-"tug_target(to)" = "to & ~private()"
-"tuggable()" = "tuggable(@-)"
+"closest_pushable()" = "closest_pushable(@)"
+"closest_pushable(to)" = 'heads(::to & ~description(exact:"") & (~empty() | merges()) & ~private())'
+"tuggable()" = "tuggable(@)"
 "tuggable(to)" = "heads(closest_bookmark(to) & ~private())"
 
 # ahead/behind commits relative to trunk
@@ -96,7 +97,7 @@ ppop = ["rebase", "-r", "@-", "-d", "trunk()"]
 pushdown = ["rebase", "-r", "@-", "--insert-after"]
 
 # move tuggable bookmarks forward to latest non-private non-current commits
-tug = ["bookmark", "move", "--from", "tuggable()", "--to", "tug_target()"]
+tug = ["bookmark", "move", "--from", "tuggable()", "--to", "closest_pushable()"]
 
 # bring a branch up to date with trunk()
 up = ["rebase", "--skip-emptied", "-d", "trunk()"]

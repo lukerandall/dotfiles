@@ -215,6 +215,7 @@ concat(
 )
 '''
 log = "builtin_log_compact ++ if(!description && !empty, diff.summary())"
+git_push_bookmark = '"lr/push-" ++ change_id.short()'
 
 
 [ui]

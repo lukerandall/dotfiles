@@ -1,6 +1,6 @@
 return {
   {
-    "echasnovski/mini.bracketed",
+    "nvim-mini/mini.bracketed",
     config = function()
       require("mini.bracketed").setup({
         buffer = { suffix = "b", options = {} },

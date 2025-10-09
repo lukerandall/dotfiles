@@ -1,4 +1,5 @@
 [tools]
+"cargo:https://github.com/LucioFranco/jj-spr" = "latest"
 go = "latest"
 jjui = "latest"
 node = "latest"

@@ -1,0 +1,23 @@
+[metadata]
+name = "jj-bookmarks"
+description = "Browse and checkout Jujutsu bookmarks"
+requirements = ["jj"]
+
+[source]
+command = "jj bookmark list --template 'name ++ \"\\n\"'"
+output = "{}"
+
+[preview]
+command = "jj log -r '{}' --limit 20 --color=always"
+
+[ui]
+layout = "landscape"
+ui_scale = 95
+
+[ui.preview_panel]
+size = 60
+header = "{}"
+scrollbar = true
+
+[keybindings]
+shortcut = "f2"

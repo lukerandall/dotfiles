@@ -23,6 +23,10 @@ if test -e $LOCAL_CONFIG
     source $LOCAL_CONFIG
 end
 
+if command -v tv >/dev/null
+    tv init fish | source
+end
+
 if command -v atuin >/dev/null
     atuin init fish | source
 end

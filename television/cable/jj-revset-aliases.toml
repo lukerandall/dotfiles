@@ -1,0 +1,24 @@
+[metadata]
+name = "jj-revset-aliases"
+description = "Browse and preview Jujutsu revset aliases"
+requirements = ["jj"]
+
+[source]
+command = "jj config list revset-aliases | sed 's/revset-aliases\\.\"\\(.*\\)\" = .*/\\1/' | awk '{if (match($0, /\\(x, n\\)/)) {sub(/\\(x, n\\)/, \"(@, 5)\")} else if (match($0, /\\(n\\)/)) {sub(/\\(n\\)/, \"(5)\")} else {gsub(/\\([^)]+\\)/, \"(@)\")} print}'"
+display = "{}"
+output = "{}"
+
+[preview]
+command = "jj log -r '{}' --limit 20 --color=always"
+
+[ui]
+layout = "landscape"
+ui_scale = 95
+
+[ui.preview_panel]
+size = 60
+header = "{}"
+scrollbar = true
+
+[keybindings]
+shortcut = "ctrl-e"

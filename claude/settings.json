@@ -1,4 +1,8 @@
 {
+  "env": {
+    "DISABLE_TELEMETRY": "1"
+  },
+  "includeCoAuthoredBy": false,
   "permissions": {
     "allow": [
       "Bash(bundle exec erblint:*)",
@@ -37,8 +41,8 @@
       }
     ]
   },
-  "includeCoAuthoredBy": false,
-  "env": {
-    "DISABLE_TELEMETRY": "1"
-  }
+  "enabledPlugins": {
+    "beads@beads-marketplace": true
+  },
+  "alwaysThinkingEnabled": false
 }

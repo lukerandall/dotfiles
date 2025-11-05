@@ -4,7 +4,6 @@
 # revsets for working with git branches
 # see jj bump & jj tug aliases
 "main()" = 'main'
-"bumpable()" = 'mutable() & mine()'
 "closest_bookmark()" = "closest_bookmark(@)"
 "closest_bookmark(to)" = "heads(::to & bookmarks())"
 "closest_pushable()" = "closest_pushable(@)"
@@ -15,10 +14,6 @@
 # ahead/behind commits relative to trunk
 "tree()" = "tree(@)"
 "tree(to)" = "trunk()..to | to..trunk() | trunk() | to:: | fork_point(trunk() | to)"
-
-# current "branch"" with a bit of context
-"slice()" = "slice(@)"
-"slice(from)" = "ancestors(reachable(from, mutable()), 2)"
 
 # commits that haven't been merged into trunk
 "open()" = "open(mine())"
@@ -75,18 +70,17 @@ log = "stack(mine() | @) | trunk() | @"
 # quick aliases for common commands
 all = ["log", "-r", "all()"]
 ll = ["log", "-r", "overview()"]
+n = ["new", "trunk()"]
 sq = ["squash"]
 si = ["split", "-i"]
 spr = ["util", "exec", "--", "jj-spr"]
 
 # git helpers
-bootstrap = ["git", "init", "--colocate"]
+init = ["git", "init", "--colocate"]
 gf = ["git", "fetch"]
 gp = ["git", "push"]
 gpd = ["git", "push", "--deleted"]
-
-# rebase bumpable branches on top of trunk
-bump = ["rebase", "-b", "bumpable()", "-d", "trunk()"]
+gpt = ["git", "push", "--tracked"]
 
 # various convenience commands
 fresh = ["new", "main() | always_include()"]
@@ -100,6 +94,8 @@ tug = ["bookmark", "move", "--from", "tuggable()", "--to", "closest_pushable()"]
 
 # bring a branch up to date with trunk()
 up = ["rebase", "--skip-emptied", "-d", "trunk()"]
+
+rebase-all = ["rebase", "-s", "(::trunk())+ & mutable()", "-d", "trunk()"]
 
 # Retrunk the current stack of work.
 reheat = [

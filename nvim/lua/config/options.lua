@@ -3,3 +3,7 @@
 -- Add any additional options here
 --
 vim.g.lazyvim_ruby_lsp = "ruby_lsp"
+
+-- Enable exrc for project-local vimrc files
+vim.o.exrc = true
+vim.o.secure = true

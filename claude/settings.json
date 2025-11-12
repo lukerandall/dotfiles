@@ -44,5 +44,5 @@
   "enabledPlugins": {
     "beads@beads-marketplace": true
   },
-  "alwaysThinkingEnabled": false
+  "alwaysThinkingEnabled": true
 }

@@ -11,6 +11,7 @@ local function set_jumpable_lines(context)
     n, _, _ = context.tree:get_node(i)
   end
 end
+
 return {
   {
     "avm99963/vim-jjdescription",
@@ -19,47 +20,69 @@ return {
     "will133/vim-dirdiff",
   },
   {
+    "rafikdraoui/jj-diffconflicts",
+  },
+  {
     "julienvincent/hunk.nvim",
     cmd = { "DiffEditor" },
     config = function()
       require("hunk").setup({
-        hooks = {
-          on_tree_mount = function(context)
-            vim.keymap.set("n", "j", function()
-              -- unfortunately we have to recompute every time because folding ruins these computed values
-              set_jumpable_lines(context)
-              local row = vim.api.nvim_win_get_cursor(0)[1]
-              if row < jumpable_lines[1] then
-                vim.api.nvim_win_set_cursor(0, { jumpable_lines[1], 0 })
-                return
-              end
-              for idx = #jumpable_lines, 1, -1 do
-                if jumpable_lines[idx] <= row then
-                  if jumpable_lines[idx + 1] then
-                    vim.api.nvim_win_set_cursor(0, { jumpable_lines[idx + 1], 0 })
-                  end
-                  return
-                end
-              end
-            end, { buffer = context.buf })
+        keys = {
+          global = {
+            quit = { "q" },
+            accept = { "<leader><Cr>" },
+            focus_tree = { "<leader>e" },
+          },
 
-            vim.keymap.set("n", "k", function()
-              set_jumpable_lines(context)
-              local row = vim.api.nvim_win_get_cursor(0)[1]
-              if row > jumpable_lines[#jumpable_lines] then
-                vim.api.nvim_win_set_cursor(0, { jumpable_lines[#jumpable_lines], 0 })
-                return
-              end
-              for idx, node_row in ipairs(jumpable_lines) do
-                if node_row >= row then
-                  if jumpable_lines[idx - 1] then
-                    vim.api.nvim_win_set_cursor(0, { jumpable_lines[idx - 1], 0 })
-                  end
-                  return
-                end
-              end
-            end, { buffer = context.buf })
-          end,
+          tree = {
+            expand_node = { "l", "<Right>" },
+            collapse_node = { "h", "<Left>" },
+
+            open_file = { "<Cr>" },
+
+            toggle_file = { "a" },
+          },
+
+          diff = {
+            toggle_hunk = { "A" },
+            toggle_line = { "a" },
+            -- This is like toggle_line but it will also toggle the line on the other
+            -- 'side' of the diff.
+            toggle_line_pair = { "s" },
+
+            prev_hunk = { "[h" },
+            next_hunk = { "]h" },
+
+            -- Jump between the left and right diff view
+            toggle_focus = { "<Tab>" },
+          },
+        },
+
+        ui = {
+          tree = {
+            -- Mode can either be `nested` or `flat`
+            mode = "nested",
+            width = 35,
+          },
+          --- Can be either `vertical` or `horizontal`
+          layout = "vertical",
+        },
+
+        icons = {
+          selected = "󰡖",
+          deselected = "",
+          partially_selected = "󰛲",
+
+          folder_open = "",
+          folder_closed = "",
+        },
+
+        -- Called right after each window and buffer are created.
+        hooks = {
+          ---@param _context { buf: number, tree: NuiTree, opts: table }
+          on_tree_mount = function(_context) end,
+          ---@param _context { buf: number, win: number }
+          on_diff_mount = function(_context) end,
         },
       })
     end,

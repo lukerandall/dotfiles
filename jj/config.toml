@@ -11,12 +11,8 @@
 "tuggable()" = "tuggable(@)"
 "tuggable(to)" = "heads(closest_bookmark(to) & ~private())"
 
-# ahead/behind commits relative to trunk
-"tree()" = "tree(@)"
-"tree(to)" = "trunk()..to | to..trunk() | trunk() | to:: | fork_point(trunk() | to)"
-
 # commits that haven't been merged into trunk
-"open()" = "open(mine())"
+'open()' = 'stack(mine() | @, 1)'
 "open(domain)" = "domain ~ ::immutable_heads()"
 
 # recent commits
@@ -34,6 +30,8 @@
 'stack()' = 'stack(@)'
 'stack(x)' = 'stack(x, 2)'
 'stack(x, n)' = 'ancestors(reachable(x, mutable()), n)'
+
+'megamerge()' = 'coalesce(present(description("megamerge")), reachable(stack(), merges()))'
 
 "overview()" = "last() | orphans() | stale()"
 
@@ -60,6 +58,9 @@
 "private()" = "description(glob:\"private:*\")"
 # commits that will be parent to new changes made with fresh / fr
 "always_include()" = "description(glob:\"private:include:*\")"
+
+'unpublished()' = 'wip() | private()'
+'ready()' = 'open() ~ descendants(unpublished())'
 "wip()" = 'description(glob:"wip:*") ~ ::immutable_heads()'
 "trash()" = 'description(glob:"trash:*") ~ ::immutable_heads()'
 

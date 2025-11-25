@@ -65,7 +65,12 @@
 "trash()" = 'description(glob:"trash:*") ~ ::immutable_heads()'
 
 [revsets]
-log = "stack(mine() | @) | trunk() | @"
+# By default, show all my current stacks of work.
+log = 'stack(mine() | @) | trunk() | @'
+
+# Prioritize megamerges so that they always appear on the 'left-most' side of
+# the graph.
+log-graph-prioritize = 'coalesce(megamerge(), trunk())'
 
 [aliases]
 # quick aliases for common commands
@@ -75,6 +80,7 @@ n = ["new", "trunk()"]
 sq = ["squash"]
 si = ["split", "-i"]
 spr = ["util", "exec", "--", "jj-spr"]
+statlog = ["log", "-T", "stat_log"]
 
 # git helpers
 init = ["git", "init", "--colocate"]
@@ -90,15 +96,16 @@ pop = ["rebase", "-r", "@", "-d", "trunk()"]
 ppop = ["rebase", "-r", "@-", "-d", "trunk()"]
 pushdown = ["rebase", "-r", "@-", "--insert-after"]
 
+# find the nearest megamerge
+megamerge = ["log", "-r", "stack(megamerge())"]
+
 # move tuggable bookmarks forward to latest non-private non-current commits
 tug = ["bookmark", "move", "--from", "tuggable()", "--to", "closest_pushable()"]
 
 # bring a branch up to date with trunk()
 up = ["rebase", "--skip-emptied", "-d", "trunk()"]
 
-rebase-all = ["rebase", "-s", "(::trunk())+ & mutable()", "-d", "trunk()"]
-
-# Retrunk the current stack of work.
+# Retrunk the current stack of work; a dup of up really, so decide if we need both
 reheat = [
   "rebase",
   "--skip-emptied",
@@ -107,6 +114,12 @@ reheat = [
   "-s",
   "roots(trunk()..stack(@))",
 ]
+
+reheat-all = ["rebase", "-s", "(::trunk())+ & mutable()", "-d", "trunk()"]
+
+sandwich = ["rebase", "-B", "megamerge()", "-A", "trunk()", "-r"]
+
+examine = ["log", "-T", "builtin_log_detailed", "-p", "-r"]
 
 # Take content from any change, and move it into @. The inverse of 'eject'
 # - jj consume xyz path/to/file`
@@ -118,6 +131,7 @@ eject = ["squash", "--from", "@", "--into"]
 
 blame = ["file", "annotate"]
 changed = ["diff", "--name-only"]
+
 difft = ["--config", "ui.diff.tool='difft --color=always $left $right'", "diff"]
 
 fr = ["util", "exec", "--", "bash", "-c", """
@@ -221,6 +235,8 @@ concat(
 log = "builtin_log_compact ++ if(!description && !empty, diff.summary())"
 git_push_bookmark = '"lr/push-" ++ change_id.short()'
 
+[template-aliases]
+stat_log = "builtin_log_compact ++ diff.summary()"
 
 [ui]
 default-command = "log"

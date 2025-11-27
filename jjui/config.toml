@@ -12,3 +12,7 @@ args = ["rebase", "-r", "$change_id", "--insert-after", "$change_id+"]
 [custom_commands."tug bookmark"]
 key = ["t"]
 args = ["tug"]
+
+[custom_commands."rebase on main"]
+key = ["U"]
+args = ["up"]

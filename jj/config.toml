@@ -31,7 +31,7 @@
 'stack(x)' = 'stack(x, 2)'
 'stack(x, n)' = 'ancestors(reachable(x, mutable()), n)'
 
-'megamerge()' = 'coalesce(present(description("megamerge")), reachable(stack(), merges()))'
+'megamerge()' = 'coalesce(present(description(glob:megamerge*)), reachable(stack(), merges()))'
 
 "overview()" = "last() | orphans() | stale()"
 

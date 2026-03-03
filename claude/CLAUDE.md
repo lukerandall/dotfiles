@@ -1,9 +1,8 @@
-# Claude Configuration
+## Tools
 
-## Personal Preferences
-
-- Always use jj (Jujutsu) instead of git for version control operations unless it is not a jj repo
-- Always use rg instead of grep
+- Always use jj (Jujutsu) not git for version control operations
+- Always use rg not grep
+- Use `gh` CLI for all GitHub interactions (PRs, issues, CI status)
 
 ## Custom Commands
 

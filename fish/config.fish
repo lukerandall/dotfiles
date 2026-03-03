@@ -47,6 +47,10 @@ if command -v fx >/dev/null
     fx --comp fish | source
 end
 
+if command -v acli >/dev/null
+    acli completion fish | source
+end
+
 if status is-interactive
     mise activate fish | source
 else

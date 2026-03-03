@@ -12,9 +12,20 @@
 - jj tug - Move bookmark forward
 - `jj bookmark create` - Create bookmarks (not branches) for PRs
 
-## GitHub Integration
+## Atlassian / Jira Integration
 
-- Use `gh` CLI for all GitHub interactions (PRs, issues, etc.) if the GitHub MCP is not available
+Use `acli` (Atlassian CLI) for Jira interactions:
+
+```bash
+# View a specific issue
+acli jira workitem view PROJ-123
+
+# View sprint work items
+acli jira sprint list --board-id 123
+
+# Check auth status
+acli jira auth status
+```
 
 ## PR Creation
 

@@ -22,13 +22,11 @@
 
 1. Check if commits are directly off main. If not, ask if should rebase on main and use `jj up` if yes
 2. `jj commit -m "message"` - Commit changes with descriptive message
-3. `jj file untrack CLAUDE.local.md` - Untrack local config if changed
-4. `jj bookmark create branch-name` - Create bookmark for PR
-5. `jj bookmark set branch-name -r change-id --allow-backwards` - Move bookmark to correct commit if needed
-6. `jj git push --bookmark branch-name --allow-new` - Push bookmark to remote
-7. `gh pr create --head branch-name --title "Title" --body "Description"` - Create PR
+3. jjpr -b "suitable-branch-name"
 
 ## Code Style
 
-- When generating code, run the appropriate formatter if it is available (rubocop, erb_lint, eslint, etc.)
-- Write tests/specs for new code. Favour a TDD approach where possible
+- When generating code, run linters and formatters
+- Favour a TDD approach wherever possible
+
+- Always write tests/specs for new code.

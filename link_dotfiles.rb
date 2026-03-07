@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
-dirs = %w[atuin bin bat fish ghostty jj jjui kitty mise nvim scry television wezterm]
+dirs = %w[atuin bin bat fish ghostty jj jjui mise nvim shade zellij]
 config_files = %w[starship.toml]
 sparse_dirs = %w[claude]
 ignored = %w[

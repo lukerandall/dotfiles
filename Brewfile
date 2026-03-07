@@ -14,7 +14,6 @@ mas 'StopTheMadness',       id: 1376402589
 # rubocop:enable Style/NumericLiterals
 
 tap 'atlassian/homebrew-acli'
-tap 'mike-engel/jwt-cli'
 
 brew 'acli'
 brew 'argc'

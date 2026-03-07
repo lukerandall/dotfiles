@@ -1,4 +1,5 @@
 [tools]
+"cargo:jj-vine" = "latest"
 go = "latest"
 jjui = "latest"
 node = "latest"

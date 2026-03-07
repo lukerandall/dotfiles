@@ -42,7 +42,7 @@
     ]
   },
   "enabledPlugins": {
-    "beads@beads-marketplace": true
+    "rust-analyzer-lsp@claude-plugins-official": true
   },
   "alwaysThinkingEnabled": true
 }

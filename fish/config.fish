@@ -47,6 +47,10 @@ if command -v shade >/dev/null
     shade init fish | source
 end
 
+if command -v rustup >/dev/null
+    rustup completions fish | source
+end
+
 if command -v fx >/dev/null
     fx --comp fish | source
 end

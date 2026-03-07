@@ -4,7 +4,7 @@ go = "latest"
 jjui = "latest"
 node = "latest"
 ruby = "latest"
-rust = "latest"
+rust = "1.94"
 usage = "latest"
 uv = "latest"
 

@@ -43,6 +43,10 @@ if command -v zoxide >/dev/null
     zoxide init fish | source
 end
 
+if command -v shade >/dev/null
+    shade init fish | source
+end
+
 if command -v fx >/dev/null
     fx --comp fish | source
 end

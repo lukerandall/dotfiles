@@ -1,0 +1,54 @@
+# Directory where shade environments are created.
+env_dir = "~/Code/shades"
+
+# Directories scanned for jj repositories when creating a shade.
+code_dirs = ["~/Code"]
+
+# Prefix applied to keychain service names (e.g. "shade.my-token").
+keychain_prefix = "shade."
+
+# Environment variables injected into every shade container.
+[env]
+CLAUDE_CODE_OAUTH_TOKEN = { keychain = "claude" }
+GH_TOKEN = { keychain = "github" }
+
+[docker]
+# Base Docker image.
+image = "ubuntu:latest"
+
+# Shell command to run inside the container once on first start.
+# The command is re-run if it changes (content-hashed).
+# setup = "apt-get update && apt-get install -y ripgrep"
+
+# Run the container as this user.
+# user = "dev"
+
+# Terminal multiplexer to install and use ("zellij" or "tmux").
+multiplexer = "zellij"
+
+# Extra directories to prepend to PATH inside the container.
+path = ["$HOME/.cargo/bin", "$HOME/.local/bin"]
+
+# Additional host paths to mount into the container.
+mounts = [
+  "~/.claude:/root/.claude",
+  "~/.claude.json:/root/.claude.json",
+  "~/.config/zellij:/root/.config/zellij",
+]
+
+setup = """
+    apt-get update && apt-get install -y gh ripgrep curl build-essential pkg-config libssl-dev \
+    && curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y \
+    && . $HOME/.cargo/env \
+    && cargo install cargo-binstall \
+    && cargo binstall -y jj-cli \
+    && curl -fsSL https://claude.ai/install.sh | bash \
+"""
+
+# [docker.limits]
+# memory    = "4g"
+# cpus      = "2"
+# pids_limit = "256"
+# cap_drop  = ["ALL"]
+# cap_add   = ["SETUID", "SETGID"]
+# no_new_privileges = true

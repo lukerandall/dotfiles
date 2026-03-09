@@ -60,7 +60,7 @@ function jjpr
         else
             jj bookmark create $bookmark -r $rev
         end
-        jj git push --bookmark $bookmark --allow-new
+        jj git push --bookmark $bookmark
     end
 
     set gh_args --head $bookmark

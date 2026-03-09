@@ -149,7 +149,7 @@ if [ $# -eq 0 ]; then
 fi
 
 bookmark="$1"
-jj bookmark track "${bookmark}@origin"
+jj bookmark track "${bookmark}" --remote=origin
 jj new "$bookmark"
 """, ""]
 

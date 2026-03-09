@@ -250,3 +250,6 @@ email = "luke.randall@gmail.com"
 
 [git]
 private-commits = "private()"
+
+[merge]
+hunk-level = "word"

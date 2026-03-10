@@ -2,7 +2,10 @@
   "env": {
     "DISABLE_TELEMETRY": "1"
   },
-  "includeCoAuthoredBy": false,
+  "attribution": {
+    "commit": "",
+    "pr": ""
+  },
   "permissions": {
     "allow": [
       "Bash(bundle exec erblint:*)",
@@ -42,7 +45,20 @@
     ]
   },
   "enabledPlugins": {
-    "rust-analyzer-lsp@claude-plugins-official": true
+    "rust-analyzer-lsp@claude-plugins-official": true,
+    "ruby-lsp@claude-plugins-official": true,
+    "codex@openai-codex": true
   },
-  "alwaysThinkingEnabled": true
+  "extraKnownMarketplaces": {
+    "openai-codex": {
+      "source": {
+        "source": "github",
+        "repo": "openai/codex-plugin-cc"
+      }
+    }
+  },
+  "alwaysThinkingEnabled": true,
+  "autoMemoryEnabled": true,
+  "voiceEnabled": true,
+  "editorMode": "vim"
 }

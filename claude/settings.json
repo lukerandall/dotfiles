@@ -32,17 +32,7 @@
     "deny": []
   },
   "hooks": {
-    "PostToolUse": [
-      {
-        "matcher": "(Edit|Write|MultiEdit)",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "~/.claude/format-file.sh"
-          }
-        ]
-      }
-    ]
+    "PostToolUse": []
   },
   "enabledPlugins": {
     "rust-analyzer-lsp@claude-plugins-official": true,

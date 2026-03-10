@@ -1,0 +1,146 @@
+#!/usr/bin/env fish
+#
+# Create a GitHub PR for a jj revision: push a bookmark, then `gh pr create`.
+#
+# This is a script rather than a fish function because tools that shell out
+# (editors, agents, CI helpers, anything running under sh/zsh) cannot call a
+# fish function — they see "command not found". The logic is fish because fish
+# is the login shell here and a rewrite would only add bugs; the shebang makes
+# the interpreter irrelevant to the caller.
+
+function __jjpr_usage
+    echo "Usage: jjpr [--revision|-r REV] [--bookmark|-b BOOKMARK] [--force] [GH_PR_CREATE_FLAGS...]"
+    echo "  Use --fill/-f to auto-populate title and body from the jj description"
+    echo "  Works from any jj workspace; --repo is derived from jj's remote"
+end
+
+# owner/repo for the current jj repo, read from its git remote.
+#
+# A jj workspace that is not colocated has no .git, so `gh` cannot infer the
+# repo from the working directory and fails with "not a git repository". jj
+# knows the remote regardless of which workspace we are standing in.
+function __jjpr_repo_slug
+    set -l url (jj git remote list 2>/dev/null | awk '$1 == "origin" { print $2; exit }')
+    if test -z "$url"
+        set url (jj git remote list 2>/dev/null | awk 'NR == 1 { print $2 }')
+    end
+    test -n "$url"; or return 1
+
+    # Handles https://host/owner/repo(.git), git@host:owner/repo(.git) and
+    # ssh://git@host/owner/repo(.git) by normalising ':' to '/' and taking the
+    # last two non-empty segments.
+    set -l segs (string replace -r '\.git$' '' -- $url | string replace -a ':' '/' | string split '/' | string match -v '')
+    test (count $segs) -ge 2; or return 1
+    echo $segs[-2]/$segs[-1]
+end
+
+set rev "@-"
+set bookmark ""
+set force false
+set fill false
+set gh_extra_args
+
+set i 1
+while test $i -le (count $argv)
+    switch $argv[$i]
+        case --revision -r
+            set i (math $i + 1)
+            set rev $argv[$i]
+        case --bookmark -b
+            set i (math $i + 1)
+            set bookmark $argv[$i]
+        case --base -B
+            # Don't consume this - let it pass through to gh
+            set gh_extra_args $gh_extra_args $argv[$i]
+            if test $i -lt (count $argv)
+                set i (math $i + 1)
+                set gh_extra_args $gh_extra_args $argv[$i]
+            end
+        case --assignee -a --body --body-file -F --head -H --label -l --milestone -m --project -p --reviewer --template -T --title -t --recover --repo -R
+            # Flags that take arguments - pass through to gh
+            # (--reviewer has no -r here: -r is --revision, matched above.)
+            set gh_extra_args $gh_extra_args $argv[$i]
+            if test $i -lt (count $argv)
+                set i (math $i + 1)
+                set gh_extra_args $gh_extra_args $argv[$i]
+            end
+        case --fill -f --fill-first --fill-verbose
+            # Filled from jj below, not passed through: gh's own --fill shells
+            # out to git for the commit messages and dies in a workspace with
+            # no .git.
+            set fill true
+        case --draft -d --dry-run --editor -e --no-maintainer-edit --web -w
+            # Flags that don't take arguments - pass through to gh
+            set gh_extra_args $gh_extra_args $argv[$i]
+        case --force
+            set force true
+        case --help -h
+            __jjpr_usage
+            exit 0
+        case '*'
+            echo "Error: Unknown argument '$argv[$i]'" >&2
+            __jjpr_usage >&2
+            exit 1
+    end
+    set i (math $i + 1)
+end
+
+if test -z "$bookmark"
+    jj git push -c $rev; or exit $status
+    set bookmark (jj bookmark list -r $rev | cut -d : -f 1)
+else
+    # Check if bookmark already exists
+    if jj bookmark list $bookmark 2>/dev/null | grep -q .
+        if test "$force" = true
+            jj bookmark move -B $bookmark --to $rev; or exit $status
+        else
+            echo "Error: Bookmark '$bookmark' already exists. Use --force to move it." >&2
+            exit 1
+        end
+    else
+        jj bookmark create $bookmark -r $rev; or exit $status
+    end
+    jj git push --bookmark $bookmark; or exit $status
+end
+
+set gh_args --head $bookmark
+
+# Name the repo explicitly unless the caller already did. Without this, gh
+# infers it from the working directory, which only works in a colocated
+# checkout — every sibling jj workspace fails.
+if not contains -- --repo $gh_extra_args; and not contains -- -R $gh_extra_args
+    set slug (__jjpr_repo_slug)
+    if test -z "$slug"
+        echo "Error: could not determine the GitHub repo from jj's remotes; pass --repo owner/name." >&2
+        exit 1
+    end
+    set gh_args $gh_args --repo $slug
+end
+
+# Stand in for gh's --fill using jj's description for $rev. Note this is the
+# one revision the PR is for, not a range: if the bookmark carries a stack,
+# only $rev's description is used.
+if test "$fill" = true
+    set desc (jj log -r $rev --no-graph -T 'description' | string collect)
+    if not string match -qr '\S' -- "$desc"
+        echo "Error: --fill needs a description on $rev, which has none." >&2
+        exit 1
+    end
+    if not contains -- --title $gh_extra_args; and not contains -- -t $gh_extra_args
+        set gh_args $gh_args --title (jj log -r $rev --no-graph -T 'description.first_line()')
+    end
+    if not contains -- --body $gh_extra_args; and not contains -- --body-file $gh_extra_args; and not contains -- -F $gh_extra_args
+        # Collect last, and trim the whole string as one argument: piping a
+        # collected string through `string trim` splits it back per line, which
+        # turns a multi-line body into a fistful of positional args.
+        set body (echo $desc | tail -n +2 | string collect)
+        set body (string trim -- "$body" | string collect)
+        set gh_args $gh_args --body $body
+    end
+end
+
+if test (count $gh_extra_args) -gt 0
+    set gh_args $gh_args $gh_extra_args
+end
+
+gh pr create $gh_args

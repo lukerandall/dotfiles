@@ -1,75 +1,9 @@
-function jjpr
-    set rev "@-"
-    set bookmark ""
-    set force false
-    set base ""
-    set gh_extra_args
-
-    set i 1
-    while test $i -le (count $argv)
-        switch $argv[$i]
-            case --revision -r
-                set i (math $i + 1)
-                set rev $argv[$i]
-            case --bookmark -b
-                set i (math $i + 1)
-                set bookmark $argv[$i]
-            case --base -B
-                # Don't consume this - let it pass through to gh
-                set gh_extra_args $gh_extra_args $argv[$i]
-                if test $i -lt (count $argv)
-                    set i (math $i + 1)
-                    set gh_extra_args $gh_extra_args $argv[$i]
-                end
-            case --assignee -a --body --body-file -F --head -H --label -l --milestone -m --project -p --reviewer -r --template -T --title -t --recover
-                # Flags that take arguments - pass through to gh
-                set gh_extra_args $gh_extra_args $argv[$i]
-                if test $i -lt (count $argv)
-                    set i (math $i + 1)
-                    set gh_extra_args $gh_extra_args $argv[$i]
-                end
-            case --draft -d --dry-run --editor -e --fill -f --fill-first --fill-verbose --no-maintainer-edit --web -w
-                # Flags that don't take arguments - pass through to gh
-                set gh_extra_args $gh_extra_args $argv[$i]
-            case --force
-                set force true
-            case --help -h
-                echo "Usage: jjpr [--revision|-r REV] [--bookmark|-b BOOKMARK] [--force] [GH_PR_CREATE_FLAGS...]"
-                echo "  Use --fill/-f to auto-populate title and body from commit message"
-                return 0
-            case '*'
-                echo "Error: Unknown argument '$argv[$i]'" >&2
-                echo "Usage: jjpr [--revision|-r REV] [--bookmark|-b BOOKMARK] [--force] [GH_PR_CREATE_FLAGS...]" >&2
-                return 1
-        end
-        set i (math $i + 1)
-    end
-
-    if test -z "$bookmark"
-        jj git push -c $rev
-        set bookmark (jj bookmark list -r $rev | cut -d : -f 1)
-    else
-        # Check if bookmark already exists
-        if jj bookmark list $bookmark 2>/dev/null | grep -q .
-            if test "$force" = true
-                jj bookmark move -B $bookmark --to $rev
-            else
-                echo "Error: Bookmark '$bookmark' already exists. Use --force to move it." >&2
-                return 1
-            end
-        else
-            jj bookmark create $bookmark -r $rev
-        end
-        jj git push --bookmark $bookmark
-    end
-
-    set gh_args --head $bookmark
-    if test (count $gh_extra_args) -gt 0
-        set gh_args $gh_args $gh_extra_args
-    end
-
-    gh pr create $gh_args
-end
+# jjpr lives in bin/jjpr (symlinked to ~/.local/bin), not here: a fish function
+# cannot be called by anything that is not a fish shell, and tools that shell
+# out under sh/zsh just get "command not found". Defining it here as well would
+# shadow the script for interactive fish only, so the two would drift apart.
+# The `complete -c jjpr` rules below still apply — completions do not care
+# whether the command is a function or an executable.
 
 function jjfr
     jj git fetch

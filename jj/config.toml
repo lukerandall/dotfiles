@@ -190,6 +190,7 @@ back = [
 """,
   "jj-back",
 ]
+vine = ["util", "exec", "--", "jj-vine"]
 
 
 [fix.tools.rubocop]

@@ -1,7 +1,4 @@
 {
-  "env": {
-    "DISABLE_TELEMETRY": "1"
-  },
   "attribution": {
     "commit": "",
     "pr": ""
@@ -37,7 +34,20 @@
     "deny": []
   },
   "hooks": {
-    "PostToolUse": []
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.tool_input.file_path // empty' | { read -r f; case \"$f\" in /Users/luke/.claude/projects/-Users-luke-Code-stemma/memory/*) git -C /Users/luke/.claude/projects/-Users-luke-Code-stemma/memory add -A; git -C /Users/luke/.claude/projects/-Users-luke-Code-stemma/memory -c user.email=luke@therandalls.io -c \"user.name=Luke Randall\" commit -m \"Auto-sync: $(basename \"$f\")\" && git -C /Users/luke/.claude/projects/-Users-luke-Code-stemma/memory push -q origin main;; esac; } 2>/dev/null || true",
+            "async": true,
+            "timeout": 60,
+            "statusMessage": "Syncing memory to stemma-evidence"
+          }
+        ]
+      }
+    ]
   },
   "enabledPlugins": {
     "rust-analyzer-lsp@claude-plugins-official": true,
@@ -53,7 +63,11 @@
     }
   },
   "alwaysThinkingEnabled": true,
+  "tui": "fullscreen",
   "autoMemoryEnabled": true,
-  "voiceEnabled": true,
-  "editorMode": "vim"
+  "skipWorkflowUsageWarning": true,
+  "theme": "dark",
+  "editorMode": "vim",
+  "agentPushNotifEnabled": true,
+  "voiceEnabled": true
 }

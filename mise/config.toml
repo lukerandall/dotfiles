@@ -3,10 +3,12 @@
 go = "latest"
 jjui = "latest"
 node = "latest"
+pnpm = "latest"
 ruby = "latest"
-rust = "1.94"
+rust = "1.97.1"
 usage = "latest"
 uv = "latest"
+vp = "latest"
 
 [settings]
 experimental = true

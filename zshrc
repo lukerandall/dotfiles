@@ -1,5 +1,8 @@
 path=(
   "$HOME/.local/bin"
+  "$HOME/.local/share/mise/shims"
+  "$HOME/.cargo/bin"
+  /Applications/Postgres.app/Contents/Versions/latest/bin
   /opt/homebrew/bin
   /usr/local/bin
   /usr/bin
@@ -247,3 +250,5 @@ zinit light-mode for \
 bindkey '\e.' jq-complete
 
 eval "$(direnv hook zsh)"
+
+[ -f ~/.zshrc.local ] && source ~/.zshrc.local

@@ -146,3 +146,11 @@
 
 [tag]
   sort = version:refname
+[credential "https://git.heroku.com"]
+	helper = !heroku git:credentials
+[credential "https://github.com"]
+	helper = 
+	helper = !gh auth git-credential
+[credential "https://gist.github.com"]
+	helper = 
+	helper = !gh auth git-credential

@@ -1,14 +1,15 @@
 [tools]
 "cargo:jj-vine" = "0.4.0"
+gh = "latest"
 go = "latest"
 jjui = "latest"
 node = "latest"
 pnpm = "latest"
 ruby = "latest"
-rust = "1.97.1"
+rust = "1.99.1"
 usage = "latest"
 uv = "latest"
-vp = "latest"
+vp = "0.2.4"
 
 [settings]
 experimental = true

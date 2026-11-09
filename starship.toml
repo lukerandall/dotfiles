@@ -60,10 +60,9 @@ base = "#24273a"
 mantle = "#1e2030"
 crust = "#181926"
 
-command_timeout = "200"
-
 # custom module for jj status
 [custom.jj]
+shell = ["sh"]
 ignore_timeout = true
 description = "current jj status"
 symbol = ""
@@ -107,6 +106,7 @@ disabled = true
 
 # re-enable git_branch as long as we're not in a jj repo
 [custom.git_branch]
+shell = ["sh"]
 when = true
 command = "jj root >/dev/null 2>&1 || starship module git_branch"
 description = "Only show git_branch if we're not in a jj repo"

@@ -23,45 +23,39 @@ if test -e $LOCAL_CONFIG
     source $LOCAL_CONFIG
 end
 
-if command -v tv >/dev/null
-    tv init fish | source
-end
-
-if command -v atuin >/dev/null
-    atuin init fish | source
-end
-
-if command -v jj >/dev/null
-    COMPLETE=fish jj | source
-end
-
-if command -v starship >/dev/null
-    starship init fish | source
-end
-
-if command -v zoxide >/dev/null
-    zoxide init fish | source
-end
-
-if command -v shade >/dev/null
-    shade init fish | source
-end
-
-if command -v rustup >/dev/null
-    rustup completions fish | source
-end
-
-if command -v fx >/dev/null
-    fx --comp fish | source
-end
-
-if command -v acli >/dev/null
-    acli completion fish | source
-end
-
 if status is-interactive
-    mise activate fish | source
-else
+    if command -v tv >/dev/null
+        tv init fish | source
+    end
+
+    if command -v atuin >/dev/null
+        atuin init fish | source
+    end
+
+    if command -v jj >/dev/null
+        COMPLETE=fish jj | source
+    end
+
+    if command -v starship >/dev/null
+        starship init fish | source
+    end
+
+    if command -v zoxide >/dev/null
+        zoxide init fish | source
+    end
+
+    if command -v shade >/dev/null
+        shade init fish | source
+    end
+
+    if command -v fx >/dev/null
+        fx --comp fish | source
+    end
+end
+
+# Homebrew's vendor_conf.d/mise-activate.fish already activates mise for every
+# shell, so only the shims for non-interactive shells are added here.
+if not status is-interactive
     mise activate fish --shims | source
 end
 
@@ -89,9 +83,11 @@ if test -d /Users/luke/Code/argc-completions
     set -gx ARGC_COMPLETIONS_ROOT /Users/luke/Code/argc-completions
     set -gx ARGC_COMPLETIONS_PATH "$ARGC_COMPLETIONS_ROOT/completions/macos:$ARGC_COMPLETIONS_ROOT/completions"
     fish_add_path "$ARGC_COMPLETIONS_ROOT/bin"
-    # To add completions for only the specified command, modify next line e.g. set argc_scripts cargo git
-    set argc_scripts (ls -p -1 "$ARGC_COMPLETIONS_ROOT/completions/macos" "$ARGC_COMPLETIONS_ROOT/completions" | sed -n 's/\.sh$//p')
-    argc --argc-completions fish $argc_scripts | source
+    if status is-interactive
+        # To add completions for only the specified command, modify next line e.g. set argc_scripts cargo git
+        set argc_scripts (ls -p -1 "$ARGC_COMPLETIONS_ROOT/completions/macos" "$ARGC_COMPLETIONS_ROOT/completions" | sed -n 's/\.sh$//p')
+        argc --argc-completions fish $argc_scripts | source
+    end
 end
 
 source ~/.orbstack/shell/init2.fish 2>/dev/null || :

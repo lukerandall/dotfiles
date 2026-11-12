@@ -17,6 +17,10 @@ and prints a warning that names it. To link only the skills, run:
 
     ruby -r ./link_dotfiles.rb -e 'DotfilesLinker.new(repo: Dir.pwd, home: Dir.home).link_skills'
 
+Run the linker, whole or skills only, from the primary checkout at
+`~/Code/dotfiles`, never from a worktree. Each link points into the checkout
+that ran it, so links made from a worktree break when the worktree is removed.
+
 These skills started as copies of skills from github.com/mattpocock/skills.
 Several have been changed to write board records (tasks, decisions, questions
 and controls) in place of GitHub issues or files in the repository. Edit them

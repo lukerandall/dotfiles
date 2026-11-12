@@ -1,6 +1,6 @@
 ---
 name: to-tickets
-description: Break a plan, spec, or the current conversation into a set of tracer-bullet tickets, each declaring its blocking edges, published to the configured tracker (edges as text in one file per ticket locally, or native blocking links on a real tracker).
+description: Break a plan, spec, or the current conversation into a set of tracer-bullet tickets, each declaring its blocking edges, published as a board project task with one child task per ticket.
 disable-model-invocation: true
 ---
 
@@ -8,13 +8,13 @@ disable-model-invocation: true
 
 Break a plan, spec, or conversation into a set of **tickets**: tracer-bullet vertical slices, each declaring the tickets that **block** it.
 
-The issue tracker and triage label vocabulary should have been provided to you. If not, tell the user to run `/setup-matt-pocock-skills`.
+The tickets go in the board as tasks, as the `tasks` skill describes: one project task for the whole plan, one child task per ticket, and each ticket's blocking edges in its `after` list. Run every `board` command from the repository the work is for, so the tasks go to the notes repo that repository routes to.
 
 ## Process
 
 ### 1. Gather context
 
-Work from whatever is already in the conversation context. If the user passes a reference (a spec path, an issue number or URL) as an argument, fetch it and read its full body and comments.
+Work from whatever is already in the conversation context. If the user passes a reference (a spec path, a board path such as a task or a change's plan, an issue number or URL) as an argument, fetch it and read its full body and comments. Read a board record with `board -C <board> get <path>`.
 
 ### 2. Explore the codebase (optional)
 
@@ -55,51 +55,35 @@ Ask the user:
 
 Iterate until the user approves the breakdown.
 
-### 5. Publish the tickets to the configured tracker
+### 5. Publish the tickets as board tasks
 
-Publish the approved tickets. **How** depends on the tracker `/setup-matt-pocock-skills` configured; the tickets are the same either way, only the shape of the blocking edges changes:
+Publish the approved tickets:
 
-- **Local files** → write one file per ticket under `.scratch/<feature-slug>/issues/<NN>-<slug>.md`, numbered from `01` in dependency order (blockers first). Each file's "Blocked by" lists the numbers/titles it depends on. Use the per-ticket file template below: one ticket per file, never a single combined file.
-- **A real issue tracker (GitHub, Linear, …)** → publish one issue per ticket in dependency order (blockers first) so each ticket's blocking edges can reference real identifiers. Use the platform's native blocking relationship where it has one; otherwise set each ticket's "Blocked by" to the blocking issues. If the source was an existing issue, make each ticket its sub-issue (tracker doc's operation). Apply the `ready-for-agent` triage label unless instructed otherwise; the tickets are agent-grabbable by construction.
+1. Add the project task that holds them. Its text is the plan in a few lines and a reference to its source:
 
-Work the **frontier**: any ticket whose blockers are all done. For a purely linear chain that means top to bottom.
+       board -C <board> tasks add --kind project --title '<plan title>' --text '<the plan and its source>'
 
-Do NOT close or modify any parent issue.
+   When the source is an existing task, add `--parent <that task's path>` so the project sits under it. Note the path the call prints.
+2. Add one child task per ticket, in dependency order (blockers first), so each ticket's `after` can name the paths of the tasks that block it. Pass the ticket as JSON on stdin, because `after` goes on stdin and a flag makes `tasks.add` ignore stdin:
 
-<local-ticket-template>
+       echo '{"title": "<ticket title>", "parent": "<project path>", "text": "<ticket body>", "after": ["<blocking task path>"]}' | board -C <board> tasks add
 
-# <NN>: <Ticket title>
+   `parent` and `after` take paths in the task's own repo, `.md` included, such as `/tasks/<slug>.md`; when `tasks.add` prints a mounted path, drop the mount prefix. Leave out `after` for a ticket with no blockers. Use the ticket template below for `text`.
+3. Run `board -C <board> tasks tree --path <project path>` and check that every ticket is under the project and that each one's `blocked_by` matches the breakdown the user approved.
+
+The **frontier** is every open child task whose `blocked_by` is empty. For a purely linear chain that means top to bottom. Leave the source task's status and text unchanged; the project's `parent` link is the only connection.
+
+This step is done when the tree matches the approved breakdown and you have told the user the project's path.
+
+<ticket-template>
 
 **What to build:** the end-to-end behaviour this ticket makes work, from the user's perspective, not a layer-by-layer implementation list.
 
-**Blocked by:** the numbers/titles of the tickets that gate this one, or "None (can start immediately)".
-
-**Status:** ready-for-agent
-
-- [ ] Acceptance criterion 1
-- [ ] Acceptance criterion 2
-
-</local-ticket-template>
-
-<issue-template>
-
-## Parent
-
-A reference to the parent issue on the tracker (if the source was an existing issue, otherwise omit this section).
-
-## What to build
-
-The end-to-end behaviour this ticket makes work, from the user's perspective, not layer-by-layer implementation.
-
-## Acceptance criteria
+**Acceptance criteria:**
 
 - [ ] Criterion 1
 - [ ] Criterion 2
 
-## Blocked by
+</ticket-template>
 
-- A reference to each blocking ticket, or "None (can start immediately)". Omit this section when blockers were set as native edges.
-
-</issue-template>
-
-In either form, avoid specific file paths or code snippets: they go stale fast. Exception: if a prototype produced a snippet that encodes a decision more precisely than prose can (state machine, reducer, schema, type shape), inline it and note briefly that it came from a prototype. Trim to the decision-rich parts, not a working demo, just the important bits.
+In the ticket text, avoid specific file paths or code snippets: they go stale fast. Exception: if a prototype produced a snippet that encodes a decision more precisely than prose can (state machine, reducer, schema, type shape), inline it and note briefly that it came from a prototype. Trim to the decision-rich parts, not a working demo, just the important bits.

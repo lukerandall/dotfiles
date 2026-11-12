@@ -1,6 +1,8 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
+require 'fileutils'
+
 # Symlinks the files in this repository into a home directory.
 class DotfilesLinker
   DIRS = %w[atuin bin bat fish ghostty jj jjui mise nvim shade zellij].freeze
@@ -9,7 +11,7 @@ class DotfilesLinker
   IGNORED = %w[
     link_dotfiles.rb README.md Brewfile Brewfile.lock.json Brewfile.local Brewfile.local.lock.json Fonts.brewfile
     Fonts.brewfile.lock.json print_settings.rb settings.json settings.sh setup.sh keybindings.json
-    aws-sso test
+    aws-sso skills test
   ].freeze
 
   def initialize(repo:, home:, out: $stdout)
@@ -24,9 +26,46 @@ class DotfilesLinker
     link_config_dirs
     link_bin
     link_sparse_dirs
+    link_skills
+  end
+
+  # Links each skills/<name> folder to ~/.agents/skills/<name>, which Claude Code and Codex read, replacing
+  # whatever is there. Links ~/.claude/skills to ~/.agents/skills when ~/.claude/skills does not exist.
+  def link_skills
+    FileUtils.mkdir_p(agent_skills)
+    Dir[path('skills', '*')].select { |skill| File.directory?(skill) }.each do |skill|
+      target = File.join(agent_skills, File.basename(skill))
+      remove(target)
+      symlink(skill, target)
+    end
+    link_claude_skills
   end
 
   private
+
+  def agent_skills = File.join(home, '.agents', 'skills')
+
+  def link_claude_skills
+    claude_skills = File.join(home, '.claude', 'skills')
+    return if File.exist?(claude_skills) || File.symlink?(claude_skills)
+
+    FileUtils.mkdir_p(File.dirname(claude_skills))
+    symlink(agent_skills, claude_skills)
+  end
+
+  def symlink(source, target)
+    File.symlink(source, target)
+    out.puts "#{target} -> #{source}"
+  end
+
+  # Removes a symlink without following it, or a real file or folder with its contents.
+  def remove(target)
+    if File.symlink?(target)
+      File.unlink(target)
+    else
+      FileUtils.rm_rf(target)
+    end
+  end
 
   attr_reader :repo, :home, :out
 

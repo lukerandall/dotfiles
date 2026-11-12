@@ -21,11 +21,15 @@ When exploring the codebase, read `GLOSSARY.md` (if it exists) to get a clear me
 
 This step is done when you are the builder of a change in `build`, or know that no board mounts the repository.
 
+### The user checkpoints
+
+A builder is a subagent and cannot talk to the user or drive a human through a script. At each checkpoint below that says **return to the parent**, the builder ends its turn and reports to the session that started it: what it needs, the question, and the evidence so far. The parent relays it to the user, runs `scripts/hitl-loop.template.sh` itself or hands its steps to the user, and then resumes the same builder with SendMessage, passing back the answer or the captured output. The builder keeps its context, so it carries on where it stopped. When no board mounts the repository there is no builder: at each checkpoint, ask the user directly.
+
 ## Redact
 
 This skill has you show commands, outputs and captured artifacts. **Redact every secret first**: write `<REDACTED>` in its place. Build loops against env vars, so the credential stays in the environment rather than in what you show. Captured artifacts carry auth headers: quote only the lines that carry the signal.
 
-If the redacted output is not enough to diagnose the bug, say so and ask the user.
+If the redacted output is not enough to diagnose the bug, say so and return to the parent.
 
 ## Phase 1: Build a feedback loop
 
@@ -46,7 +50,7 @@ Run every loop that runs unattended through deadband, as `deadband run --label <
 7. **Property / fuzz loop.** If the bug is "sometimes wrong output", run 1000 random inputs and look for the failure mode.
 8. **Bisection harness.** If the bug appeared between two known states (commit, dataset, version), automate "boot at state X, check, repeat" so you can `git bisect run` it.
 9. **Differential loop.** Run the same input through old-version vs new-version (or two configs) and diff outputs.
-10. **HITL bash script.** Last resort. If a human must click, drive _them_ with `scripts/hitl-loop.template.sh` so the loop is still structured. Captured output feeds back to you.
+10. **HITL bash script.** Last resort. If a human must click, drive _them_ with `scripts/hitl-loop.template.sh` so the loop is still structured. A builder writes the script and returns to the parent, which runs it with the user; the captured output comes back when the parent resumes the builder.
 
 Build the right feedback loop, and the bug is 90% fixed.
 
@@ -66,7 +70,7 @@ The goal is not a clean repro but a **higher reproduction rate**. Loop the trigg
 
 ### When you genuinely cannot build a loop
 
-Stop and say so explicitly. List what you tried. Ask the user for: (a) access to whatever environment reproduces it, (b) a redacted captured artifact (HAR file, log dump, core dump, screen recording with timestamps), or (c) permission to add temporary production instrumentation. Do **not** proceed to hypothesise without a loop.
+Stop and say so explicitly. List what you tried, and return to the parent to ask the user for: (a) access to whatever environment reproduces it, (b) a redacted captured artifact (HAR file, log dump, core dump, screen recording with timestamps), or (c) permission to add temporary production instrumentation. Do **not** proceed to hypothesise without a loop.
 
 ### Completion criterion: a tight loop that goes red
 
@@ -109,7 +113,7 @@ Each hypothesis must be **falsifiable**: state the prediction it makes.
 
 If you cannot state the prediction, the hypothesis is a vibe: discard or sharpen it.
 
-**Show the ranked list to the user before testing.** They often have domain knowledge that re-ranks instantly ("we just deployed a change to #3"), or know hypotheses they've already ruled out. Cheap checkpoint, big time saver. Don't block on it; proceed with your ranking if the user is AFK.
+**Return to the parent with the ranked list before testing**, so the user sees it. They often have domain knowledge that re-ranks instantly ("we just deployed a change to #3"), or know hypotheses they've already ruled out. Cheap checkpoint, big time saver. When the user is AFK, the parent resumes the builder at once and it proceeds with its own ranking.
 
 ## Phase 4: Instrument
 

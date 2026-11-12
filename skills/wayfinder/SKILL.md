@@ -120,7 +120,7 @@ User invokes with a loose idea.
    `parent` is the map's path as printed, and each `after` entry drops the mount prefix, as [Tickets](#tickets) says. `after` sorts them into the frontier and the blocked; everything you can't yet specify stays in the fog: the **Not yet specified** section.
 
    Then run `board -C <board> tasks tree --path <map path>` and check that every ticket is under the map and that each one's `blocked_by` lists the tickets you meant to block it. This step is done when the tree matches.
-5. **Fire the research subagents.** For each `research` ticket you just created, spin up a subagent that calls the Skill tool with "research" to resolve it in parallel, capturing its findings on a throwaway `research/<name>` branch. Each subagent records its answer as step 4 of [Work through the map](#work-through-the-map) says.
+5. **Fire the research subagents.** For each `research` ticket you just created, spin up a subagent that calls the Skill tool with "research" to resolve it in parallel, capturing its findings on a throwaway `research/<name>` branch. Each subagent then adds a context pointer to its ticket's text (the branch and the findings file), following the `tasks` skill's Edit steps. It writes no decision, leaves the ticket open, and leaves the map unchanged: a later session resolves the ticket in [Work through the map](#work-through-the-map), reading the findings through that pointer.
 6. Stop: charting is one session's work; it hand-resolves nothing.
 
 Tell the user the map's path; the next session starts from it.

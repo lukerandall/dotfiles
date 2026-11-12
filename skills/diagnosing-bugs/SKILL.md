@@ -17,7 +17,9 @@ When exploring the codebase, read `GLOSSARY.md` (if it exists) to get a clear me
 
        board -C <board> changes start --mount /repos/<name> --title '<title>' --flow small --task <task path from step 1>
 
-   Leave out `--task` when no task covers the bug, and `changes.start` adds one. Then start one builder from `board -C <board> changes brief --path /changes/<name>`, its first message beginning with the brief's `brief_line`, as the `changes` skill describes, and hand it this skill and the bug. The builder works Phases 1 to 6, follows `board -C <board> changes next --path /changes/<name>`, and writes the change's plan with `changes.plan` once Phase 3 shows which files the fix touches. When `changes next` says the change needs the development flow, follow its remedy.
+   Leave out `--task` when no task covers the bug, and `changes.start` adds one. Then start one builder from `board -C <board> changes brief --path /changes/<name>`, its first message beginning with the brief's `brief_line`, as the `changes` skill describes, and hand it this skill and the bug. The builder works Phases 1 to 6, follows `board -C <board> changes next --path /changes/<name>`, and writes the change's plan with `changes.plan` once Phase 3 shows which files the fix touches. Until that plan exists the brief names no controls, so before the builder first edits a repository file it runs `board call controls.for-path --path <file>` and follows what it returns. When `changes next` says the change needs the development flow, follow its remedy.
+
+   When `changes.start` is refused with `changes::wip::full`, follow the `changes` skill's handling of that refusal.
 
 This step is done when you are the builder of a change in `build`, or know that no board mounts the repository.
 

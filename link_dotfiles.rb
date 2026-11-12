@@ -104,16 +104,23 @@ class DotfilesLinker
     end
   end
 
+  # Links each entry of a sparse folder, such as claude/, into the matching folder in home, such as ~/.claude.
+  # A real file or folder already there is the user's own, so it is kept and a warning is printed.
   def link_sparse_dirs
     SPARSE_DIRS.each do |sparse_dir|
-      `mkdir -p #{home}/.#{sparse_dir}`
+      FileUtils.mkdir_p(File.join(home, ".#{sparse_dir}"))
       Dir[path(sparse_dir, '*')].each do |file|
-        if File.directory?(file)
-          ln(file, "#{home}/.#{sparse_dir}")
-        else
-          ln(file, "#{home}/.#{sparse_dir}/#{File.basename(file)}")
-        end
+        link_unless_real(file, File.join(home, ".#{sparse_dir}", File.basename(file)))
       end
+    end
+  end
+
+  def link_unless_real(source, target)
+    if File.exist?(target) && !File.symlink?(target)
+      out.puts "warning: kept #{target}, which is not a symlink; remove it to link #{source}"
+    else
+      remove(target)
+      symlink(source, target)
     end
   end
 end

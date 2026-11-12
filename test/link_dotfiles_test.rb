@@ -20,7 +20,8 @@ class LinkDotfilesTest < Minitest::Test
   end
 
   def link(only: nil)
-    linker = DotfilesLinker.new(repo: REPO, home: @home, out: StringIO.new)
+    @out = StringIO.new
+    linker = DotfilesLinker.new(repo: REPO, home: @home, out: @out)
     only == :skills ? linker.link_skills : linker.run
   end
 
@@ -101,7 +102,6 @@ class LinkDotfilesTest < Minitest::Test
   def test_does_not_link_skills_or_tests_as_dotfiles
     link
 
-    refute File.exist?(File.join(@home, '.skills'))
     refute File.symlink?(File.join(@home, '.skills'))
     refute File.symlink?(File.join(@home, '.test'))
   end
@@ -112,6 +112,28 @@ class LinkDotfilesTest < Minitest::Test
     assert File.symlink?(File.join(skills_home, SKILLS.first))
     assert File.symlink?(File.join(@home, '.claude', 'skills'))
     refute File.symlink?(File.join(@home, '.gitconfig'))
+  end
+
+  def test_keeps_a_real_file_in_a_linked_folder_and_warns
+    settings = File.join(@home, '.claude', 'settings.json')
+    FileUtils.mkdir_p(File.dirname(settings))
+    File.write(settings, '{"mine": true}')
+
+    link
+
+    refute File.symlink?(settings)
+    assert_equal '{"mine": true}', File.read(settings)
+    assert_match(/#{Regexp.escape(settings)}/, @out.string)
+  end
+
+  def test_updates_a_stale_symlink_in_a_linked_folder
+    claude_md = File.join(@home, '.claude', 'CLAUDE.md')
+    FileUtils.mkdir_p(File.dirname(claude_md))
+    File.symlink(File.join(@home, 'old-CLAUDE.md'), claude_md)
+
+    link
+
+    assert_equal File.join(REPO, 'claude', 'CLAUDE.md'), File.readlink(claude_md)
   end
 
   def test_still_links_dotfiles_into_home

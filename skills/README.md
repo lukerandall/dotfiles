@@ -11,7 +11,9 @@ Each folder in this directory is a skill. `link_dotfiles.rb` symlinks
 `skills/<name>` to `~/.agents/skills/<name>`, and replaces any folder or
 symlink that is already there under that name. It also creates
 `~/.claude/skills -> ~/.agents/skills` when `~/.claude/skills` does not exist.
-To link only the skills, run:
+A full run also links each file in `claude/` into `~/.claude`, but it keeps a
+real file that is already there, such as your own `~/.claude/settings.json`,
+and prints a warning that names it. To link only the skills, run:
 
     ruby -r ./link_dotfiles.rb -e 'DotfilesLinker.new(repo: Dir.pwd, home: Dir.home).link_skills'
 

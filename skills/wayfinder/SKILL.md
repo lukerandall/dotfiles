@@ -68,7 +68,7 @@ The `Type` line names one of the [Ticket Types](#ticket-types).
 
 A session **claims** a ticket with `board -C <board> tasks claim --path <ticket> --session <your local_ id>`, **first**, before any work, so concurrent sessions skip it. That `owner` _is_ the claim: an open ticket with no owner is unclaimed. On `tasks::task::held`, another session has it; choose another.
 
-Blocking uses the task's `after` list: the tickets that must resolve first, by their path in the task's own repo, `.md` included. A ticket is **unblocked** when every ticket in its `after` is done; `tasks.tree --path <map>` shows each ticket's open blockers in `blocked_by`. The **frontier** is the open, unblocked, unclaimed children, the edge of the known.
+Blocking uses the task's `after` list: the tickets that must resolve first, by their path in the task's own repo, `.md` included. `tasks.add` prints a mounted path, such as `/repos/notes/tasks/<slug>.md`; drop the mount prefix for each `after` entry, so it becomes `/tasks/<slug>.md`. `parent` takes the map's path exactly as `tasks.add` printed it, mount prefix included. An `after` entry that keeps the mount prefix blocks nothing. A ticket is **unblocked** when every ticket in its `after` is done; `tasks.tree --path <map>` shows each ticket's open blockers in `blocked_by`. The **frontier** is the open, unblocked, unclaimed children, the edge of the known.
 
 The answer isn't part of the body; it's recorded on resolution as a decision (see [Work through the map](#work-through-the-map)). Assets created while resolving a ticket are linked from the decision's `urls` or `refs`, not pasted in.
 
@@ -117,7 +117,9 @@ User invokes with a loose idea.
 
        echo '{"title": "<ticket title>", "parent": "<map path>", "text": "<ticket body>", "after": ["<blocking ticket path>"]}' | board -C <board> tasks add
 
-   `after` sorts them into the frontier and the blocked; everything you can't yet specify stays in the fog: the **Not yet specified** section.
+   `parent` is the map's path as printed, and each `after` entry drops the mount prefix, as [Tickets](#tickets) says. `after` sorts them into the frontier and the blocked; everything you can't yet specify stays in the fog: the **Not yet specified** section.
+
+   Then run `board -C <board> tasks tree --path <map path>` and check that every ticket is under the map and that each one's `blocked_by` lists the tickets you meant to block it. This step is done when the tree matches.
 5. **Fire the research subagents.** For each `research` ticket you just created, spin up a subagent that calls the Skill tool with "research" to resolve it in parallel, capturing its findings on a throwaway `research/<name>` branch. Each subagent records its answer as step 4 of [Work through the map](#work-through-the-map) says.
 6. Stop: charting is one session's work; it hand-resolves nothing.
 

@@ -1,49 +1,82 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
-dirs = %w[atuin bin bat fish ghostty jj jjui mise nvim shade zellij]
-config_files = %w[starship.toml]
-sparse_dirs = %w[claude]
-ignored = %w[
-  link_dotfiles.rb README.md Brewfile Brewfile.lock.json Brewfile.local Brewfile.local.lock.json Fonts.brewfile
-  Fonts.brewfile.lock.json print_settings.rb settings.json settings.sh setup.sh keybindings.json
-  aws-sso
-]
+# Symlinks the files in this repository into a home directory.
+class DotfilesLinker
+  DIRS = %w[atuin bin bat fish ghostty jj jjui mise nvim shade zellij].freeze
+  CONFIG_FILES = %w[starship.toml].freeze
+  SPARSE_DIRS = %w[claude].freeze
+  IGNORED = %w[
+    link_dotfiles.rb README.md Brewfile Brewfile.lock.json Brewfile.local Brewfile.local.lock.json Fonts.brewfile
+    Fonts.brewfile.lock.json print_settings.rb settings.json settings.sh setup.sh keybindings.json
+    aws-sso test
+  ].freeze
 
-home = File.expand_path('~')
+  def initialize(repo:, home:, out: $stdout)
+    @repo = repo
+    @home = home
+    @out = out
+  end
 
-Dir['*'].each do |file|
-  next if dirs.include?(file) || config_files.include?(file) || sparse_dirs.include?(file) || ignored.include?(file)
+  def run
+    link_dotfiles
+    link_config_files
+    link_config_dirs
+    link_bin
+    link_sparse_dirs
+  end
 
-  target = File.join(home, ".#{File.basename(file)}")
-  puts `ln -svf #{File.expand_path file} #{target}`
-end
+  private
 
-puts `mkdir -p ~/.config`
-config_files.each do |file|
-  puts `ln -svf #{File.expand_path file} #{home}/.config/#{file}`
-end
+  attr_reader :repo, :home, :out
 
-dirs.each do |dir|
-  next if dir == 'bin'
+  def path(*parts) = File.join(repo, *parts)
 
-  puts `ln -svf #{File.expand_path dir} #{home}/.config`
-end
+  def ln(source, target)
+    out.puts `ln -svf #{source} #{target}`
+  end
 
-puts
-Dir['bin/*'].each do |file|
-  puts `ln -svf #{File.expand_path file} #{home}/.local/#{file}`
-end
+  def link_dotfiles
+    Dir[path('*')].each do |file|
+      name = File.basename(file)
+      next if DIRS.include?(name) || CONFIG_FILES.include?(name) || SPARSE_DIRS.include?(name) || IGNORED.include?(name)
 
-sparse_dirs.each do |sparse_dir|
-  `mkdir -p ~/.#{sparse_dir}`
-  Dir["#{sparse_dir}/*"].each do |file|
-    basename = File.basename(file)
+      ln(file, File.join(home, ".#{name}"))
+    end
+  end
 
-    if File.directory?(file)
-      puts `ln -svf #{File.expand_path file} #{home}/.#{sparse_dir}`
-    else
-      puts `ln -svf #{File.expand_path file} #{home}/.#{sparse_dir}/#{basename}`
+  def link_config_files
+    out.puts `mkdir -p #{home}/.config`
+    CONFIG_FILES.each { |file| ln(path(file), "#{home}/.config/#{file}") }
+  end
+
+  def link_config_dirs
+    DIRS.each do |dir|
+      next if dir == 'bin'
+
+      ln(path(dir), "#{home}/.config")
+    end
+  end
+
+  def link_bin
+    out.puts
+    Dir[path('bin', '*')].each do |file|
+      ln(file, "#{home}/.local/bin/#{File.basename(file)}")
+    end
+  end
+
+  def link_sparse_dirs
+    SPARSE_DIRS.each do |sparse_dir|
+      `mkdir -p #{home}/.#{sparse_dir}`
+      Dir[path(sparse_dir, '*')].each do |file|
+        if File.directory?(file)
+          ln(file, "#{home}/.#{sparse_dir}")
+        else
+          ln(file, "#{home}/.#{sparse_dir}/#{File.basename(file)}")
+        end
+      end
     end
   end
 end
+
+DotfilesLinker.new(repo: __dir__, home: File.expand_path('~')).run if $PROGRAM_NAME == __FILE__

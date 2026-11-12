@@ -9,6 +9,10 @@ A discipline for hard bugs. Skip phases only when explicitly justified.
 
 When exploring the codebase, read `GLOSSARY.md` (if it exists) to get a clear mental model of the relevant modules, and check ADRs in the area you're touching.
 
+## Before you start: find the task
+
+Run `board -C <board> tasks available` from the repository, then `board -C <board> tasks tree --root true`, as the `tasks` skill describes. When an open task already covers this bug, claim it with `tasks.claim --path <path> --session <your local_ id>` and carry its path into Phase 5. When none does, Phase 5 adds one. This step is done when you hold a task path or know that no task covers the bug.
+
 ## Redact
 
 This skill has you show commands, outputs and captured artifacts. **Redact every secret first**: write `<REDACTED>` in its place. Build loops against env vars, so the credential stays in the environment rather than in what you show. Captured artifacts carry auth headers: quote only the lines that carry the signal.
@@ -20,6 +24,8 @@ If the redacted output is not enough to diagnose the bug, say so and ask the use
 **This is the skill.** Everything else is mechanical. If you have a **tight** pass/fail signal for the bug (one that goes red on _this_ bug), you will find the cause; bisection, hypothesis-testing, and instrumentation all just consume it. If you don't have one, no amount of staring at code will save you.
 
 Spend disproportionate effort here. **Be aggressive. Be creative. Refuse to give up.**
+
+Run every loop that runs unattended through deadband, as `deadband run --label <label> -- <command>`, so a loop you repeat 100 times leaves the machine usable. When deadband holds a run, wait for it. The **one command** named in the completion criterion below is the whole `deadband run` invocation.
 
 ### Ways to construct one, in roughly this order
 
@@ -112,6 +118,12 @@ Tool preference:
 **Perf branch.** For performance regressions, logs are usually wrong. Instead: establish a baseline measurement (timing harness, `performance.now()`, profiler, query plan), then bisect. Measure first, fix second.
 
 ## Phase 5: Fix + regression test
+
+The fix lands through the board's changes flow when a board mounts the repository (`board -C <board> ls /repos` lists the mounts). Start the change before you write the regression test:
+
+    board -C <board> changes start --mount /repos/<name> --title '<title>' --task <task path from the first step>
+
+Leave out `--task` when no task covers the bug, and `changes.start` adds one. Then follow `board -C <board> changes next --path /changes/<name>`, as the `changes` skill describes; the regression test and the fix below are the change's build. Put the hypothesis that turned out correct in the change's plan. When no board mounts the repository, commit the fix on a branch as the repository's own instructions say.
 
 Write the regression test **before the fix**, but only if there is a **correct seam** for it.
 

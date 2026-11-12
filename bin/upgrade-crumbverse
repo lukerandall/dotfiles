@@ -1,0 +1,224 @@
+#!/bin/bash
+# Kept version names are ones this script wrote, so ls is safe to parse here.
+# shellcheck disable=SC2010,SC2012
+# upgrade-crumbverse: install the latest GitHub release of every crumbverse app
+# and keep the versions it replaces.
+#
+# An app is any non-archived repository in the crumbkit organisation whose
+# latest release attaches `<bin>-<version>-<target>.tar.gz` for this machine.
+# A repository with no such release is reported and skipped, so a new app is
+# picked up the first time it publishes one.
+#
+# Layout (CRUMBVERSE_HOME, default ~/.local/share/crumbverse):
+#   installed/<bin>              "<version> <sha256>" of the binary this script installed
+#   versions/<bin>/<version>/<bin>  a binary that was replaced
+#
+# A replaced binary is filed under the version it was installed as. A binary
+# this script did not install is filed as `<reported version>+sha.<12 hex>`,
+# or `unknown+sha.<12 hex>` when it prints no version, so two different builds
+# never share a directory. The newest CRUMBVERSE_KEEP versions (default 5) of
+# each app are kept.
+#
+# Usage:
+#   upgrade-crumbverse                 upgrade every app
+#   upgrade-crumbverse --dry-run       say what would change
+#   upgrade-crumbverse list            show installed and kept versions
+#   upgrade-crumbverse rollback <bin> [<version>]
+#                                      reinstall a kept version (newest by default)
+set -euo pipefail
+
+ORG=${CRUMBVERSE_ORG:-crumbkit}
+BIN_DIR=${CRUMBVERSE_BIN_DIR:-$HOME/.local/bin}
+STATE=${CRUMBVERSE_HOME:-$HOME/.local/share/crumbverse}
+KEEP=${CRUMBVERSE_KEEP:-5}
+
+case "$(uname -s)-$(uname -m)" in
+  Darwin-arm64) TARGET=aarch64-apple-darwin ;;
+  Linux-aarch64) TARGET=aarch64-unknown-linux-gnu ;;
+  Linux-x86_64) TARGET=x86_64-unknown-linux-gnu ;;
+  *) echo "upgrade-crumbverse: no release target for $(uname -sm)" >&2; exit 1 ;;
+esac
+
+die() { echo "upgrade-crumbverse: $*" >&2; exit 1; }
+sha_of() { shasum -a 256 "$1" | cut -d' ' -f1; }
+
+# Prints "<version> <sha>" recorded for a bin, or nothing.
+recorded() { [ -f "$STATE/installed/$1" ] && cat "$STATE/installed/$1" || true; }
+
+# The version a binary reports, as the first x.y.z-like token of --version.
+reported_version() {
+  "$1" --version 2>/dev/null | head -1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+[^ ]*' | head -1 || true
+}
+
+# The archive name for the binary currently at $BIN_DIR/<bin>.
+archive_name() {
+  local bin=$1 path=$BIN_DIR/$1 sha rec
+  sha=$(sha_of "$path")
+  rec=$(recorded "$bin")
+  if [ -n "$rec" ] && [ "${rec#* }" = "$sha" ]; then
+    echo "${rec%% *}"
+  else
+    local v; v=$(reported_version "$path")
+    echo "${v:-unknown}+sha.${sha:0:12}"
+  fi
+}
+
+# Copies the current binary into versions/, then trims old versions.
+archive_current() {
+  local bin=$1 path=$BIN_DIR/$1 name dest
+  [ -f "$path" ] || return 0
+  name=$(archive_name "$bin")
+  dest=$STATE/versions/$bin/$name
+  if [ ! -f "$dest/$bin" ]; then
+    mkdir -p "$dest"
+    cp -p "$path" "$dest/$bin"
+    touch "$dest"
+  fi
+  echo "  kept $bin $name in $dest"
+  prune "$bin"
+}
+
+prune() {
+  local dir=$STATE/versions/$1
+  [ -d "$dir" ] || return 0
+  # Newest first by modification time; delete everything past KEEP.
+  ls -1t "$dir" | tail -n +$((KEEP + 1)) | while read -r old; do
+    rm -rf "${dir:?}/$old"
+    echo "  removed kept $1 $old (more than $KEEP kept)"
+  done
+}
+
+# Atomically puts a binary at $BIN_DIR/<bin> and records its version.
+place() {
+  local bin=$1 src=$2 version=$3
+  mkdir -p "$BIN_DIR" "$STATE/installed"
+  install -m 755 "$src" "$BIN_DIR/.$bin.new"
+  mv -f "$BIN_DIR/.$bin.new" "$BIN_DIR/$bin"
+  echo "$version $(sha_of "$BIN_DIR/$bin")" > "$STATE/installed/$bin"
+}
+
+# Reinstalls an app's agent skills when they do not match its binary.
+refresh_skills() {
+  local bin=$1
+  "$BIN_DIR/$bin" skills -h >/dev/null 2>&1 || return 0
+  "$BIN_DIR/$bin" skills check >/dev/null 2>&1 && return 0
+  "$BIN_DIR/$bin" skills install >/dev/null && echo "  installed $bin's skills"
+}
+
+# Steps an app needs after its binary changes.
+after_install() {
+  local bin=$1
+  refresh_skills "$bin"
+  if [ "$bin" = deadband ] && [ "$(uname -s)" = Darwin ]; then
+    local label
+    label="gui/$(id -u)/io.github.crumbkit.deadband"
+    local plist=$HOME/Library/LaunchAgents/io.github.crumbkit.deadband.plist program
+    program=$(/usr/libexec/PlistBuddy -c 'Print :ProgramArguments:0' "$plist" 2>/dev/null || true)
+    # Only the daemon that runs this binary is restarted.
+    if [ "$program" = "$BIN_DIR/deadband" ] && launchctl print "$label" >/dev/null 2>&1; then
+      if "$BIN_DIR/deadband" status 2>/dev/null | grep -q 'daemon: 0 running, 0 waiting'; then
+        launchctl kickstart -k "$label" && echo "  restarted the deadband daemon"
+      else
+        echo "  the deadband daemon has jobs, so it still runs the old binary;"
+        echo "  restart it when idle: launchctl kickstart -k $label"
+      fi
+    fi
+  fi
+}
+
+upgrade_all() {
+  local dry=$1 repos repo tag version asset bin
+  repos=$(gh repo list "$ORG" --no-archived --limit 200 --json name -q '.[].name' | sort)
+  for repo in $repos; do
+    tag=$(gh release view -R "$ORG/$repo" --json tagName -q .tagName 2>/dev/null || true)
+    if [ -z "$tag" ]; then echo "$repo: no release, skipped"; continue; fi
+    version=${tag#v}
+    asset=$(gh release view "$tag" -R "$ORG/$repo" --json assets -q '.assets[].name' \
+      | grep -E -- "-$version-$TARGET\.tar\.gz$" | head -1 || true)
+    if [ -z "$asset" ]; then echo "$repo $version: no $TARGET binary, skipped"; continue; fi
+    bin=${asset%-"$version"-"$TARGET".tar.gz}
+    upgrade_one "$dry" "$repo" "$tag" "$version" "$asset" "$bin"
+  done
+}
+
+upgrade_one() {
+  local dry=$1 repo=$2 tag=$3 version=$4 asset=$5 bin=$6 path=$BIN_DIR/$6 rec
+  rec=$(recorded "$bin")
+  if [ -f "$path" ]; then
+    if [ -n "$rec" ] && [ "$rec" = "$version $(sha_of "$path")" ]; then
+      echo "$bin $version: up to date"
+      [ "$dry" = 1 ] || refresh_skills "$bin"
+      return
+    fi
+    if [ -z "$rec" ] && [ "$(reported_version "$path")" = "$version" ]; then
+      [ "$dry" = 1 ] || { mkdir -p "$STATE/installed"; echo "$version $(sha_of "$path")" > "$STATE/installed/$bin"; }
+      echo "$bin $version: up to date (now recorded)"
+      [ "$dry" = 1 ] || refresh_skills "$bin"
+      return
+    fi
+  fi
+  local from; from=$([ -f "$path" ] && archive_name "$bin" || echo "not installed")
+  if [ "$dry" = 1 ]; then echo "$bin: would upgrade $from -> $version"; return; fi
+
+  echo "$bin: upgrading $from -> $version"
+  mkdir -p "$STATE/tmp"
+  local work; work=$(mktemp -d "$STATE/tmp/$bin.XXXXXX")
+  gh release download "$tag" -R "$ORG/$repo" -p "$asset" -p SHA256SUMS -D "$work/dl" >/dev/null
+  (cd "$work/dl" && grep -E "[ *]$asset\$" SHA256SUMS | shasum -a 256 -c - >/dev/null) \
+    || die "$asset failed its SHA256SUMS check; nothing installed"
+  mkdir "$work/x"
+  tar -xzf "$work/dl/$asset" -C "$work/x"
+  local new; new=$(find "$work/x" -type f -name "$bin" | head -1)
+  [ -n "$new" ] || die "$asset holds no file named $bin"
+  if [ -f "$path" ] && [ "$(sha_of "$new")" = "$(sha_of "$path")" ]; then
+    place "$bin" "$new" "$version"
+    rm -rf "$work"
+    echo "  the installed $bin is already $version (now recorded)"; return
+  fi
+  archive_current "$bin"
+  place "$bin" "$new" "$version"
+  rm -rf "$work"
+  echo "  installed $bin $version"
+  after_install "$bin"
+}
+
+list() {
+  local bin
+  for bin in $(ls -1 "$STATE/installed" 2>/dev/null; ls -1 "$STATE/versions" 2>/dev/null); do echo "$bin"; done \
+    | sort -u | while read -r bin; do
+      local rec; rec=$(recorded "$bin")
+      echo "$bin: installed ${rec%% *}"
+      [ -d "$STATE/versions/$bin" ] && ls -1t "$STATE/versions/$bin" | sed 's/^/  kept /'
+    done
+  true
+}
+
+rollback() {
+  local bin=${1:-} want=${2:-} dir src
+  [ -n "$bin" ] || die "usage: upgrade-crumbverse rollback <bin> [<version>]"
+  dir=$STATE/versions/$bin
+  [ -d "$dir" ] || die "no kept versions of $bin"
+  if [ -z "$want" ]; then
+    local current; current=$([ -f "$BIN_DIR/$bin" ] && archive_name "$bin" || true)
+    want=$(ls -1t "$dir" | grep -vxF -- "$current" | head -1 || true)
+    [ -n "$want" ] || die "no kept version of $bin other than the installed one"
+  fi
+  src=$dir/$want/$bin
+  [ -f "$src" ] || die "no kept $bin $want; run: upgrade-crumbverse list"
+  echo "$bin: rolling back to $want"
+  local tmp; tmp=$(mktemp "$STATE/tmp-rollback.XXXXXX"); cp -p "$src" "$tmp"
+  archive_current "$bin"
+  place "$bin" "$tmp" "$want"; rm -f "$tmp"
+  echo "  installed $bin $want"
+  after_install "$bin"
+}
+
+command -v gh >/dev/null || die "needs the GitHub CLI (gh)"
+case "${1:-}" in
+  "") upgrade_all 0 ;;
+  --dry-run|-n) upgrade_all 1 ;;
+  list) list ;;
+  rollback) shift; rollback "$@" ;;
+  -h|--help) sed -n '4,/^set -euo/p' "$0" | sed '$d' | sed 's/^# \{0,1\}//' ;;
+  *) die "unknown argument '$1'; run: upgrade-crumbverse --help" ;;
+esac

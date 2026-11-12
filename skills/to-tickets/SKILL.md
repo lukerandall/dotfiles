@@ -68,7 +68,7 @@ Publish the approved tickets:
 
        echo '{"title": "<ticket title>", "parent": "<project path>", "text": "<ticket body>", "after": ["<blocking task path>"]}' | board -C <board> tasks add
 
-   `parent` and `after` take paths in the task's own repo, `.md` included, such as `/tasks/<slug>.md`; when `tasks.add` prints a mounted path, drop the mount prefix. Leave out `after` for a ticket with no blockers. Use the ticket template below for `text`.
+   `parent` takes the project's path exactly as `tasks.add` printed it, mount prefix included, such as `/repos/notes/tasks/<slug>.md`. Each `after` entry takes the blocking task's path in the task's own repo, `.md` included: drop the mount prefix from the printed path, so `/repos/notes/tasks/<slug>.md` becomes `/tasks/<slug>.md`. Leave out `after` for a ticket with no blockers. Use the ticket template below for `text`.
 3. Run `board -C <board> tasks tree --path <project path>` and check that every ticket is under the project and that each one's `blocked_by` matches the breakdown the user approved.
 
 The **frontier** is every open child task whose `blocked_by` is empty. For a purely linear chain that means top to bottom. Leave the source task's status and text unchanged; the project's `parent` link is the only connection.

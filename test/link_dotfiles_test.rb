@@ -60,17 +60,17 @@ class LinkDotfilesTest < Minitest::Test
   end
 
   def test_replaces_a_symlink_to_another_folder
-    name = SKILLS.first
     elsewhere = File.join(@home, 'elsewhere')
-    FileUtils.mkdir_p(elsewhere)
-    File.write(File.join(elsewhere, 'SKILL.md'), 'kept')
-    FileUtils.mkdir_p(skills_home)
-    File.symlink(elsewhere, File.join(skills_home, name))
+    kept = File.join(elsewhere, 'SKILL.md')
+    target = File.join(skills_home, SKILLS.first)
+    FileUtils.mkdir_p([elsewhere, skills_home])
+    File.write(kept, 'kept')
+    File.symlink(elsewhere, target)
 
     link
 
-    assert_equal File.join(REPO, 'skills', name), File.readlink(File.join(skills_home, name))
-    assert_equal 'kept', File.read(File.join(elsewhere, 'SKILL.md'))
+    assert_equal File.join(REPO, 'skills', SKILLS.first), File.readlink(target)
+    assert_equal 'kept', File.read(kept)
   end
 
   def test_leaves_other_skills_alone

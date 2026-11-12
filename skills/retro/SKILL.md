@@ -22,7 +22,14 @@ The user has asked for a **retrospective**. You are suggesting improvements to t
 - **No-ops**: look for instructions in steering files that don't modify the agent's behavior. _Use when_ the steering files are large and unwieldy.
 - **Information access**: look for opportunities to increase the agent's access to information. Teeing dev server logs, readonly access to third-party services. _Use when_ a crucial piece of information was not available to the agent.
 
-4. Present these candidates to the user, in order of severity.
+4. Present these candidates to the user, in order of severity, and ask which to file.
+
+5. File each candidate the user accepts in the board that mounts the repository, so the proposal outlives the session:
+
+- A rule that should hold for the repository's files from now on, such as a coding standard the reviewer enforces or a budget on a steering file, becomes a draft `controls/control/v1` under `/controls/<repo>/`, where `<repo>` is the repository's mount name. Show the user the draft record, with `requirement`, `purpose`, `applies_to` (mounted paths such as `/repos/<repo>/AGENTS.md`) or `paths` (patterns anchored at `repos/<repo>/`), and write it only once they agree: `board -C <board> put /controls/<repo>/<slug> --expect none`, the record on stdin. The `controls` skill's README.md gives every field.
+- Any other candidate, such as building a check, wiring a guardrail or adding a navigation pointer, becomes a task: `board -C <board> tasks add --title '<title>' --text '<the proposal and the session evidence for it>'`, run from the repository.
+
+This step is done when every accepted candidate has a board path, and you have told the user each path.
 
 ## Reference
 

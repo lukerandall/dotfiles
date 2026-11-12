@@ -9,9 +9,17 @@ A discipline for hard bugs. Skip phases only when explicitly justified.
 
 When exploring the codebase, read `GLOSSARY.md` (if it exists) to get a clear mental model of the relevant modules, and check ADRs in the area you're touching.
 
-## Before you start: find the task
+## Before you start: find the task and start the change
 
-Run `board -C <board> tasks available` from the repository, then `board -C <board> tasks tree --root true`, as the `tasks` skill describes. When an open task already covers this bug, claim it with `tasks.claim --path <path> --session <your local_ id>` and carry its path into Phase 5. When none does, Phase 5 adds one. This step is done when you hold a task path or know that no task covers the bug.
+1. Run `board -C <board> tasks available` from the repository, then `board -C <board> tasks tree --root true`, as the `tasks` skill describes. When an open task already covers this bug, claim it with `tasks.claim --path <path> --session <your local_ id>`.
+2. Check whether a board mounts the repository: `board -C <board> ls /repos` lists the mounts. When none does, skip to Phase 1, and commit the fix on a branch as the repository's own instructions say.
+3. When a board mounts it, every file this skill writes in the repository (the loop, debug logs, the regression test, the fix) goes through a change in its `build` phase. The board-changes write guard refuses Edit and Write there from any agent that was not started from that change's brief. If your own first message is a `board-brief:` line for a change about this bug, you are its builder: go on to Phase 1. Otherwise start the change on the `small` flow, whose first phase is `build`:
+
+       board -C <board> changes start --mount /repos/<name> --title '<title>' --flow small --task <task path from step 1>
+
+   Leave out `--task` when no task covers the bug, and `changes.start` adds one. Then start one builder from `board -C <board> changes brief --path /changes/<name>`, its first message beginning with the brief's `brief_line`, as the `changes` skill describes, and hand it this skill and the bug. The builder works Phases 1 to 6, follows `board -C <board> changes next --path /changes/<name>`, and writes the change's plan with `changes.plan` once Phase 3 shows which files the fix touches. When `changes next` says the change needs the development flow, follow its remedy.
+
+This step is done when you are the builder of a change in `build`, or know that no board mounts the repository.
 
 ## Redact
 
@@ -119,11 +127,7 @@ Tool preference:
 
 ## Phase 5: Fix + regression test
 
-The fix lands through the board's changes flow when a board mounts the repository (`board -C <board> ls /repos` lists the mounts). Start the change before you write the regression test:
-
-    board -C <board> changes start --mount /repos/<name> --title '<title>' --task <task path from the first step>
-
-Leave out `--task` when no task covers the bug, and `changes.start` adds one. Then follow `board -C <board> changes next --path /changes/<name>`, as the `changes` skill describes; the regression test and the fix below are the change's build. Put the hypothesis that turned out correct in the change's plan. When no board mounts the repository, commit the fix on a branch as the repository's own instructions say.
+When the repository is mounted, the regression test and the fix below are the change's build: commit them, record the head with `board -C <board> changes attach --path /changes/<name> --head <sha>`, and put the hypothesis that turned out correct in the change's plan.
 
 Write the regression test **before the fix**, but only if there is a **correct seam** for it.
 

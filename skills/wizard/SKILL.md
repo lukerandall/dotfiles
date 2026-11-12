@@ -11,6 +11,10 @@ The delightful UX is already solved by [template.sh](template.sh): stage-by-stag
 
 A wizard is ephemeral by default: built for one run, saved to a scratch or `scripts/` path, deleted when the job's done. Commit it only when the user wants a repeatable setup path that should live in the repo.
 
+## virtualQ work
+
+In virtualQ work (a checkout under `~/Code/virtualq`, or a repository in the `virtualq` GitHub organisation), vq supplies AWS, 1Password and Core credentials from the secrets in its manifest to the processes and containers that `vq up`, `vq restart` and `vq action` start. A wizard there captures no such credential and writes none to `.env` or any other file. A stage that needs one tells the human where the manifest's secret reads it from, such as the 1Password item, and ends by running the vq command that starts the process. When vq cannot supply a credential, stop and ask Luke, naming the secret and vq's refusal code.
+
 ## Process
 
 ### 1. Scope the procedure

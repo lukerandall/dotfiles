@@ -63,13 +63,14 @@ class LinkDotfilesTest < Minitest::Test
     name = SKILLS.first
     elsewhere = File.join(@home, 'elsewhere')
     FileUtils.mkdir_p(elsewhere)
+    File.write(File.join(elsewhere, 'SKILL.md'), 'kept')
     FileUtils.mkdir_p(skills_home)
     File.symlink(elsewhere, File.join(skills_home, name))
 
     link
 
     assert_equal File.join(REPO, 'skills', name), File.readlink(File.join(skills_home, name))
-    assert_empty Dir.children(elsewhere)
+    assert_equal 'kept', File.read(File.join(elsewhere, 'SKILL.md'))
   end
 
   def test_leaves_other_skills_alone

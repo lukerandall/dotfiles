@@ -70,11 +70,35 @@ verbatim, as its last line.
   worktree. If a task appears to require
   the primary checkout, or to work outside a worktree, and that was not made
   explicit in the instructions, **STOP and ask what to do** — do not assume.
-- **Search with the Grep tool, not Bash.** Grep *is* ripgrep and needs no
-  permission approval; it covers `-n -A -B -C -i -l -c --type -g` and multiline.
-  Shell out to `rg` only for what Grep cannot do (`-o`, `-v`, `-r` replacements,
-  or piping into another command) — and never to `grep`.
-- Use `gh` CLI for all GitHub interactions (PRs, issues, CI status)
+- Search with the Grep tool when the session has it. Grep is ripgrep and needs
+  no permission approval.
+  When the session has no Grep tool, run `rg` through Bash.
+  Also use `rg` through Bash for what Grep cannot do (`-o`, `-v`, `-r`
+  replacements, or piping into another command). Never use `grep` unless `rg`
+  is not installed.
+- Use the `gh` CLI to read GitHub state (PRs, issues, CI status). Push and
+  open pull requests as the PR Creation section says.
+- To wait for CI on a GitHub pull request, run `gh pr checks <n> --watch` in
+  the foreground with a Bash timeout of up to 600000 ms. If the timeout ends
+  the command before CI finishes, run it again.
+  Never run `sleep N` followed by a command that reads state; the harness
+  blocks it. A top-level session waits on any other condition with the
+  Monitor tool and an until-loop (load Monitor with ToolSearch if it is
+  deferred), or starts the command with `run_in_background`, and is
+  re-invoked when the command exits.
+- A subagent is not re-invoked when a background command or a Monitor
+  finishes.
+  A subagent waits only with a command that blocks in the foreground,
+  such as `gh pr checks <n> --watch` or
+  `until <check>; do sleep 10; done` with a Bash timeout of up to
+  600000 ms. A subagent never ends its turn while a Monitor or a
+  background command is still running.
+- Read a file before you first Edit or Write it.
+  Read it again when a Bash command or a formatter has changed it, or when
+  Edit reports that the file changed since you read it. A new file needs
+  no Read. Make hand edits with Edit and Write.
+- Only the top-level session calls the `update_plan` and `wrap_up` tools, where
+  the session has them. A subagent never calls them.
 
 ## Atlassian / Jira Integration
 

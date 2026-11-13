@@ -74,17 +74,22 @@ verbatim, as its last line.
   no permission approval.
   When the session has no Grep tool, run `rg` through Bash.
   Also use `rg` through Bash for what Grep cannot do (`-o`, `-v`, `-r`
-  replacements, or piping into another command). Never use `grep`.
+  replacements, or piping into another command). Never use `grep` unless `rg`
+  is not installed.
 - Use `gh` CLI for all GitHub interactions (PRs, issues, CI status)
-- To wait for CI, run `gh pr checks <n> --watch` in the foreground with a Bash
-  timeout of up to 600000 ms. Never chain `sleep` with a command that reads
-  state; the harness blocks it. A subagent never starts a command in the
-  background and then ends its turn to wait for it, because a subagent does not
-  resume when the command finishes.
-- Change files with Edit and Write. When a Bash command has changed a file,
-  Read the file again before you Edit it.
-- Only the top-level session calls `update_plan` and `wrap_up`. A subagent
-  never calls them.
+- To wait for CI on a GitHub pull request, run `gh pr checks <n> --watch` in
+  the foreground with a Bash timeout of up to 600000 ms. If the timeout ends
+  the command before CI finishes, run it again.
+  Never run `sleep` in the foreground; the harness blocks it.
+  To wait on any other condition, use the Monitor tool with an until-loop, or
+  start the command with `run_in_background`. A top-level session is re-invoked when a background
+  command exits. A subagent is not re-invoked, so a subagent never starts a
+  command in the background and then ends its turn to wait for it.
+- Make hand edits with Edit and Write. When a Bash command, a formatter or
+  another agent has changed a file since you read it,
+  Read the file again before you Edit or Write it.
+- Only the top-level session calls the `update_plan` and `wrap_up` tools, where
+  the session has them. A subagent never calls them.
 
 ## Atlassian / Jira Integration
 

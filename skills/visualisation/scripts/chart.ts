@@ -1,7 +1,7 @@
 /**
- * Static SVG charts: sparkline, line, small multiples and slope, and the
- * proposed dot, bump and strip. The interface comes
- * first in this file and the implementation follows `render`.
+ * Static SVG charts: sparkline, line, small multiples, slope, dot plot (and
+ * dumbbell), bump chart and strip plot. The interface comes first in this
+ * file and the implementation follows `render`.
  *
  * Command line: `deno run chart.ts < spec.json > chart.svg`. A refused spec
  * writes nothing to stdout, prints `<code>: <message>` to stderr and exits 2.
@@ -309,8 +309,10 @@ export type DotSpec = OneDotSpec | DumbbellSpec;
 /**
  * Ranking change: one line per series across ordered positions, drawn at each
  * position's rank, with 1 at the top. Each line is named at both ends and the
- * rank is printed beside the name. A faint axis at the left marks the ranks.
- * Height grows with the number of series so that labels fit.
+ * rank is printed beside the name, so the ranks need no axis. Each position's
+ * name is printed above the chart. Height grows with the number of series so
+ * that labels fit, and a width too small for the position names is refused
+ * with `invalid_spec`.
  *
  * `x` names the position column. When every value is a number, or every value
  * is an ISO 8601 date string, the positions are in order of value. Otherwise
@@ -537,11 +539,10 @@ export function render(spec: ChartSpec): string {
 
 /** `render` for a value of unknown type, such as parsed JSON. */
 function renderUnknown(spec: unknown): string {
-  // The forms below are interface only. Their drawing is built after review.
   if (isObj(spec)) {
-    if (spec.form === "dot") return drawDot(spec);
-    if (spec.form === "bump") return drawBump(spec);
-    if (spec.form === "strip") return drawStrip(spec);
+    if (spec.form === "dot") return drawDot(parseDot(spec));
+    if (spec.form === "bump") return drawBump(parseBump(spec));
+    if (spec.form === "strip") return drawStrip(parseStrip(spec));
   }
   const model = parse(spec);
   switch (model.form) {
@@ -554,22 +555,6 @@ function renderUnknown(spec: unknown): string {
     case "slope":
       return drawSlope(model);
   }
-}
-
-function notBuilt(form: string): never {
-  throw new Error(`The "${form}" form is specified but not yet drawn.`);
-}
-
-function drawDot(_spec: Obj): never {
-  return notBuilt("dot");
-}
-
-function drawBump(_spec: Obj): never {
-  return notBuilt("bump");
-}
-
-function drawStrip(_spec: Obj): never {
-  return notBuilt("strip");
 }
 
 // Validation ---------------------------------------------------------------
@@ -610,7 +595,15 @@ interface Model {
   positions: [string | number, string | number] | undefined;
 }
 
-const FORMS: Model["form"][] = ["sparkline", "line", "multiples", "slope"];
+const ALL_FORMS = [
+  "sparkline",
+  "line",
+  "multiples",
+  "slope",
+  "dot",
+  "bump",
+  "strip",
+];
 const BASE_KEYS = [
   "form",
   "rows",
@@ -700,7 +693,9 @@ function parse(input: unknown): Model {
   if (!isForm(form)) {
     fail(
       "invalid_spec",
-      `"form" must be one of ${FORMS.join(", ")}; got ${JSON.stringify(form)}.`,
+      `"form" must be one of ${ALL_FORMS.join(", ")}; got ${
+        JSON.stringify(form)
+      }.`,
     );
   }
   checkKeys(input, [...BASE_KEYS, ...EXTRA_KEYS[form]], `A ${form} spec`);
@@ -734,17 +729,7 @@ function parse(input: unknown): Model {
     width = input.width;
   }
   const fmt = parseFormat(input.yFormat);
-  let yRange: readonly [number, number] | undefined;
-  if (input.yRange !== undefined) {
-    const r = input.yRange;
-    if (
-      !Array.isArray(r) || r.length !== 2 || !isNum(r[0]) || !isNum(r[1]) ||
-      r[0] > r[1]
-    ) {
-      fail("invalid_spec", `"yRange" must be two numbers, the lower first.`);
-    }
-    yRange = [r[0], r[1]];
-  }
+  const yRange = parseRange(input.yRange);
   if (input.extremes !== undefined && typeof input.extremes !== "boolean") {
     fail("invalid_spec", `"extremes" must be true or false.`);
   }
@@ -952,6 +937,17 @@ function mixed(i: number, col: string): never {
     `rows[${i}].${col} mixes numbers and date strings in one x column. Use one kind throughout.`,
     i,
   );
+}
+
+function parseRange(v: unknown): readonly [number, number] | undefined {
+  if (v === undefined) return undefined;
+  if (
+    !Array.isArray(v) || v.length !== 2 || !isNum(v[0]) || !isNum(v[1]) ||
+    v[0] > v[1]
+  ) {
+    fail("invalid_spec", `"yRange" must be two numbers, the lower first.`);
+  }
+  return [v[0], v[1]];
 }
 
 function parseFormat(v: unknown): NumberFormat {
@@ -1273,7 +1269,7 @@ class Placer {
   place(px: number, py: number, text: string): string | undefined {
     const w = tw(text);
     const h = FONT;
-    for (const d of [6, 18, 32]) {
+    for (const d of [6, 18, 32, 52, 80]) {
       const spots: {
         x0: number;
         y1: number;
@@ -1685,6 +1681,1042 @@ function drawSlope(m: Model): string {
     const li = m.lines.findIndex((l) => l.name === note.series);
     return note.pt.x === 0 ? [x0, idealL[li]] : [x1, idealR[li]];
   }));
+  return svgWrap(W, H, m.finding, body);
+}
+
+// Shared reading of dot, bump and strip specs --------------------------------
+
+interface Frame {
+  rows: unknown[];
+  xCol: string;
+  yCol: string;
+  finding: string;
+  width: number | undefined;
+}
+
+/** Check the fields every form shares, and that `rows` is a non-empty array. */
+function readFrame(input: Obj, form: string, extra: string[]): Frame {
+  checkKeys(
+    input,
+    ["form", "rows", "x", "y", "finding", "width", ...extra],
+    `A ${form} spec`,
+  );
+  for (const k of ["x", "y"]) {
+    if (typeof input[k] !== "string" || input[k] === "") {
+      fail("invalid_spec", `"${k}" must name a column, as a non-empty string.`);
+    }
+  }
+  if (typeof input.finding !== "string" || input.finding.trim() === "") {
+    fail("invalid_spec", `"finding" must be a non-empty sentence.`);
+  }
+  let width: number | undefined;
+  if (input.width !== undefined) {
+    if (!isNum(input.width) || input.width < 40) {
+      fail("invalid_spec", `"width" must be a number of at least 40.`);
+    }
+    width = input.width;
+  }
+  if (!Array.isArray(input.rows)) {
+    fail("invalid_spec", `"rows" must be an array of objects.`);
+  }
+  return {
+    rows: input.rows,
+    xCol: String(input.x),
+    yCol: String(input.y),
+    finding: input.finding,
+    width,
+  };
+}
+
+function nonEmptyRows(f: Frame): void {
+  if (f.rows.length === 0) {
+    fail(
+      "too_few_rows",
+      "rows is empty. Supply rows, or state the finding in a sentence and draw no chart.",
+    );
+  }
+}
+
+function readRow(raw: unknown, i: number, cols: string[]): Obj {
+  if (!isObj(raw)) fail("invalid_spec", `rows[${i}] must be an object.`, i);
+  for (const col of cols) {
+    if (!Object.hasOwn(raw, col)) {
+      fail(
+        "missing_column",
+        `rows[${i}] has no column "${col}". Add it, or change the spec to name an existing column.`,
+        i,
+      );
+    }
+  }
+  return raw;
+}
+
+function readValue(row: Obj, i: number, col: string): number {
+  const y = row[col];
+  if (!isNum(y)) {
+    fail(
+      "invalid_value",
+      `rows[${i}].${col} is ${
+        JSON.stringify(y)
+      }; y must be a finite number. Fix or drop the row.`,
+      i,
+    );
+  }
+  return y;
+}
+
+function readName(row: Obj, i: number, col: string): string {
+  const s = row[col];
+  if (typeof s !== "string") {
+    fail(
+      "invalid_value",
+      `rows[${i}].${col} is ${
+        JSON.stringify(s)
+      }; a series must be a string. Fix or drop the row.`,
+      i,
+    );
+  }
+  return s;
+}
+
+function readLabel(row: Obj, i: number, col: string): string | number {
+  const v = row[col];
+  if (!(isNum(v) || typeof v === "string")) {
+    fail(
+      "invalid_value",
+      `rows[${i}].${col} is ${
+        JSON.stringify(v)
+      }; a category, group or position must be a string or a number. Fix or drop the row.`,
+      i,
+    );
+  }
+  return v;
+}
+
+/** The identity of a label: a string and a number never match. */
+function labelKey(v: string | number): string {
+  return `${typeof v}:${v}`;
+}
+
+interface RawNote {
+  at: Obj;
+  text: string;
+}
+
+/** Check the shape of annotations; matching them to rows is left to the form. */
+function readNotes(v: unknown, atKeys: string[]): RawNote[] {
+  if (v === undefined) return [];
+  if (!Array.isArray(v)) {
+    fail("invalid_spec", `"annotations" must be an array.`);
+  }
+  return v.map((a: unknown, i: number) => {
+    const where = `annotations[${i}]`;
+    if (!isObj(a)) {
+      fail("invalid_spec", `${where} must be an object with "at" and "text".`);
+    }
+    checkKeys(a, ["at", "text"], where);
+    if (typeof a.text !== "string" || a.text === "") {
+      fail("invalid_spec", `${where}.text must be a non-empty string.`);
+    }
+    const at = a.at;
+    if (!isObj(at)) {
+      fail(
+        "invalid_spec",
+        `${where}.at must be an object with ${
+          atKeys.map((k) => `"${k}"`).join(" and ")
+        }.`,
+      );
+    }
+    checkKeys(at, atKeys, `${where}.at`);
+    for (const k of atKeys) {
+      const ok = k === "series"
+        ? typeof at[k] === "string"
+        : k === "y"
+        ? isNum(at[k])
+        : isNum(at[k]) || typeof at[k] === "string";
+      if (!ok) {
+        fail(
+          "invalid_spec",
+          `${where}.at needs "${k}" as a ${
+            k === "series"
+              ? "string"
+              : k === "y"
+              ? "number"
+              : "string or number"
+          }.`,
+        );
+      }
+    }
+    const count = [...a.text].length;
+    if (count > MAX_ANNOTATION_CHARS) {
+      fail(
+        "annotation_too_long",
+        `${where}.text has ${count} characters; the limit is ${MAX_ANNOTATION_CHARS}. Shorten it.`,
+      );
+    }
+    return { at, text: a.text };
+  });
+}
+
+function noRowFor(i: number, at: Obj): never {
+  return fail(
+    "annotation_matches_no_row",
+    `annotations[${i}].at matches no row (${
+      Object.entries(at).map(([k, v]) => `${k}=${JSON.stringify(v)}`).join(", ")
+    }). Copy "at" from a row.`,
+  );
+}
+
+interface Placed {
+  px: number;
+  py: number;
+  text: string;
+}
+
+/** Place each annotation beside its point, or refuse the one that cannot fit. */
+function placeNotes(placer: Placer, notes: Placed[]): string[] {
+  return notes.map(({ px, py, text }) => {
+    const s = placer.place(px, py, text);
+    if (!s) {
+      fail(
+        "annotation_does_not_fit",
+        `The annotation "${text}" cannot be placed without covering data or another label. Remove it, or raise width.`,
+      );
+    }
+    return s;
+  });
+}
+
+/** Where a label centred at `x` goes so that it stays inside the chart. */
+function inside(
+  x: number,
+  text: string,
+  width: number,
+): ["start" | "middle" | "end", number] {
+  const w = tw(text);
+  if (x - w / 2 < 2) return ["start", Math.max(2, x - 2)];
+  if (x + w / 2 > width - 2) return ["end", Math.min(width - 2, x + 2)];
+  return ["middle", x];
+}
+
+function dotRect(x: number, y: number, r: number): Rect {
+  return { x0: x - r, y0: y - r, x1: x + r, y1: y + r };
+}
+
+function circleEl(
+  x: number,
+  y: number,
+  r: number,
+  fill: string,
+  faint = false,
+) {
+  return `<circle cx="${n(x)}" cy="${n(y)}" r="${r}" fill="${fill}"${
+    faint ? ` fill-opacity="0.35"` : ""
+  }/>`;
+}
+
+/** Which values the chart's value axis spans, widened by the optional pieces. */
+function valueSpan(
+  values: number[],
+  yRange: readonly [number, number] | undefined,
+): [number, number] {
+  let [lo, hi] = span(values);
+  if (yRange) {
+    lo = Math.min(lo, yRange[0]);
+    hi = Math.max(hi, yRange[1]);
+  }
+  if (lo === hi) {
+    lo -= 1;
+    hi += 1;
+  }
+  return [lo, hi];
+}
+
+/** Draw the horizontal range frame: a line from lo to hi, labelled at both ends. */
+function frameBelow(
+  sx: (v: number) => number,
+  lo: number,
+  hi: number,
+  y: number,
+  label: (v: number) => string,
+  placer: Placer,
+): string[] {
+  const l = label(lo);
+  const h = label(hi);
+  placer.add(textRect(sx(lo), y + 13, l, "start"));
+  placer.add(textRect(sx(hi), y + 13, h, "end"));
+  return [
+    pathEl(`M${n(sx(lo))},${n(y)}H${n(sx(hi))}`, "currentColor", 1, 0.5),
+    textEl(sx(lo), y + 13, l, "start", true),
+    textEl(sx(hi), y + 13, h, "end", true),
+  ];
+}
+
+// Dot plot and dumbbell ------------------------------------------------------
+
+interface DotCat {
+  label: string | number;
+  /** The value of each measure; one entry in a dot plot, two in a dumbbell. */
+  vals: number[];
+}
+
+interface DotModel {
+  finding: string;
+  width: number | undefined;
+  fmt: NumberFormat;
+  yRange: readonly [number, number] | undefined;
+  reference: ReferenceLine | undefined;
+  /** The two measure names of a dumbbell, or none. */
+  measures: string[];
+  cats: DotCat[];
+  notes: { cat: number; measure: number; text: string }[];
+}
+
+function parseReference(v: unknown): ReferenceLine | undefined {
+  if (v === undefined) return undefined;
+  if (!isObj(v)) {
+    fail(
+      "invalid_spec",
+      `"reference" must be an object with "value" and "label".`,
+    );
+  }
+  checkKeys(v, ["value", "label"], `"reference"`);
+  if (!isNum(v.value)) {
+    fail("invalid_spec", `"reference.value" must be a finite number.`);
+  }
+  if (typeof v.label !== "string" || v.label === "") {
+    fail("invalid_spec", `"reference.label" must be a non-empty string.`);
+  }
+  return { value: v.value, label: v.label };
+}
+
+function parseDot(input: Obj): DotModel {
+  const f = readFrame(input, "dot", [
+    "yFormat",
+    "yRange",
+    "annotations",
+    "series",
+    "sort",
+    "reference",
+  ]);
+  const named = input.series !== undefined;
+  if (named && (typeof input.series !== "string" || input.series === "")) {
+    fail("invalid_spec", `"series" must name a column, as a non-empty string.`);
+  }
+  const sCol = named ? String(input.series) : undefined;
+  const sorts = named ? ["value", "difference", "none"] : ["value", "none"];
+  const sort = input.sort === undefined
+    ? (named ? "difference" : "value")
+    : input.sort;
+  if (typeof sort !== "string" || !sorts.includes(sort)) {
+    fail(
+      "invalid_spec",
+      `"sort" for ${named ? "a dumbbell" : "a dot plot"} must be one of ${
+        sorts.join(", ")
+      }; got ${JSON.stringify(sort)}.`,
+    );
+  }
+  const reference = parseReference(input.reference);
+  const fmt = parseFormat(input.yFormat);
+  const yRange = parseRange(input.yRange);
+  const raw = readNotes(input.annotations, named ? ["x", "series"] : ["x"]);
+  nonEmptyRows(f);
+
+  const cols = [f.xCol, f.yCol, ...(sCol ? [sCol] : [])];
+  const cats = new Map<string, DotCat>();
+  const measures: string[] = [];
+  f.rows.forEach((r, i) => {
+    const row = readRow(r, i, cols);
+    const y = readValue(row, i, f.yCol);
+    let mi = 0;
+    if (sCol) {
+      const s = readName(row, i, sCol);
+      mi = measures.indexOf(s);
+      if (mi < 0) mi = measures.push(s) - 1;
+    }
+    const label = readLabel(row, i, f.xCol);
+    const key = labelKey(label);
+    let cat = cats.get(key);
+    if (!cat) {
+      cat = { label, vals: [] };
+      cats.set(key, cat);
+    }
+    if (cat.vals[mi] !== undefined) {
+      fail(
+        "duplicate_point",
+        `rows[${i}] repeats the category ${JSON.stringify(label)}${
+          sCol ? ` for the measure "${measures[mi]}"` : ""
+        }. Aggregate the rows so each category has one row${
+          sCol ? " per measure" : ""
+        }.`,
+        i,
+      );
+    }
+    cat.vals[mi] = y;
+  });
+  let list = [...cats.values()];
+  if (sCol) {
+    if (measures.length !== 2) {
+      fail(
+        "dumbbell_needs_two_measures",
+        `"${sCol}" holds ${measures.length} distinct values; a dumbbell needs exactly 2. Give every category one row for each of two measures.`,
+      );
+    }
+    for (const c of list) {
+      if (c.vals[0] === undefined || c.vals[1] === undefined) {
+        fail(
+          "dumbbell_needs_two_measures",
+          `The category ${
+            JSON.stringify(c.label)
+          } lacks a row for one of the two measures. Give every category one row for each.`,
+        );
+      }
+    }
+  }
+  if (list.length < 2) {
+    fail(
+      "too_few_rows",
+      "A dot chart needs at least two categories. Supply more rows, or state the value in a sentence.",
+    );
+  }
+  if (list.length > MAX_DOT_CATEGORIES) {
+    fail(
+      "too_many_categories",
+      `A dot chart draws at most ${MAX_DOT_CATEGORIES} categories and this has ${list.length}. Keep the categories the reader needs, and say in the text how many were left out.`,
+    );
+  }
+  if (sort !== "none") {
+    const key = (c: DotCat) =>
+      sort === "difference" ? c.vals[1] - c.vals[0] : c.vals[0];
+    list = list.map((c, i) => ({ c, i })).sort((a, b) =>
+      key(b.c) - key(a.c) || a.i - b.i
+    ).map((e) => e.c);
+  }
+  const notes = raw.map((a, i) => {
+    const cat = list.findIndex((c) => c.label === a.at.x);
+    const measure = sCol ? measures.indexOf(String(a.at.series)) : 0;
+    if (cat < 0 || measure < 0) noRowFor(i, a.at);
+    return { cat, measure, text: a.text };
+  });
+  return {
+    finding: f.finding,
+    width: f.width,
+    fmt,
+    yRange,
+    reference,
+    measures: sCol ? measures : [],
+    cats: list,
+    notes,
+  };
+}
+
+function drawDot(m: DotModel): string {
+  const W = m.width ?? 640;
+  const named = m.measures.length === 2;
+  const all = m.cats.flatMap((c) => c.vals);
+  const [lo, hi] = valueSpan(
+    [...all, ...(m.reference ? [m.reference.value] : [])],
+    m.yRange,
+  );
+  const d = m.fmt.decimals ?? defaultDecimals(lo, hi, all);
+  const label = (v: number) => formatNumber(v, m.fmt, d);
+  const printed = m.cats.map((c) => {
+    if (!named) return { left: undefined, right: label(c.vals[0]) };
+    const a = c.vals[0];
+    const b = c.vals[1];
+    return {
+      left: a === b ? undefined : label(Math.min(a, b)),
+      right: label(Math.max(a, b)),
+    };
+  });
+  const leftM = Math.max(...m.cats.map((c) => tw(String(c.label)))) + 12;
+  const leftPad = Math.max(
+    8,
+    ...printed.map((p) => p.left ? tw(p.left) + 12 : 0),
+  );
+  const rightPad = Math.max(...printed.map((p) => tw(p.right) + 12));
+  const x0 = leftM + leftPad;
+  const x1 = W - rightPad;
+  if (x1 - x0 < 40) {
+    fail(
+      "invalid_spec",
+      `width ${W} is too small for these labels. Raise it to at least ${
+        Math.ceil(W + 40 - (x1 - x0))
+      }.`,
+    );
+  }
+  const PITCH = 20;
+  const header = (named ? 1 : 0) + (m.reference ? 1 : 0);
+  const top = 6 + header * 14;
+  const rowY = (i: number) => top + 10 + i * PITCH;
+  const lastY = rowY(m.cats.length - 1);
+  const axisY = lastY + 18;
+  const H = axisY + 22;
+  const sx = scaleLinear().domain([lo, hi]).range([x0, x1]);
+  const placer = new Placer({ x0: 0, y0: 0, x1: W, y1: H });
+  const body: string[] = [];
+
+  if (m.reference) {
+    const rx = sx(m.reference.value);
+    const base = top + 1 - (named ? 14 : 0);
+    const [anchor, tx] = inside(rx, m.reference.label, W);
+    body.push(
+      pathEl(
+        `M${n(rx)},${n(base + 4)}V${n(lastY + 8)}`,
+        "currentColor",
+        1,
+        0.5,
+      ),
+    );
+    body.push(textEl(tx, base, m.reference.label, anchor, true));
+    placer.add(textRect(tx, base, m.reference.label, anchor));
+  }
+  m.cats.forEach((c, i) => {
+    const y = rowY(i);
+    const name = String(c.label);
+    body.push(textEl(leftM, y, name, "end", false, true));
+    placer.add(textRect(leftM, y, name, "end", true));
+    if (named) {
+      const [a, b] = [sx(c.vals[0]), sx(c.vals[1])];
+      body.push(
+        pathEl(
+          `M${n(Math.min(a, b))},${n(y)}H${n(Math.max(a, b))}`,
+          "currentColor",
+          1.5,
+          0.35,
+        ),
+      );
+      placer.segs.push([Math.min(a, b), y, Math.max(a, b), y]);
+    }
+    c.vals.forEach((v, k) => {
+      body.push(circleEl(sx(v), y, 3.5, color(k)));
+      placer.add(dotRect(sx(v), y, 4));
+    });
+    const lowX = sx(Math.min(...c.vals));
+    const highX = sx(Math.max(...c.vals));
+    const p = printed[i];
+    if (p.left) {
+      body.push(textEl(lowX - 7, y, p.left, "end", false, true));
+      placer.add(textRect(lowX - 7, y, p.left, "end", true));
+    }
+    body.push(textEl(highX + 7, y, p.right, "start", false, true));
+    placer.add(textRect(highX + 7, y, p.right, "start", true));
+  });
+  if (named) {
+    // Each measure is named at its own dot on the top row, above the row.
+    const c = m.cats[0];
+    const [a, b] = c.vals;
+    const lowFirst = a <= b;
+    m.measures.forEach((name, k) => {
+      const isLow = k === 0 ? lowFirst : !lowFirst;
+      const px = sx(c.vals[k]);
+      const anchor = isLow ? "end" : "start";
+      const tx = px + (isLow ? -3 : 3);
+      body.push(textEl(tx, top + 1, name, anchor, true));
+      placer.add(textRect(tx, top + 1, name, anchor));
+    });
+  }
+  body.push(...frameBelow(sx, lo, hi, axisY, label, placer));
+  body.push(...placeNotes(
+    placer,
+    m.notes.map((nt) => ({
+      px: sx(m.cats[nt.cat].vals[nt.measure]),
+      py: rowY(nt.cat),
+      text: nt.text,
+    })),
+  ));
+  return svgWrap(W, H, m.finding, body);
+}
+
+// Bump chart -----------------------------------------------------------------
+
+interface BumpSeries {
+  name: string;
+  /** Rank at each position, 1 first. */
+  ranks: number[];
+}
+
+interface BumpModel {
+  finding: string;
+  width: number | undefined;
+  positions: (string | number)[];
+  series: BumpSeries[];
+  highlight: readonly string[] | undefined;
+  notes: { series: number; pos: number; text: string }[];
+}
+
+function parseBump(input: Obj): BumpModel {
+  const f = readFrame(input, "bump", [
+    "series",
+    "first",
+    "highlight",
+    "annotations",
+  ]);
+  if (typeof input.series !== "string" || input.series === "") {
+    fail("invalid_spec", `A bump spec needs "series", the name of a column.`);
+  }
+  const sCol = input.series;
+  if (input.first !== "lowest" && input.first !== "highest") {
+    fail(
+      "invalid_spec",
+      `A bump spec needs "first": "lowest" or "highest", saying which y is rank 1; got ${
+        JSON.stringify(input.first)
+      }.`,
+    );
+  }
+  const lowestFirst = input.first === "lowest";
+  let highlight: string[] | undefined;
+  if (input.highlight !== undefined) {
+    const h = input.highlight;
+    if (
+      !Array.isArray(h) || h.length === 0 || h.length > MAX_LINE_SERIES ||
+      !h.every((s) => typeof s === "string") || new Set(h).size !== h.length
+    ) {
+      fail(
+        "invalid_spec",
+        `"highlight" must list 1 to ${MAX_LINE_SERIES} different series names, as strings.`,
+      );
+    }
+    highlight = h;
+  }
+  const raw = readNotes(input.annotations, ["x", "series"]);
+  nonEmptyRows(f);
+
+  const cols = [f.xCol, f.yCol, sCol];
+  const names: string[] = [];
+  const posRaw: (string | number)[] = [];
+  const posKeys: string[] = [];
+  const cells = new Map<string, number>();
+  f.rows.forEach((r, i) => {
+    const row = readRow(r, i, cols);
+    const y = readValue(row, i, f.yCol);
+    const name = readName(row, i, sCol);
+    const label = readLabel(row, i, f.xCol);
+    if (!names.includes(name)) names.push(name);
+    const pk = labelKey(label);
+    if (!posKeys.includes(pk)) {
+      posKeys.push(pk);
+      posRaw.push(label);
+    }
+    const ck = `${name}\u0000${pk}`;
+    if (cells.has(ck)) {
+      fail(
+        "duplicate_point",
+        `rows[${i}] repeats series "${name}" at ${
+          JSON.stringify(label)
+        }. Aggregate the rows so each series has one row per position.`,
+        i,
+      );
+    }
+    cells.set(ck, y);
+  });
+  if (names.length < 2 || posRaw.length < 2) {
+    fail(
+      "too_few_rows",
+      `A bump chart needs at least two series and two positions; this has ${names.length} and ${posRaw.length}. Supply more rows, or state the finding in a sentence.`,
+    );
+  }
+  // Put positions in order: by value for numbers and ISO dates, else as seen.
+  let positions = posRaw;
+  if (posRaw.every((p) => typeof p === "number")) {
+    positions = [...posRaw].sort((a, b) => Number(a) - Number(b));
+  } else if (
+    posRaw.every((p) => typeof p === "string" && parseDate(p) !== undefined)
+  ) {
+    positions = [...posRaw].sort((a, b) =>
+      (parseDate(String(a)) ?? 0) - (parseDate(String(b)) ?? 0)
+    );
+  }
+  for (const name of names) {
+    for (const p of positions) {
+      if (!cells.has(`${name}\u0000${labelKey(p)}`)) {
+        fail(
+          "series_incomplete",
+          `Series "${name}" has no row at ${
+            JSON.stringify(p)
+          }. Give it one row at every position, or drop it.`,
+        );
+      }
+    }
+  }
+  if (highlight) {
+    for (const h of highlight) {
+      if (!names.includes(h)) {
+        fail(
+          "invalid_spec",
+          `"highlight" names "${h}", which is not a value of the "${sCol}" column.`,
+        );
+      }
+    }
+  } else if (names.length > MAX_LINE_SERIES) {
+    fail(
+      "highlight_needed",
+      `A bump chart colours at most ${MAX_LINE_SERIES} series and this has ${names.length}. Set "highlight" to the series the finding is about.`,
+    );
+  }
+  const ranks = names.map(() => new Array<number>(positions.length));
+  positions.forEach((p, pi) => {
+    const ys = names.map((name, si) => ({
+      si,
+      y: cells.get(`${name}\u0000${labelKey(p)}`) ?? 0,
+    }));
+    ys.sort((a, b) => lowestFirst ? a.y - b.y : b.y - a.y);
+    ys.forEach((e, k) => {
+      if (k > 0 && ys[k - 1].y === e.y) {
+        fail(
+          "tied_rank",
+          `Series "${names[ys[k - 1].si]}" and "${
+            names[e.si]
+          }" both have y=${e.y} at ${
+            JSON.stringify(p)
+          }. Give the two rows different y values by the ranking's own tie rule.`,
+        );
+      }
+      ranks[e.si][pi] = k + 1;
+    });
+  });
+  const notes = raw.map((a, i) => {
+    const series = names.indexOf(String(a.at.series));
+    const pos = positions.findIndex((p) => p === a.at.x);
+    if (series < 0 || pos < 0) noRowFor(i, a.at);
+    return { series, pos, text: a.text };
+  });
+  return {
+    finding: f.finding,
+    width: f.width,
+    positions,
+    series: names.map((name, si) => ({ name, ranks: ranks[si] })),
+    highlight,
+    notes,
+  };
+}
+
+function drawBump(m: BumpModel): string {
+  const W = m.width ?? 640;
+  const P = m.positions.length;
+  const left = m.series.map((s) => `${s.name} ${s.ranks[0]}`);
+  const right = m.series.map((s) => `${s.ranks[P - 1]} ${s.name}`);
+  const heads = m.positions.map(String);
+  const x0 = Math.max(
+    Math.max(...left.map(tw)) + 14,
+    tw(heads[0]) / 2 + 2,
+  );
+  const x1 = Math.min(
+    W - Math.max(...right.map(tw)) - 14,
+    W - tw(heads[P - 1]) / 2 - 2,
+  );
+  const step = (x1 - x0) / (P - 1);
+  const need = Math.max(...heads.map(tw)) + 8;
+  if (x1 - x0 < 60 || step < need) {
+    fail(
+      "invalid_spec",
+      `width ${W} is too small for these labels. Raise it to at least ${
+        Math.ceil(W + Math.max(60 - (x1 - x0), (need - step) * (P - 1)))
+      }.`,
+    );
+  }
+  const PITCH = 26;
+  const top = 34;
+  const S = m.series.length;
+  const H = top + (S - 1) * PITCH + 16;
+  const px = (pi: number) => x0 + step * pi;
+  const py = (rank: number) => top + (rank - 1) * PITCH;
+  const body: string[] = [];
+  const placer = new Placer({ x0: 0, y0: 0, x1: W, y1: H });
+  heads.forEach((h, pi) => {
+    body.push(textEl(px(pi), 11, h, "middle", true));
+    placer.add(textRect(px(pi), 11, h, "middle"));
+  });
+  const colourOf = (si: number): number | undefined =>
+    m.highlight
+      ? (m.highlight.indexOf(m.series[si].name) >= 0
+        ? m.highlight.indexOf(m.series[si].name)
+        : undefined)
+      : si;
+  const order = m.series.map((_, si) => si);
+  const faint = order.filter((si) => colourOf(si) === undefined);
+  const strong = order.filter((si) => colourOf(si) !== undefined);
+  for (const si of [...faint, ...strong]) {
+    const s = m.series[si];
+    const ci = colourOf(si);
+    const pts = s.ranks.map((r, pi): [number, number] => [px(pi), py(r)]);
+    if (ci === undefined) {
+      body.push(pathEl(linePath(pts), "currentColor", 1.25, 0.35));
+    } else {
+      body.push(pathEl(linePath(pts), color(ci), 2));
+    }
+    placer.segs.push(...segsOf(pts));
+    for (const [x, y] of pts) {
+      body.push(
+        ci === undefined
+          ? circleEl(x, y, 3, "currentColor", true)
+          : circleEl(x, y, 3, color(ci)),
+      );
+      placer.add(dotRect(x, y, 3.5));
+    }
+    const isFaint = ci === undefined;
+    body.push(
+      textEl(
+        x0 - 7,
+        py(s.ranks[0]),
+        `${s.name} ${s.ranks[0]}`,
+        "end",
+        isFaint,
+        true,
+      ),
+    );
+    body.push(
+      textEl(
+        x1 + 7,
+        py(s.ranks[P - 1]),
+        `${s.ranks[P - 1]} ${s.name}`,
+        "start",
+        isFaint,
+        true,
+      ),
+    );
+    placer.add(
+      textRect(x0 - 7, py(s.ranks[0]), `${s.name} ${s.ranks[0]}`, "end", true),
+    );
+    placer.add(
+      textRect(
+        x1 + 7,
+        py(s.ranks[P - 1]),
+        `${s.ranks[P - 1]} ${s.name}`,
+        "start",
+        true,
+      ),
+    );
+  }
+  body.push(...placeNotes(
+    placer,
+    m.notes.map((nt) => ({
+      px: px(nt.pos),
+      py: py(m.series[nt.series].ranks[nt.pos]),
+      text: nt.text,
+    })),
+  ));
+  return svgWrap(W, H, m.finding, body);
+}
+
+// Strip plot -----------------------------------------------------------------
+
+interface StripGroup {
+  label: string | number;
+  values: number[];
+}
+
+interface StripModel {
+  finding: string;
+  width: number | undefined;
+  fmt: NumberFormat;
+  yRange: readonly [number, number] | undefined;
+  median: boolean;
+  groups: StripGroup[];
+  notes: { group: number; index: number; text: string }[];
+}
+
+function medianOf(values: number[]): number {
+  const s = [...values].sort((a, b) => a - b);
+  const mid = s.length >> 1;
+  return s.length % 2 ? s[mid] : (s[mid - 1] + s[mid]) / 2;
+}
+
+function parseStrip(input: Obj): StripModel {
+  const f = readFrame(input, "strip", [
+    "yFormat",
+    "yRange",
+    "annotations",
+    "sort",
+    "median",
+  ]);
+  const sort = input.sort === undefined ? "median" : input.sort;
+  if (sort !== "median" && sort !== "none") {
+    fail(
+      "invalid_spec",
+      `"sort" for a strip must be "median" or "none"; got ${
+        JSON.stringify(sort)
+      }.`,
+    );
+  }
+  if (input.median !== undefined && typeof input.median !== "boolean") {
+    fail("invalid_spec", `"median" must be true or false.`);
+  }
+  const fmt = parseFormat(input.yFormat);
+  const yRange = parseRange(input.yRange);
+  const raw = readNotes(input.annotations, ["x", "y"]);
+  nonEmptyRows(f);
+  if (f.rows.length > MAX_STRIP_POINTS) {
+    fail(
+      "too_many_rows",
+      `A strip chart lays out at most ${MAX_STRIP_POINTS} observations and this has ${f.rows.length}. Sample the rows, or draw a histogram.`,
+    );
+  }
+  const groups = new Map<string, StripGroup>();
+  const firstRow = new Map<string, number>();
+  f.rows.forEach((r, i) => {
+    const row = readRow(r, i, [f.xCol, f.yCol]);
+    const y = readValue(row, i, f.yCol);
+    const label = readLabel(row, i, f.xCol);
+    const key = labelKey(label);
+    let g = groups.get(key);
+    if (!g) {
+      g = { label, values: [] };
+      groups.set(key, g);
+      firstRow.set(key, i);
+    }
+    g.values.push(y);
+  });
+  let list = [...groups.values()];
+  if (list.length > MAX_STRIP_GROUPS) {
+    fail(
+      "too_many_categories",
+      `A strip chart draws at most ${MAX_STRIP_GROUPS} groups and this has ${list.length}. Keep the groups the reader needs, and say in the text how many were left out.`,
+    );
+  }
+  if (sort === "median") {
+    list = list.map((g, i) => ({ g, i, m: medianOf(g.values) })).sort((a, b) =>
+      b.m - a.m || a.i - b.i
+    ).map((e) => e.g);
+  }
+  const notes = raw.map((a, i) => {
+    const group = list.findIndex((g) => g.label === a.at.x);
+    const index = group < 0 ? -1 : list[group].values.indexOf(Number(a.at.y));
+    if (index < 0) noRowFor(i, a.at);
+    return { group, index, text: a.text };
+  });
+  return {
+    finding: f.finding,
+    width: f.width,
+    fmt,
+    yRange,
+    median: input.median !== false,
+    groups: list,
+    notes,
+  };
+}
+
+const STRIP_R = 2;
+const STRIP_GAP = 2 * STRIP_R + 0.5;
+/** The farthest a dot may sit from the middle of its strip. */
+const STRIP_REACH = 80;
+
+/**
+ * Offsets across the strip for dots at horizontal positions `xs`, so that no
+ * two centres are closer than `gap`. Each dot, taken in order of position,
+ * goes to the free spot nearest the middle. Returns undefined when a dot
+ * would have to sit beyond `reach`.
+ */
+function swarm(xs: number[], gap: number, reach: number): number[] | undefined {
+  const order = xs.map((_, i) => i).sort((a, b) => xs[a] - xs[b] || a - b);
+  const placed: { x: number; off: number }[] = [];
+  const out = new Array<number>(xs.length).fill(0);
+  for (const i of order) {
+    const x = xs[i];
+    const near: { x: number; off: number }[] = [];
+    for (let k = placed.length - 1; k >= 0 && x - placed[k].x < gap; k--) {
+      near.push(placed[k]);
+    }
+    const spots = [0];
+    for (const q of near) {
+      const h = Math.sqrt(Math.max(0, gap * gap - (x - q.x) ** 2));
+      spots.push(q.off + h, q.off - h);
+    }
+    spots.sort((a, b) => Math.abs(a) - Math.abs(b) || b - a);
+    let chosen: number | undefined;
+    for (const s of spots) {
+      if (Math.abs(s) > reach) break;
+      if (near.every((q) => Math.hypot(x - q.x, s - q.off) >= gap - 1e-6)) {
+        chosen = s;
+        break;
+      }
+    }
+    if (chosen === undefined) return undefined;
+    placed.push({ x, off: chosen });
+    out[i] = chosen;
+  }
+  return out;
+}
+
+function drawStrip(m: StripModel): string {
+  const W = m.width ?? 640;
+  const all = m.groups.flatMap((g) => g.values);
+  const [lo, hi] = valueSpan(all, m.yRange);
+  const medians = m.groups.map((g) => medianOf(g.values));
+  const d = m.fmt.decimals ?? defaultDecimals(lo, hi, medians);
+  const label = (v: number) => formatNumber(v, m.fmt, d);
+  const leftM = Math.max(...m.groups.map((g) => tw(String(g.label)))) + 12;
+  const medText = medians.map((v) => `median ${label(v)}`);
+  const rightM = m.median ? Math.max(...medText.map(tw)) + 16 : 12;
+  const x0 = leftM + 8;
+  const x1 = W - rightM;
+  if (x1 - x0 < 40) {
+    fail(
+      "invalid_spec",
+      `width ${W} is too small for these labels. Raise it to at least ${
+        Math.ceil(W + 40 - (x1 - x0))
+      }.`,
+    );
+  }
+  const sx = scaleLinear().domain([lo, hi]).range([x0, x1]);
+  const lanes = m.groups.map((g, gi) => {
+    const xs = g.values.map((v) => sx(v));
+    const offs = swarm(xs, STRIP_GAP, STRIP_REACH);
+    if (!offs) {
+      fail(
+        "points_collide",
+        `The dots of group ${
+          JSON.stringify(g.label)
+        } still overlap at the greatest strip height. Raise width, or draw a histogram.`,
+      );
+    }
+    const reach = Math.max(0, ...offs.map(Math.abs));
+    return { gi, xs, offs, h: Math.max(24, 2 * reach + 2 * STRIP_R + 12) };
+  });
+  let y = 8;
+  const centres = lanes.map((l) => {
+    const c = y + l.h / 2;
+    y += l.h;
+    return c;
+  });
+  const axisY = y + 4;
+  const H = axisY + 22;
+  const body: string[] = [];
+  const placer = new Placer({ x0: 0, y0: 0, x1: W, y1: H });
+  lanes.forEach((l, gi) => {
+    const g = m.groups[gi];
+    const cy = centres[gi];
+    const name = String(g.label);
+    body.push(textEl(leftM, cy, name, "end", false, true));
+    placer.add(textRect(leftM, cy, name, "end", true));
+    l.xs.forEach((x, k) => {
+      body.push(circleEl(x, cy + l.offs[k], STRIP_R, color(0)));
+      placer.add(dotRect(x, cy + l.offs[k], STRIP_R + 0.5));
+    });
+    if (m.median) {
+      const mx = sx(medians[gi]);
+      const half = l.h / 2 - 4;
+      body.push(
+        pathEl(
+          `M${n(mx)},${n(cy - half)}V${n(cy + half)}`,
+          "currentColor",
+          1.5,
+          0.8,
+        ),
+      );
+      body.push(textEl(x1 + 10, cy, medText[gi], "start", false, true));
+      placer.add(textRect(x1 + 10, cy, medText[gi], "start", true));
+    }
+  });
+  body.push(...frameBelow(sx, lo, hi, axisY, label, placer));
+  body.push(...placeNotes(
+    placer,
+    m.notes.map((nt) => ({
+      px: lanes[nt.group].xs[nt.index],
+      py: centres[nt.group] + lanes[nt.group].offs[nt.index],
+      text: nt.text,
+    })),
+  ));
   return svgWrap(W, H, m.finding, body);
 }
 

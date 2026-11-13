@@ -18,4 +18,4 @@ Read this when step 3 or 4 of `SKILL.md` needs a label placed, or a placement fa
 
 ## Collisions
 
-The helper tries eight positions around the point at three distances. It refuses with `annotation_does_not_fit` when none clears the line, the axis labels and the other annotations. Remove that annotation or raise `width`. When drawing by hand, check every label against the lines and against the other labels.
+The helper tries eight positions around the point at five distances. It refuses with `annotation_does_not_fit` when none clears the line, the axis labels and the other annotations. Remove that annotation or raise `width`. When drawing by hand, check every label against the lines and against the other labels.

@@ -1,6 +1,6 @@
-# The four forms
+# The helper's seven forms
 
-Read this when step 2 of `SKILL.md` leaves more than one form possible. Each form below has the finding it suits, a spec for `scripts/chart.ts`, and the rule that rules it out.
+Read this when step 4 of `SKILL.md` draws a form with the helper, to copy a spec. `choosing.md` says which form answers the question. Each form below has the finding it suits, a spec for `scripts/chart.ts`, and the case that rules it out.
 
 ## Sparkline
 
@@ -65,3 +65,67 @@ Output for this spec:
 ```
 
 Not suited: more than two moments. Use `line`.
+
+## Dot plot
+
+Suits: comparing one value across categories, such as the backlog of each queue. Readers judge position on a common scale more accurately than length or area, so a dot plot is the first choice for "which is most" (`choosing.md`). `x` names the category column and `y` the value. The helper sorts by value, largest at the top, and prints each value beside its dot. `reference` draws a labelled line at a target or an average.
+
+```json
+{"form":"dot","x":"queue","y":"open","finding":"Billing has the longest backlog, 41 items.","sort":"value","rows":[{"queue":"billing","open":41},{"queue":"search","open":18},{"queue":"auth","open":9},{"queue":"upload","open":23}],"reference":{"value":20,"label":"Target 20"},"annotations":[{"at":{"x":"billing"},"text":"Twice the target."}]}
+```
+
+Output for this spec:
+
+```svg
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 130" role="img" aria-label="Billing has the longest backlog, 41 items." font-size="11" fill="currentColor"><path d="M253.51,25V98" fill="none" stroke="currentColor" stroke-width="1" stroke-opacity="0.5"/><text x="253.51" y="21" text-anchor="middle" fill-opacity="0.7">Target 20</text><text x="55.9" y="30" text-anchor="end" dy="0.32em">billing</text><circle cx="615.5" cy="30" r="3.5" fill="var(--series-1, #2a78d6)"/><text x="622.5" y="30" dy="0.32em">41</text><text x="55.9" y="50" text-anchor="end" dy="0.32em">upload</text><circle cx="305.23" cy="50" r="3.5" fill="var(--series-1, #2a78d6)"/><text x="312.23" y="50" dy="0.32em">23</text><text x="55.9" y="70" text-anchor="end" dy="0.32em">search</text><circle cx="219.04" cy="70" r="3.5" fill="var(--series-1, #2a78d6)"/><text x="226.04" y="70" dy="0.32em">18</text><text x="55.9" y="90" text-anchor="end" dy="0.32em">auth</text><circle cx="63.9" cy="90" r="3.5" fill="var(--series-1, #2a78d6)"/><text x="70.9" y="90" dy="0.32em">9</text><path d="M63.9,108H615.5" fill="none" stroke="currentColor" stroke-width="1" stroke-opacity="0.5"/><text x="63.9" y="121" fill-opacity="0.7">9</text><text x="615.5" y="121" text-anchor="end" fill-opacity="0.7">41</text><text x="617.5" y="22" text-anchor="end">Twice the target.</text></svg>
+```
+
+Not suited: categories that are periods of one series (use `line`), and fewer than two categories. A target the reader must judge against is `reference`, never a second series.
+
+## Dumbbell
+
+Suits: two values per category, where the finding is the size and direction of the move, such as 2025 against 2026 for each region. It is a dot spec with `series` naming the column that holds the two measures. The helper draws one dot per measure joined by a thin line, names each measure once on the top row, and sorts by the second measure minus the first, so rises are at the top and falls at the bottom. Every category needs one row for each measure.
+
+```json
+{"form":"dot","x":"region","y":"orders","series":"year","finding":"Delta grew most and Coast fell.","rows":[{"region":"Delta","year":"2025","orders":120},{"region":"Delta","year":"2026","orders":310},{"region":"Hills","year":"2025","orders":900},{"region":"Hills","year":"2026","orders":950},{"region":"Coast","year":"2025","orders":500},{"region":"Coast","year":"2026","orders":380}]}
+```
+
+Output for this spec:
+
+```svg
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 110" role="img" aria-label="Delta grew most and Coast fell." font-size="11" fill="currentColor"><text x="43.4" y="30" text-anchor="end" dy="0.32em">Delta</text><path d="M74.2,30H196.67" fill="none" stroke="currentColor" stroke-width="1.5" stroke-opacity="0.35"/><circle cx="74.2" cy="30" r="3.5" fill="var(--series-1, #2a78d6)"/><circle cx="196.67" cy="30" r="3.5" fill="var(--series-2, #eb6834)"/><text x="67.2" y="30" text-anchor="end" dy="0.32em">120</text><text x="203.67" y="30" dy="0.32em">310</text><text x="43.4" y="50" text-anchor="end" dy="0.32em">Hills</text><path d="M576.97,50H609.2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-opacity="0.35"/><circle cx="576.97" cy="50" r="3.5" fill="var(--series-1, #2a78d6)"/><circle cx="609.2" cy="50" r="3.5" fill="var(--series-2, #eb6834)"/><text x="569.97" y="50" text-anchor="end" dy="0.32em">900</text><text x="616.2" y="50" dy="0.32em">950</text><text x="43.4" y="70" text-anchor="end" dy="0.32em">Coast</text><path d="M241.79,70H319.14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-opacity="0.35"/><circle cx="319.14" cy="70" r="3.5" fill="var(--series-1, #2a78d6)"/><circle cx="241.79" cy="70" r="3.5" fill="var(--series-2, #eb6834)"/><text x="234.79" y="70" text-anchor="end" dy="0.32em">380</text><text x="326.14" y="70" dy="0.32em">500</text><text x="71.2" y="21" text-anchor="end" fill-opacity="0.7">2025</text><text x="199.67" y="21" fill-opacity="0.7">2026</text><path d="M74.2,88H609.2" fill="none" stroke="currentColor" stroke-width="1" stroke-opacity="0.5"/><text x="74.2" y="101" fill-opacity="0.7">120</text><text x="609.2" y="101" text-anchor="end" fill-opacity="0.7">950</text></svg>
+```
+
+Not suited: more than two measures (use `line` or `multiples`), and categories of very different size when the finding is relative change. Put the percentage change in `y` in that case, and say so in the finding.
+
+## Bump chart
+
+Suits: how the order of a set of series changes across ordered positions, such as ten teams over eight quarters. The helper ranks the series inside each position. `y` is a rank or a score, and `first` says whether the lowest or the highest `y` is rank 1. Every series needs a row at every position, and two equal `y` values at one position are refused with `tied_rank`. With more than eight series, `highlight` names the series the finding is about and the rest are drawn faint.
+
+```json
+{"form":"bump","x":"quarter","y":"rank","series":"team","first":"lowest","finding":"Red took the lead in Q3.","highlight":["Red"],"rows":[{"quarter":"Q1","team":"Red","rank":2},{"quarter":"Q2","team":"Red","rank":2},{"quarter":"Q3","team":"Red","rank":1},{"quarter":"Q1","team":"Blue","rank":1},{"quarter":"Q2","team":"Blue","rank":1},{"quarter":"Q3","team":"Blue","rank":3},{"quarter":"Q1","team":"Green","rank":3},{"quarter":"Q2","team":"Green","rank":3},{"quarter":"Q3","team":"Green","rank":2}],"annotations":[{"at":{"x":"Q3","series":"Red"},"text":"Red takes the lead."}]}
+```
+
+Output for this spec:
+
+```svg
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 102" role="img" aria-label="Red took the lead in Q3." font-size="11" fill="currentColor"><text x="57.9" y="11" text-anchor="middle" fill-opacity="0.7">Q1</text><text x="320" y="11" text-anchor="middle" fill-opacity="0.7">Q2</text><text x="582.1" y="11" text-anchor="middle" fill-opacity="0.7">Q3</text><path d="M57.9,34L320,34L582.1,86" fill="none" stroke="currentColor" stroke-width="1.25" stroke-opacity="0.35"/><circle cx="57.9" cy="34" r="3" fill="currentColor" fill-opacity="0.35"/><circle cx="320" cy="34" r="3" fill="currentColor" fill-opacity="0.35"/><circle cx="582.1" cy="86" r="3" fill="currentColor" fill-opacity="0.35"/><text x="50.9" y="34" text-anchor="end" dy="0.32em" fill-opacity="0.7">Blue 1</text><text x="589.1" y="86" dy="0.32em" fill-opacity="0.7">3 Blue</text><path d="M57.9,86L320,86L582.1,60" fill="none" stroke="currentColor" stroke-width="1.25" stroke-opacity="0.35"/><circle cx="57.9" cy="86" r="3" fill="currentColor" fill-opacity="0.35"/><circle cx="320" cy="86" r="3" fill="currentColor" fill-opacity="0.35"/><circle cx="582.1" cy="60" r="3" fill="currentColor" fill-opacity="0.35"/><text x="50.9" y="86" text-anchor="end" dy="0.32em" fill-opacity="0.7">Green 3</text><text x="589.1" y="60" dy="0.32em" fill-opacity="0.7">2 Green</text><path d="M57.9,60L320,60L582.1,34" fill="none" stroke="var(--series-1, #2a78d6)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><circle cx="57.9" cy="60" r="3" fill="var(--series-1, #2a78d6)"/><circle cx="320" cy="60" r="3" fill="var(--series-1, #2a78d6)"/><circle cx="582.1" cy="34" r="3" fill="var(--series-1, #2a78d6)"/><text x="50.9" y="60" text-anchor="end" dy="0.32em">Red 2</text><text x="589.1" y="34" dy="0.32em">1 Red</text><text x="584.1" y="26" text-anchor="end">Red takes the lead.</text></svg>
+```
+
+Not suited: the values themselves matter more than the order (use `line` or `multiples`), and gaps in a series. A direction is required in `first`, because the wrong one draws the chart upside down.
+
+## Strip plot
+
+Suits: raw observations per group, when the spread, the clusters or the outliers are the finding, such as 200 response times for each of four services. Every row is one observation. Dots that would overlap are moved apart across the strip, so the strip becomes a beeswarm and no dot hides another. A median tick and its value are on by default.
+
+```json
+{"form":"strip","x":"service","y":"ms","finding":"Search has a slow second mode near 400 ms.","yFormat":{"suffix":" ms"},"rows":[{"service":"search","ms":90},{"service":"search","ms":95},{"service":"search","ms":100},{"service":"search","ms":102},{"service":"search","ms":410},{"service":"search","ms":420},{"service":"auth","ms":88},{"service":"auth","ms":91},{"service":"auth","ms":93},{"service":"auth","ms":97},{"service":"auth","ms":99}]}
+```
+
+Output for this spec:
+
+```svg
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 82" role="img" aria-label="Search has a slow second mode near 400 ms." font-size="11" fill="currentColor"><text x="49.6" y="20" text-anchor="end" dy="0.32em">search</text><circle cx="60.52" cy="20" r="2" fill="var(--series-1, #2a78d6)"/><circle cx="67.82" cy="20" r="2" fill="var(--series-1, #2a78d6)"/><circle cx="75.13" cy="20" r="2" fill="var(--series-1, #2a78d6)"/><circle cx="78.05" cy="23.42" r="2" fill="var(--series-1, #2a78d6)"/><circle cx="527.89" cy="20" r="2" fill="var(--series-1, #2a78d6)"/><circle cx="542.5" cy="20" r="2" fill="var(--series-1, #2a78d6)"/><path d="M76.59,12V28" fill="none" stroke="currentColor" stroke-width="1.5" stroke-opacity="0.8"/><text x="552.5" y="20" dy="0.32em">median 101 ms</text><text x="49.6" y="44" text-anchor="end" dy="0.32em">auth</text><circle cx="57.6" cy="44" r="2" fill="var(--series-1, #2a78d6)"/><circle cx="61.98" cy="45.03" r="2" fill="var(--series-1, #2a78d6)"/><circle cx="64.9" cy="41.6" r="2" fill="var(--series-1, #2a78d6)"/><circle cx="70.74" cy="44" r="2" fill="var(--series-1, #2a78d6)"/><circle cx="73.67" cy="47.42" r="2" fill="var(--series-1, #2a78d6)"/><path d="M64.9,36V52" fill="none" stroke="currentColor" stroke-width="1.5" stroke-opacity="0.8"/><text x="552.5" y="44" dy="0.32em">median 93 ms</text><path d="M57.6,60H542.5" fill="none" stroke="currentColor" stroke-width="1" stroke-opacity="0.5"/><text x="57.6" y="73" fill-opacity="0.7">88 ms</text><text x="542.5" y="73" text-anchor="end" fill-opacity="0.7">420 ms</text></svg>
+```
+
+Not suited: more than 5000 observations or 12 groups (`too_many_rows`, `too_many_categories`), and a strip too crowded for its width (`points_collide`). Raise `width`, or draw a histogram from `references/drawn/histogram.md`.

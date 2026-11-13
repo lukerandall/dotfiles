@@ -4,7 +4,10 @@ import {
   type ChartErrorCode,
   type ChartSpec,
   MAX_ANNOTATION_CHARS,
+  MAX_DOT_CATEGORIES,
   MAX_LINE_SERIES,
+  MAX_STRIP_GROUPS,
+  MAX_STRIP_POINTS,
   render,
   type Row,
 } from "./chart.ts";
@@ -91,6 +94,117 @@ function slope(over: Record<string, unknown> = {}): ChartSpec {
   } as ChartSpec;
 }
 
+const REGIONS = ["north", "south", "east", "west", "central"];
+
+function dotRows(values = [42, 17, 35, 28, 50]): Row[] {
+  return REGIONS.map((region, i) => ({ region, value: values[i] }));
+}
+
+function dot(over: Record<string, unknown> = {}): ChartSpec {
+  return {
+    form: "dot",
+    rows: dotRows(),
+    x: "region",
+    y: "value",
+    finding: "Central is highest.",
+    ...over,
+  } as ChartSpec;
+}
+
+/** Two measures per region. Differences: north +2, south +14, east -10... */
+function dumbbellRows(): Row[] {
+  const before = [20, 30, 40, 50, 60];
+  const after = [22, 44, 30, 50, 75];
+  return REGIONS.flatMap((region, i) => [
+    { region, year: "2025", value: before[i] },
+    { region, year: "2026", value: after[i] },
+  ]);
+}
+
+function dumbbell(over: Record<string, unknown> = {}): ChartSpec {
+  return dot({
+    rows: dumbbellRows(),
+    series: "year",
+    finding: "Central and south rose most.",
+    ...over,
+  });
+}
+
+const TEAMS = ["A", "B", "C", "D"];
+const QUARTERS = ["2025 Q1", "2025 Q2", "2025 Q3", "2025 Q4"];
+
+/** Scores by team and quarter. A leads in Q1 and Q2, D leads from Q3. */
+function bumpRows(teams = TEAMS): Row[] {
+  const score: Record<string, number[]> = {
+    A: [90, 80, 60, 50],
+    B: [70, 75, 70, 65],
+    C: [60, 50, 65, 80],
+    D: [40, 55, 85, 95],
+  };
+  return teams.flatMap((team, k) =>
+    QUARTERS.map((q, i) => ({
+      quarter: q,
+      score: score[team]?.[i] ?? 100 - k * 5 - i,
+      team,
+    }))
+  );
+}
+
+function bump(over: Record<string, unknown> = {}): ChartSpec {
+  return {
+    form: "bump",
+    rows: bumpRows(),
+    x: "quarter",
+    y: "score",
+    series: "team",
+    first: "highest",
+    finding: "D rose to first.",
+    ...over,
+  } as ChartSpec;
+}
+
+/** A repeatable stream of numbers in [0, 1). */
+function lcg(seed: number): () => number {
+  let s = seed;
+  return () => {
+    s = (s * 1664525 + 1013904223) % 4294967296;
+    return s / 4294967296;
+  };
+}
+
+function stripRows(perGroup = 30, groups = ["api", "db", "web"]): Row[] {
+  const rand = lcg(7);
+  return groups.flatMap((g, k) =>
+    Array.from({ length: perGroup }, () => ({
+      service: g,
+      ms: Math.round((50 + k * 40 + rand() * 100) * 10) / 10,
+    }))
+  );
+}
+
+function strip(over: Record<string, unknown> = {}): ChartSpec {
+  return {
+    form: "strip",
+    rows: stripRows(),
+    x: "service",
+    y: "ms",
+    finding: "The web service is slowest.",
+    ...over,
+  } as ChartSpec;
+}
+
+/** The circles of an svg as [cx, cy, r]. */
+function circles(svg: string): [number, number, number][] {
+  return [
+    ...svg.matchAll(/<circle cx="([-\d.]+)" cy="([-\d.]+)" r="([\d.]+)"/g),
+  ]
+    .map((m) => [Number(m[1]), Number(m[2]), Number(m[3])]);
+}
+
+function order(svg: string, ...labels: string[]): number[] {
+  return labels.map((l) => svg.indexOf(`>${l}</text>`));
+}
+
 function refusal(spec: unknown): ChartError {
   try {
     render(spec as ChartSpec);
@@ -120,6 +234,10 @@ const specs: Record<string, ChartSpec> = {
   oneLine: oneLine(),
   multiples: multiples(),
   slope: slope(),
+  dot: dot(),
+  dumbbell: dumbbell(),
+  bump: bump(),
+  strip: strip(),
 };
 
 for (const [name, spec] of Object.entries(specs)) {
@@ -696,4 +814,586 @@ Deno.test("multiples: the shared scale is printed once", () => {
     /Same scale in every panel: 10 to 46, 2025-01 to 2025-06/g,
   );
   assert.equal(hits?.length, 1);
+});
+
+// dot ----------------------------------------------------------------------
+
+Deno.test("dot: the largest value is at the top and each value is printed", () => {
+  const svg = admits(dot());
+  const at = order(svg, "central", "north", "east", "west", "south");
+  assert.ok(at.every((i) => i >= 0), "every category is a row label");
+  assert.deepEqual([...at].sort((a, b) => a - b), at);
+  assert.equal(circles(svg).length, 5);
+  for (const v of ["50", "42", "35", "28", "17"]) {
+    assert.ok(svg.includes(`>${v}</text>`), `prints ${v}`);
+  }
+});
+
+Deno.test("dot: sort none keeps the order of first appearance", () => {
+  const svg = admits(dot({ sort: "none" }));
+  const at = order(svg, ...REGIONS);
+  assert.deepEqual([...at].sort((a, b) => a - b), at);
+});
+
+Deno.test("dot: row order does not change the drawing", () => {
+  const rows = dotRows();
+  assert.equal(
+    admits(dot({ rows })),
+    admits(dot({ rows: [...rows].reverse() })),
+  );
+});
+
+Deno.test("dot: a reference line is labelled once and the scale includes it", () => {
+  const svg = admits(
+    dot({
+      reference: { value: 100, label: "Target" },
+      yFormat: { prefix: "$" },
+    }),
+  );
+  assert.equal(svg.match(/>Target<\/text>/g)?.length, 1);
+  assert.ok(svg.includes(">$100</text>"), "the frame reaches the target");
+});
+
+Deno.test("dot: the frame labels the scale's two ends", () => {
+  const svg = admits(dot({ yRange: [0, 60] }));
+  assert.ok(svg.includes(">0</text>") && svg.includes(">60</text>"));
+});
+
+Deno.test("dot: an annotation is plain text beside its dot", () => {
+  const svg = admits(
+    dot({ annotations: [{ at: { x: "central" }, text: "Highest by 8." }] }),
+  );
+  assert.ok(svg.includes(">Highest by 8.</text>"));
+  assert.ok(!svg.includes("<rect"));
+});
+
+Deno.test("dot: grows taller with the categories", () => {
+  const h = (svg: string) =>
+    Number(svg.match(/viewBox="0 0 [\d.]+ ([\d.]+)"/)![1]);
+  const many = Array.from({ length: 30 }, (_, i) => ({ c: `c${i}`, v: i }));
+  assert.ok(h(admits(dot({ rows: many, x: "c", y: "v" }))) > h(admits(dot())));
+});
+
+Deno.test("dumbbell: sorts by signed difference, rises first", () => {
+  const svg = admits(dumbbell());
+  // Differences: south +14, central +15, north +2, west 0, east -10.
+  const at = order(svg, "central", "south", "north", "west", "east");
+  assert.ok(at.every((i) => i >= 0));
+  assert.deepEqual([...at].sort((a, b) => a - b), at);
+  assert.equal(circles(svg).length, 10);
+});
+
+Deno.test("dumbbell: names each measure once, at its dot", () => {
+  const svg = admits(dumbbell());
+  assert.equal(svg.match(/>2025<\/text>/g)?.length, 1);
+  assert.equal(svg.match(/>2026<\/text>/g)?.length, 1);
+  assert.ok(svg.includes("var(--series-1"));
+  assert.ok(svg.includes("var(--series-2"));
+});
+
+Deno.test("dumbbell: sort value and none are accepted", () => {
+  const byValue = admits(dumbbell({ sort: "value" }));
+  const at = order(byValue, "central", "west", "east", "south", "north");
+  assert.deepEqual([...at].sort((a, b) => a - b), at);
+  admits(dumbbell({ sort: "none" }));
+});
+
+Deno.test("dumbbell: equal measures draw both dots without a gap line", () => {
+  const rows = REGIONS.flatMap((region) => [
+    { region, year: "2025", value: 10 },
+    { region, year: "2026", value: 10 },
+  ]);
+  assert.equal(circles(admits(dumbbell({ rows }))).length, 10);
+});
+
+Deno.test("dumbbell: an annotation names its measure", () => {
+  const svg = admits(
+    dumbbell({
+      annotations: [{ at: { x: "central", series: "2026" }, text: "Up 15." }],
+    }),
+  );
+  assert.ok(svg.includes(">Up 15.</text>"));
+});
+
+Deno.test("dot: escapes categories, the reference label and annotations", () => {
+  const evil = `<u>&"`;
+  const out = "&lt;u&gt;&amp;&quot;";
+  const rows = dotRows().map((r, i) => i === 0 ? { ...r, region: evil } : r);
+  const svg = admits(
+    dot({
+      rows,
+      reference: { value: 30, label: evil },
+      annotations: [{ at: { x: evil }, text: evil }],
+      finding: evil,
+    }),
+  );
+  assert.ok(!svg.includes("<u>"));
+  assert.ok(svg.includes(`>${out}</text>`));
+  const db = admits(
+    dumbbell({
+      rows: dumbbellRows().map((r) => ({ ...r, year: `${r.year}${evil}` })),
+    }),
+  );
+  assert.ok(!db.includes("<u>"));
+  assert.ok(db.includes(`2025${out}`));
+});
+
+// bump ---------------------------------------------------------------------
+
+Deno.test("bump: ranks each position by the direction in first", () => {
+  const high = admits(bump());
+  // Highest score first: A leads Q1 (rank 1), D has the lowest score (rank 4).
+  assert.ok(high.includes(">A 1</text>"));
+  assert.ok(high.includes(">D 4</text>"));
+  assert.ok(high.includes(">1 D</text>"), "D leads the last quarter");
+  const low = admits(bump({ first: "lowest" }));
+  assert.ok(low.includes(">D 1</text>"));
+  assert.ok(low.includes(">A 4</text>"));
+});
+
+Deno.test("bump: names every series at both ends and every position", () => {
+  const svg = admits(bump());
+  for (const t of TEAMS) {
+    assert.equal(svg.match(new RegExp(`>${t} \\d</text>`, "g"))?.length, 1);
+    assert.equal(svg.match(new RegExp(`>\\d ${t}</text>`, "g"))?.length, 1);
+  }
+  for (const q of QUARTERS) assert.ok(svg.includes(`>${q}</text>`));
+});
+
+Deno.test("bump: numbers and ISO dates are put in order, labels keep their order", () => {
+  const dated = bumpRows().map((r) => ({
+    ...r,
+    quarter: `2025-0${QUARTERS.indexOf(String(r.quarter)) + 1}`,
+  }));
+  const svg = admits(bump({ rows: [...dated].reverse() }));
+  const at = order(svg, "2025-01", "2025-02", "2025-03", "2025-04");
+  assert.ok(at.every((i) => i >= 0));
+  assert.deepEqual([...at].sort((a, b) => a - b), at);
+  const lab = order(admits(bump()), ...QUARTERS);
+  assert.deepEqual([...lab].sort((a, b) => a - b), lab);
+  const nums: Row[] = bumpRows().map((r) => ({
+    ...r,
+    quarter: QUARTERS.indexOf(String(r.quarter)) + 10,
+  }));
+  // Reverse the positions inside each series, which keeps the series order.
+  const backwards = TEAMS.flatMap((t) =>
+    nums.filter((r) => r.team === t).reverse()
+  );
+  assert.equal(admits(bump({ rows: nums })), admits(bump({ rows: backwards })));
+});
+
+Deno.test("bump: highlighted series take colours and the rest are faint", () => {
+  const svg = admits(bump({ highlight: ["D", "A"] }));
+  assert.ok(svg.includes("var(--series-1"));
+  assert.ok(svg.includes("var(--series-2"));
+  assert.ok(!svg.includes("var(--series-3"));
+  assert.ok(svg.includes(`stroke="currentColor"`));
+  const plain = admits(bump());
+  assert.ok(plain.includes("var(--series-4"));
+});
+
+Deno.test("bump: ten series are drawn when a highlight is given", () => {
+  const names = Array.from({ length: 10 }, (_, i) => `T${i}`);
+  const rows = names.flatMap((team, k) =>
+    QUARTERS.map((quarter, i) => ({
+      quarter,
+      team,
+      score: ((k * (i + 1) + i) % 11) * 10,
+    }))
+  );
+  const svg = admits(bump({ rows, highlight: ["T0", "T9"] }));
+  assert.equal(svg.match(/>T\d \d+<\/text>/g)?.length, 10);
+});
+
+Deno.test("bump: an annotation sits beside a point of its series", () => {
+  const svg = admits(
+    bump({
+      annotations: [{
+        at: { x: "2025 Q3", series: "D" },
+        text: "D takes the lead.",
+      }],
+    }),
+  );
+  assert.ok(svg.includes(">D takes the lead.</text>"));
+});
+
+Deno.test("bump: escapes series, positions and annotations", () => {
+  const evil = `<u>&"`;
+  const out = "&lt;u&gt;&amp;&quot;";
+  const rows = bumpRows().map((r) => ({
+    ...r,
+    team: `${r.team}${evil}`,
+    quarter: r.quarter === "2025 Q1" ? evil : r.quarter,
+  }));
+  const svg = admits(bump({
+    rows,
+    annotations: [{ at: { x: "2025 Q3", series: `D${evil}` }, text: evil }],
+  }));
+  assert.ok(!svg.includes("<u>"));
+  assert.ok(svg.includes(`>A${out} 1</text>`));
+  assert.ok(svg.includes(`>${out}</text>`));
+});
+
+// strip --------------------------------------------------------------------
+
+Deno.test("strip: no two dots overlap", () => {
+  const rows = stripRows(120);
+  const c = circles(admits(strip({ rows })));
+  assert.equal(c.length, rows.length);
+  for (let i = 0; i < c.length; i++) {
+    for (let j = i + 1; j < c.length; j++) {
+      const d = Math.hypot(c[i][0] - c[j][0], c[i][1] - c[j][1]);
+      assert.ok(d >= c[i][2] + c[j][2] - 0.02, `dots ${i} and ${j} overlap`);
+    }
+  }
+});
+
+Deno.test("strip: a group with no overlap stays on one line", () => {
+  const rows = [10, 30, 50, 70, 90].map((ms) => ({ service: "api", ms }));
+  const ys = new Set(circles(admits(strip({ rows }))).map((c) => c[1]));
+  assert.equal(ys.size, 1);
+});
+
+Deno.test("strip: orders groups by median, largest first, and prints it", () => {
+  const svg = admits(strip());
+  const at = order(svg, "web", "db", "api");
+  assert.ok(at.every((i) => i >= 0));
+  assert.deepEqual([...at].sort((a, b) => a - b), at);
+  assert.equal(svg.match(/median /g)?.length, 3);
+  const none = admits(strip({ sort: "none", median: false }));
+  assert.ok(!none.includes("median"));
+  const first = order(none, "api", "db", "web");
+  assert.deepEqual([...first].sort((a, b) => a - b), first);
+});
+
+Deno.test("strip: an annotation takes the first of equal observations", () => {
+  const rows = [10, 10, 20, 90].map((ms) => ({ service: "api", ms }));
+  const svg = admits(
+    strip({
+      rows,
+      annotations: [{ at: { x: "api", y: 90 }, text: "Slowest." }],
+    }),
+  );
+  assert.ok(svg.includes(">Slowest.</text>"));
+  admits(
+    strip({ rows, annotations: [{ at: { x: "api", y: 10 }, text: "Two." }] }),
+  );
+});
+
+Deno.test("strip: escapes group names and annotations", () => {
+  const evil = `<u>&"`;
+  const rows = stripRows(5).map((r) => ({
+    ...r,
+    service: `${r.service}${evil}`,
+  }));
+  const svg = admits(
+    strip({
+      rows,
+      annotations: [{
+        at: { x: `api${evil}`, y: Number(stripRows(5)[0].ms) },
+        text: evil,
+      }],
+    }),
+  );
+  assert.ok(!svg.includes("<u>"));
+  assert.ok(svg.includes("api&lt;u&gt;&amp;&quot;"));
+});
+
+// Refusals of the three new forms, each with an admitted twin -------------------
+
+Deno.test("invalid_spec: dot, bump and strip fields", () => {
+  refuses(dot({ sort: "difference" }), "invalid_spec");
+  refuses(dumbbell({ sort: "median" }), "invalid_spec");
+  refuses(dot({ first: "lowest" }), "invalid_spec");
+  refuses(dot({ reference: { value: 3 } }), "invalid_spec");
+  refuses(dot({ reference: { value: "3", label: "t" } }), "invalid_spec");
+  refuses(
+    dot({ reference: { value: 3, label: "t", colour: "red" } }),
+    "invalid_spec",
+  );
+  refuses(dot({ series: "" }), "invalid_spec");
+  admits(dot({ sort: "none", reference: { value: 3, label: "t" } }));
+  refuses({ ...bump(), first: undefined }, "invalid_spec");
+  refuses(bump({ first: "best" }), "invalid_spec");
+  refuses({ ...bump(), series: undefined }, "invalid_spec");
+  refuses(bump({ yRange: [0, 1] }), "invalid_spec");
+  refuses(bump({ yFormat: { decimals: 1 } }), "invalid_spec");
+  refuses(bump({ highlight: [] }), "invalid_spec");
+  refuses(bump({ highlight: ["A", "A"] }), "invalid_spec");
+  refuses(bump({ highlight: ["Z"] }), "invalid_spec");
+  refuses(bump({ highlight: "A" }), "invalid_spec");
+  refuses(
+    bump({
+      highlight: Array.from({ length: MAX_LINE_SERIES + 1 }, (_, i) => `h${i}`),
+    }),
+    "invalid_spec",
+  );
+  admits(bump({ highlight: ["A"] }));
+  refuses(strip({ sort: "value" }), "invalid_spec");
+  refuses(strip({ median: "yes" }), "invalid_spec");
+  refuses(strip({ series: "service" }), "invalid_spec");
+  admits(strip({ sort: "none", median: false }));
+  refuses(dot({ width: 20 }), "invalid_spec");
+  refuses(dot({ finding: " " }), "invalid_spec");
+  refuses(strip({ width: 40 }), "invalid_spec");
+  admits(dot({ width: 300 }));
+});
+
+Deno.test("too_few_rows: dot, bump and strip", () => {
+  refuses(dot({ rows: [] }), "too_few_rows");
+  refuses(dot({ rows: dotRows().slice(0, 1) }), "too_few_rows");
+  admits(dot({ rows: dotRows().slice(0, 2) }));
+  refuses(bump({ rows: bumpRows(["A"]) }), "too_few_rows");
+  refuses(
+    bump({ rows: bumpRows().filter((r) => r.quarter === "2025 Q1") }),
+    "too_few_rows",
+  );
+  admits(bump({ rows: bumpRows(["A", "B"]) }));
+  refuses(strip({ rows: [] }), "too_few_rows");
+  admits(strip({ rows: stripRows(1, ["only"]) }));
+});
+
+Deno.test("missing_column and invalid_value: the new forms", () => {
+  const noValue = dotRows().map((r, i) => i === 2 ? { region: r.region } : r);
+  refuses(dot({ rows: noValue }), "missing_column");
+  refuses(
+    dot({ rows: dotRows().map((r, i) => i === 1 ? { ...r, value: "17" } : r) }),
+    "invalid_value",
+  );
+  refuses(
+    dot({
+      rows: dotRows().map((r, i) => i === 1 ? { ...r, region: null } : r),
+    }),
+    "invalid_value",
+  );
+  refuses(
+    dumbbell({
+      rows: dumbbellRows().map((r, i) => i === 0 ? { ...r, year: 2025 } : r),
+    }),
+    "invalid_value",
+  );
+  refuses(
+    bump({ rows: bumpRows().map((r, i) => i === 3 ? { ...r, team: 4 } : r) }),
+    "invalid_value",
+  );
+  refuses(
+    bump({
+      rows: bumpRows().map((r, i) => i === 3 ? { ...r, score: NaN } : r),
+    }),
+    "invalid_value",
+  );
+  refuses(
+    bump({
+      rows: bumpRows().map((r, i) => i === 3 ? { ...r, quarter: null } : r),
+    }),
+    "invalid_value",
+  );
+  refuses(
+    strip({
+      rows: stripRows().map((r, i) => i === 4 ? { ...r, ms: null } : r),
+    }),
+    "invalid_value",
+  );
+  refuses(
+    strip({
+      rows: stripRows().map((r, i) => i === 4 ? { ...r, service: {} } : r),
+    }),
+    "invalid_value",
+  );
+  refuses(
+    strip({ rows: stripRows().map((r) => ({ service: r.service })) }),
+    "missing_column",
+  );
+  admits(
+    dot({ rows: dotRows().map((r, i) => ({ ...r, region: i })) }),
+  );
+});
+
+Deno.test("duplicate_point: a dot category or a bump series repeated", () => {
+  refuses(
+    dot({ rows: [...dotRows(), { region: "north", value: 1 }] }),
+    "duplicate_point",
+  );
+  refuses(
+    dumbbell({
+      rows: [...dumbbellRows(), { region: "north", year: "2025", value: 9 }],
+    }),
+    "duplicate_point",
+  );
+  refuses(
+    bump({
+      rows: [...bumpRows(), { quarter: "2025 Q1", team: "A", score: 1 }],
+    }),
+    "duplicate_point",
+  );
+  // Strip rows are observations and may repeat.
+  admits(strip({ rows: [...stripRows(), ...stripRows(1)] }));
+});
+
+Deno.test("dumbbell_needs_two_measures: three measures, or a category lacking one", () => {
+  refuses(
+    dumbbell({
+      rows: [...dumbbellRows(), { region: "north", year: "2027", value: 5 }],
+    }),
+    "dumbbell_needs_two_measures",
+  );
+  refuses(
+    dumbbell({ rows: dumbbellRows().filter((r) => r.year === "2025") }),
+    "dumbbell_needs_two_measures",
+  );
+  refuses(
+    dumbbell({ rows: dumbbellRows().slice(1) }),
+    "dumbbell_needs_two_measures",
+  );
+  admits(dumbbell());
+});
+
+Deno.test("series_incomplete, tied_rank and highlight_needed", () => {
+  refuses(bump({ rows: bumpRows().slice(1) }), "series_incomplete");
+  admits(bump());
+  const tied = bumpRows().map((r) =>
+    r.team === "B" && r.quarter === "2025 Q1" ? { ...r, score: 90 } : r
+  );
+  refuses(bump({ rows: tied }), "tied_rank");
+  admits(
+    bump({
+      rows: tied.map((r) =>
+        r.team === "B" && r.quarter === "2025 Q1" ? { ...r, score: 91 } : r
+      ),
+    }),
+  );
+  const names = Array.from({ length: MAX_LINE_SERIES + 1 }, (_, i) => `T${i}`);
+  const rows = names.flatMap((team, k) =>
+    QUARTERS.map((quarter, i) => ({ quarter, team, score: k * 10 + i }))
+  );
+  refuses(bump({ rows }), "highlight_needed");
+  admits(bump({ rows, highlight: ["T0"] }));
+  admits(bump({ rows: rows.filter((r) => r.team !== "T8") }));
+});
+
+Deno.test("too_many_categories: 61 dot categories, 13 strip groups", () => {
+  const cats = (n: number) =>
+    Array.from({ length: n }, (_, i) => ({ c: `c${i}`, v: i * 3 + 1 }));
+  refuses(
+    dot({ rows: cats(MAX_DOT_CATEGORIES + 1), x: "c", y: "v" }),
+    "too_many_categories",
+  );
+  admits(dot({ rows: cats(MAX_DOT_CATEGORIES), x: "c", y: "v" }));
+  const groups = (n: number) =>
+    stripRows(2, Array.from({ length: n }, (_, i) => `g${i}`));
+  refuses(strip({ rows: groups(MAX_STRIP_GROUPS + 1) }), "too_many_categories");
+  admits(strip({ rows: groups(MAX_STRIP_GROUPS) }));
+});
+
+Deno.test("too_many_rows: 5001 strip observations", () => {
+  const rows = (n: number) =>
+    Array.from({ length: n }, (_, i) => ({ service: `g${i % 4}`, ms: i }));
+  refuses(
+    strip({ rows: rows(MAX_STRIP_POINTS + 1), width: 20000 }),
+    "too_many_rows",
+  );
+  admits(strip({ rows: rows(MAX_STRIP_POINTS), width: 20000 }));
+});
+
+Deno.test("points_collide: a strip too crowded for its width", () => {
+  const rows = Array.from(
+    { length: 1000 },
+    (_, i) => ({ service: "api", ms: i / 1000 }),
+  );
+  refuses(strip({ rows, width: 200 }), "points_collide");
+  admits(strip({ rows, width: 4000 }));
+  const same = Array.from({ length: 100 }, () => ({ service: "api", ms: 5 }));
+  refuses(strip({ rows: same }), "points_collide");
+  admits(strip({ rows: same.slice(0, 10) }));
+});
+
+Deno.test("annotations of the new forms: shape, matching and length", () => {
+  refuses(
+    dot({ annotations: [{ at: { x: "nowhere" }, text: "t" }] }),
+    "annotation_matches_no_row",
+  );
+  refuses(
+    dot({ annotations: [{ at: { x: "north", series: "2025" }, text: "t" }] }),
+    "invalid_spec",
+  );
+  refuses(
+    dumbbell({ annotations: [{ at: { x: "north" }, text: "t" }] }),
+    "invalid_spec",
+  );
+  refuses(
+    dumbbell({
+      annotations: [{ at: { x: "north", series: "1999" }, text: "t" }],
+    }),
+    "annotation_matches_no_row",
+  );
+  refuses(
+    bump({ annotations: [{ at: { x: "2025 Q1", series: "Z" }, text: "t" }] }),
+    "annotation_matches_no_row",
+  );
+  refuses(
+    bump({ annotations: [{ at: { x: "2025 Q1" }, text: "t" }] }),
+    "invalid_spec",
+  );
+  refuses(
+    strip({ annotations: [{ at: { x: "api", y: -1 }, text: "t" }] }),
+    "annotation_matches_no_row",
+  );
+  refuses(
+    strip({ annotations: [{ at: { x: "api" }, text: "t" }] }),
+    "invalid_spec",
+  );
+  const long = "x".repeat(MAX_ANNOTATION_CHARS + 1);
+  refuses(
+    dot({ annotations: [{ at: { x: "north" }, text: long }] }),
+    "annotation_too_long",
+  );
+  admits(
+    dot({
+      annotations: [{
+        // The smallest value has free room to the right of its dot.
+        at: { x: "south" },
+        text: "x".repeat(MAX_ANNOTATION_CHARS),
+      }],
+    }),
+  );
+});
+
+Deno.test("annotation_does_not_fit and the width check for the new forms", () => {
+  refuses(dot({ width: 60 }), "invalid_spec");
+  refuses(bump({ width: 80 }), "invalid_spec");
+  refuses(strip({ width: 70 }), "invalid_spec");
+  admits(bump({ width: 400 }));
+  refuses(
+    dot({
+      width: 200,
+      annotations: [{ at: { x: "central" }, text: "x".repeat(70) }],
+    }),
+    "annotation_does_not_fit",
+  );
+});
+
+Deno.test("an unknown form message lists all seven forms", () => {
+  const e = refuses({ ...oneLine(), form: "pie" }, "invalid_spec");
+  for (
+    const f of [
+      "sparkline",
+      "line",
+      "multiples",
+      "slope",
+      "dot",
+      "bump",
+      "strip",
+    ]
+  ) {
+    assert.ok(e.message.includes(f), f);
+  }
+});
+
+Deno.test("cli: a dot spec prints the svg", async () => {
+  const r = await cli(JSON.stringify(dot()));
+  assert.equal(r.code, 0, r.stderr);
+  assert.equal(r.stdout, admits(dot()) + "\n");
+  const bad = await cli(JSON.stringify(dot({ rows: [] })));
+  assert.equal(bad.code, 2);
+  assert.match(bad.stderr, /^too_few_rows: /);
 });

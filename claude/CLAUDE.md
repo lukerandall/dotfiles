@@ -70,11 +70,21 @@ verbatim, as its last line.
   worktree. If a task appears to require
   the primary checkout, or to work outside a worktree, and that was not made
   explicit in the instructions, **STOP and ask what to do** — do not assume.
-- **Search with the Grep tool, not Bash.** Grep *is* ripgrep and needs no
-  permission approval; it covers `-n -A -B -C -i -l -c --type -g` and multiline.
-  Shell out to `rg` only for what Grep cannot do (`-o`, `-v`, `-r` replacements,
-  or piping into another command) — and never to `grep`.
+- Search with the Grep tool when the session has it. Grep is ripgrep and needs
+  no permission approval.
+  When the session has no Grep tool, run `rg` through Bash.
+  Also use `rg` through Bash for what Grep cannot do (`-o`, `-v`, `-r`
+  replacements, or piping into another command). Never use `grep`.
 - Use `gh` CLI for all GitHub interactions (PRs, issues, CI status)
+- To wait for CI, run `gh pr checks <n> --watch` in the foreground with a Bash
+  timeout of up to 600000 ms. Never chain `sleep` with a command that reads
+  state; the harness blocks it. A subagent never starts a command in the
+  background and then ends its turn to wait for it, because a subagent does not
+  resume when the command finishes.
+- Change files with Edit and Write. When a Bash command has changed a file,
+  Read the file again before you Edit it.
+- Only the top-level session calls `update_plan` and `wrap_up`. A subagent
+  never calls them.
 
 ## Atlassian / Jira Integration
 

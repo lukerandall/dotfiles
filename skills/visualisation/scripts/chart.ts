@@ -1,5 +1,6 @@
 /**
- * Static SVG charts in four Tufte forms. The interface comes
+ * Static SVG charts: sparkline, line, small multiples and slope, and the
+ * proposed dot, bump and strip. The interface comes
  * first in this file and the implementation follows `render`.
  *
  * Command line: `deno run chart.ts < spec.json > chart.svg`. A refused spec
@@ -91,16 +92,23 @@ export interface NumberFormat {
   suffix?: string;
 }
 
-/** Fields every form accepts. A field that no form declares is refused. */
-interface BaseSpec {
+/**
+ * Fields every form accepts. A field that no form declares is refused.
+ *
+ * `x` and `y` name columns by the role of their data. `y` is always the
+ * measured value, a finite number, and `x` is where the value sits: a time or
+ * number, a category, or a position. The axis a column is drawn on depends on
+ * the form: `dot` and `strip` draw `y` along the horizontal axis.
+ */
+interface FrameSpec {
   /**
-   * The table to draw, in any row order. Each line needs at least two rows,
-   * and no two rows of one line share an `x` value.
+   * The table to draw, in any row order. Each form says how many rows it
+   * needs, and which rows may share an `x` value.
    */
   rows: readonly Row[];
-  /** Column on the horizontal axis. See `XValue` for what it may hold. */
+  /** Column that says where each value sits. See `XValue` and each form. */
   x: Column;
-  /** Column on the vertical axis. Every value must be a finite number. */
+  /** Column that holds the value. Every value must be a finite number. */
   y: Column;
   /**
    * The finding the chart shows, as a non-empty sentence. It becomes the
@@ -113,6 +121,10 @@ interface BaseSpec {
    * form. Default 640, or 160 for a sparkline.
    */
   width?: number;
+}
+
+/** Fields of every form that draws `y` on a numeric scale. */
+interface BaseSpec extends FrameSpec {
   /** How `y` values are printed. */
   yFormat?: NumberFormat;
   /**
@@ -193,8 +205,162 @@ export interface SlopeSpec extends BaseSpec {
   annotations?: readonly Annotation<SeriesPoint>[];
 }
 
+/** The most categories a `dot` chart draws, one row each. */
+export const MAX_DOT_CATEGORIES = 60;
+
+/** The most groups a `strip` chart draws, one strip each. */
+export const MAX_STRIP_GROUPS = 12;
+
+/** The most observations a `strip` chart lays out. */
+export const MAX_STRIP_POINTS = 5000;
+
+/**
+ * A line drawn across a `dot` chart at a value, with a direct label at its end.
+ * Use it for the target, the average or the zero that the finding is measured
+ * against.
+ */
+export interface ReferenceLine {
+  /** Where the line crosses the value axis. The scale grows to include it. */
+  value: number;
+  /** What the value is, as a few words. Printed once, at the line. */
+  label: string;
+}
+
+/** The data point of a `strip` chart: one observation in one group. */
+export interface StripPoint extends Point {
+  /** The observation's value. The first row with this `x` and `y` is used. */
+  y: number;
+}
+
+/**
+ * Fields of both kinds of dot chart. One row per category along the vertical
+ * axis, its value as a dot on a shared horizontal scale. The category names
+ * are the row labels at the left and each dot's value is printed beside it.
+ * The value axis is a range frame: a line from the scale's minimum to its
+ * maximum, labelled with those two values. Rows are in the order `sort` gives.
+ *
+ * `x` names the category column, and every value must be a string. A category
+ * is never read as a date or a number. `y` is the value. Height grows with the
+ * number of categories, at most `MAX_DOT_CATEGORIES`.
+ */
+interface DotBase extends BaseSpec {
+  form: "dot";
+  /**
+   * A value that the finding is measured against, drawn as a thin line with
+   * its label. Default none.
+   */
+  reference?: ReferenceLine;
+}
+
+/**
+ * A dot plot: one dot per category. `rows` has exactly one row per category,
+ * and two rows with one `x` are refused with `duplicate_point`.
+ */
+export interface OneDotSpec extends DotBase {
+  series?: never;
+  /**
+   * `"value"` puts the largest value at the top. `"none"` keeps the order in
+   * which categories first appear in `rows`, for categories that have an
+   * order of their own, such as sizes or age bands. Default `"value"`.
+   */
+  sort?: "value" | "none";
+  annotations?: readonly Annotation<Point>[];
+}
+
+/**
+ * A dumbbell: two dots per category joined by a thin line, to show how far
+ * one value moved to the other. `series` names the measure, such as "2025" and
+ * "2026", and must hold exactly two distinct strings. Every category needs one
+ * row for each. The measure that first appears in `rows` is the first, and its
+ * dots take `--series-1`; the second takes `--series-2`. Each measure is named
+ * once, by a direct label at its dot on the first row.
+ */
+export interface DumbbellSpec extends DotBase {
+  /** Column that names the two measures. Every value must be a string. */
+  series: Column;
+  /**
+   * `"value"` sorts by the first measure, largest at the top. `"difference"`
+   * sorts by the distance between the two, largest at the top. `"none"` keeps
+   * the order of first appearance. Default `"difference"`.
+   */
+  sort?: "value" | "difference" | "none";
+  annotations?: readonly Annotation<SeriesPoint>[];
+}
+
+/** A dot chart. Naming a `series` column selects the dumbbell. */
+export type DotSpec = OneDotSpec | DumbbellSpec;
+
+/**
+ * Ranking change: one line per series across ordered positions, drawn at each
+ * position's rank, with 1 at the top. Each line is named at both ends and the
+ * rank is printed beside the name. A faint axis at the left marks the ranks.
+ * Height grows with the number of series so that labels fit.
+ *
+ * `x` names the position column. When every value is a number, or every value
+ * is an ISO 8601 date string, the positions are in order of value. Otherwise
+ * they are in the order they first appear in `rows`, so a label such as
+ * `"2025 Q1"` works. Positions are evenly spaced. `y` is read as a rank or a
+ * score: within each position the series are ranked by `y`, a lower `y`
+ * ranking better when `better` is `"low"`, and ties keep the order in which
+ * the series first appear. Every series needs one row at every position, and
+ * two rows of one series at one position are refused with `duplicate_point`.
+ * There are at least two positions and two series.
+ *
+ * Formatting and scale fields do not apply: ranks print as whole numbers.
+ */
+export interface BumpSpec extends FrameSpec {
+  form: "bump";
+  /** Column that names the series. Every value must be a string. */
+  series: Column;
+  /**
+   * `"low"`: a lower `y` ranks better, as in a rank column where 1 is first.
+   * `"high"`: a higher `y` ranks better, as in a score. Default `"low"`.
+   */
+  better?: "low" | "high";
+  /**
+   * Names of the series the finding is about, at most `MAX_LINE_SERIES`. They
+   * take the series colours in the order given, and every other line is drawn
+   * in a fainter `currentColor`, labelled in the same way. Required when there
+   * are more than `MAX_LINE_SERIES` series. Default: every series coloured.
+   */
+  highlight?: readonly string[];
+  annotations?: readonly Annotation<SeriesPoint>[];
+}
+
+/**
+ * Raw observations by group, each as a dot on one shared horizontal value
+ * scale, one strip per group. Where dots would overlap they are moved apart
+ * across the strip, which makes the strip a beeswarm; with no overlap it stays
+ * one line of dots. The strip's height follows from the most crowded value.
+ * With `median`, a short thin line marks each group's median and its value is
+ * printed.
+ *
+ * `x` names the group column, every value a string, and `y` is the observed
+ * value. Each row is one observation. Rows may repeat `x` and `y`, and
+ * `duplicate_point` does not apply. At most `MAX_STRIP_GROUPS` groups and
+ * `MAX_STRIP_POINTS` rows. Every group needs at least one row.
+ */
+export interface StripSpec extends BaseSpec {
+  form: "strip";
+  /**
+   * `"value"` orders groups by median, the largest at the top. `"none"` keeps
+   * the order of first appearance. Default `"value"`.
+   */
+  sort?: "value" | "none";
+  /** Mark and print each group's median. Default true. */
+  median?: boolean;
+  annotations?: readonly Annotation<StripPoint>[];
+}
+
 /** Every spec the helper accepts. `form` selects the member. */
-export type ChartSpec = SparklineSpec | LineSpec | MultiplesSpec | SlopeSpec;
+export type ChartSpec =
+  | SparklineSpec
+  | LineSpec
+  | MultiplesSpec
+  | SlopeSpec
+  | DotSpec
+  | BumpSpec
+  | StripSpec;
 
 /**
  * Why a spec was refused. Each code has one recovery, and the message states
@@ -241,10 +407,38 @@ export type ChartErrorCode =
    */
   | "annotation_does_not_fit"
   /**
-   * A `line` chart has more than `MAX_LINE_SERIES` series. Recovery: use
-   * `multiples`.
+   * A `line` chart has more than `MAX_LINE_SERIES` series, or a `bump` chart
+   * has more and names no `highlight`. Recovery: the message names it. A line
+   * chart uses `multiples`, and a bump chart sets `highlight` to the series
+   * the finding is about.
    */
   | "too_many_series"
+  /**
+   * A form that needs every series at every position or measure has a series
+   * without one: a `bump` chart that lacks a row at some position, or a
+   * dumbbell that lacks one of its two measures. Recovery: give every series
+   * one row at each, or drop the series the message names.
+   */
+  | "series_incomplete"
+  /**
+   * A `dot` chart has more than `MAX_DOT_CATEGORIES` categories, or a `strip`
+   * chart more than `MAX_STRIP_GROUPS` groups. Recovery: keep the categories
+   * the reader needs, such as the largest and smallest, and say in the
+   * surrounding text how many were left out.
+   */
+  | "too_many_categories"
+  /**
+   * A `strip` chart has more than `MAX_STRIP_POINTS` rows. Recovery: sample
+   * the rows or aggregate them into a histogram, which `references/drawn/`
+   * shows how to draw.
+   */
+  | "too_many_rows"
+  /**
+   * A `strip` chart's dots still overlap after the layout has used all the
+   * height it may take. Recovery: raise `width`, or aggregate the rows into a
+   * histogram, which `references/drawn/` shows how to draw.
+   */
+  | "points_collide"
   /**
    * A `line` chart's end-of-line labels still collide after layout, or the
    * label of a series that ends early has no free place. Recovery: use
@@ -299,6 +493,12 @@ export function render(spec: ChartSpec): string {
 
 /** `render` for a value of unknown type, such as parsed JSON. */
 function renderUnknown(spec: unknown): string {
+  // The forms below are interface only. Their drawing is built after review.
+  if (isObj(spec)) {
+    if (spec.form === "dot") return drawDot(spec);
+    if (spec.form === "bump") return drawBump(spec);
+    if (spec.form === "strip") return drawStrip(spec);
+  }
   const model = parse(spec);
   switch (model.form) {
     case "sparkline":
@@ -310,6 +510,22 @@ function renderUnknown(spec: unknown): string {
     case "slope":
       return drawSlope(model);
   }
+}
+
+function notBuilt(form: string): never {
+  throw new Error(`The "${form}" form is specified but not yet drawn.`);
+}
+
+function drawDot(_spec: Obj): never {
+  return notBuilt("dot");
+}
+
+function drawBump(_spec: Obj): never {
+  return notBuilt("bump");
+}
+
+function drawStrip(_spec: Obj): never {
+  return notBuilt("strip");
 }
 
 // Validation ---------------------------------------------------------------

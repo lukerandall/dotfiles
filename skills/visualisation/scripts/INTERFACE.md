@@ -179,3 +179,107 @@ joined causes that have different recoveries.
 - **A `null` in `y` is refused.** Drawing a gap would need rules for the last
   value and the extremes. The agent drops the row.
 - **`columns` and `extremes` stay.** Each is one optional field with a default.
+
+## Proposed: dot, bump, strip
+
+The revised plan (`/changes/visualisation-skill/plans/20261113T023157058399Z`)
+adds three forms to the helper. This section proposes their interface. The types
+are in `chart.ts` and `render` throws a plain error for the three forms until
+they are built. A reviewer reads this section before any drawing code is
+written.
+
+### The three forms
+
+| `form`  | Extra fields                    | What it draws                                                                                  |
+| ------- | ------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `dot`   | `series`, `sort`, `reference`   | One row per category with its value as a dot. With `series` of two measures it is a dumbbell.  |
+| `bump`  | `series`, `better`, `highlight` | One line per series across ordered positions, drawn at each position's rank.                   |
+| `strip` | `sort`, `median`                | One strip per group of raw observations, moved apart into a beeswarm where dots would overlap. |
+
+### Choices
+
+- **`y` is always the value, `x` is where it sits.** The existing forms put `x`
+  on the horizontal axis. A dot plot and a strip put the value on the horizontal
+  axis, as Cleveland's dot plot does, so that the category names read as
+  horizontal text. Renaming the columns per form would give each form its own
+  vocabulary. Keeping `x` for the category and `y` for the value lets `yFormat`,
+  `yRange` and every refusal about `y` mean one thing in all seven forms. The
+  doc comment on `FrameSpec` says so, and each form's comment says which way the
+  value axis runs.
+- **`BaseSpec` is split.** `FrameSpec` holds `rows`, `x`, `y`, `finding` and
+  `width`. `BaseSpec` adds `yFormat` and `yRange`. `bump` extends only
+  `FrameSpec`, because ranks print as whole numbers on a fixed scale, and the
+  helper refuses a field that no form declares.
+- **A dumbbell is a `dot` spec with `series`.** It uses the same selection that
+  `line` uses: naming a `series` column picks the variant, and the types are a
+  union. The two measures are rows in long format, as in `slope`, so one table
+  feeds `slope`, `dumbbell` or a `line` chart. The dumbbell is the form for two
+  values per category when the categories, not the two moments, are what the
+  reader compares. The default sort is by difference, because that is the
+  question a dumbbell answers.
+- **`sort` defaults to `"value"` and the type says which values apply.** Sorted
+  dots are what makes position on a common scale easy to judge. A `"none"`
+  option exists for categories with their own order. `"difference"` exists only
+  for the dumbbell, and the union makes it a type error elsewhere.
+- **`reference` is one field, with a label.** Deviation from a target is one of
+  the tasks the plan lists for the dot plot. The label is required so that the
+  line is named directly, which the skill requires of every mark. No interval
+  field is proposed: a dot with an interval needs two more columns, and the plan
+  keeps it as a drawn form.
+- **`bump` ranks inside the helper.** An agent gives a score or a rank and the
+  helper computes each position's order, so a mistake in sorting cannot reach
+  the picture. `better` says which direction ranks first. Ties keep the order in
+  which series first appear, which is deterministic and stated.
+- **`bump` positions are ordered categories.** Quarters such as `"2025 Q1"` are
+  not ISO dates, and a ranking is read position by position, so positions are
+  evenly spaced. Numbers and ISO dates are put in value order, and any other
+  strings keep first-appearance order. No `XValue` change is needed.
+- **`bump` needs every series at every position**, refused with the new code
+  `series_incomplete`. A gap would need a rule for drawing a series that leaves
+  the ranking and returns. The agent drops the series or fills the rows. The
+  dumbbell uses the same code when a category lacks one of its two measures.
+- **`highlight` stands in for a palette of ten.** The plan's ranking case has
+  ten teams, and `dataviz` never generates a ninth colour. With `highlight`, the
+  named series (at most `MAX_LINE_SERIES`) take the series colours and the rest
+  are drawn in fainter `currentColor`, which is the standard way to show one
+  team's story among many. Without it, more than eight series refuse with
+  `too_many_series`. That code now has two recoveries in two forms, and the
+  message names the one that applies. A separate code would give the agent two
+  codes for one cause.
+- **`strip` always lays out as a beeswarm.** With no overlap the layout is one
+  line of dots, so the plan's "beeswarm when points overlap" needs no `layout`
+  field. The strip grows taller up to a fixed limit, and past it the helper
+  refuses with `points_collide` instead of letting dots overlap. The recovery
+  names the drawn histogram in `references/drawn/`.
+- **`strip` rows are observations.** `duplicate_point` does not apply, and an
+  annotation's `at` is `{ x, y }` because a group has many rows. The annotation
+  uses the first row that matches both.
+- **`median` is on by default.** A swarm shows the shape and a median tick gives
+  the reader one number to compare. It is one boolean, as `extremes` is for the
+  sparkline.
+- **Limits are constants, with codes.** `MAX_DOT_CATEGORIES` (60),
+  `MAX_STRIP_GROUPS` (12) and `MAX_STRIP_POINTS` (5000) are exported with the
+  existing limits. A dot or strip chart over a limit refuses with
+  `too_many_categories`, and a strip over the point limit with `too_many_rows`.
+  The swarm's collision search grows with the number of points, so the point
+  limit keeps a run short.
+
+### New refusal codes
+
+| Code                  | When                                                                      | Recovery                                                             |
+| --------------------- | ------------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| `series_incomplete`   | A `bump` series lacks a position, or a dumbbell category lacks a measure. | Give every series one row at each, or drop the series.               |
+| `too_many_categories` | A `dot` chart has over 60 categories, or a `strip` chart over 12 groups.  | Keep the categories the reader needs and say how many were left out. |
+| `too_many_rows`       | A `strip` chart has over 5000 rows.                                       | Sample the rows or draw a histogram.                                 |
+| `points_collide`      | Strip dots still overlap at the tallest allowed strip.                    | Raise `width`, or draw a histogram.                                  |
+
+`too_many_series` changes its description only: a `bump` chart over eight series
+with no `highlight` also gets it.
+
+### Questions for the reviewer
+
+1. Is `x` as category and `y` as value, drawn on the horizontal axis for `dot`
+   and `strip`, clearer than adding `category` and `value` fields?
+2. Should `reference` be dropped until a case needs it?
+3. Should `bump` take `better: "low" | "high"`, or should it accept ranks only?
+4. Is one `too_many_series` code with two recoveries acceptable?

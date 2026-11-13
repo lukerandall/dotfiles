@@ -34,8 +34,12 @@ export type Column = string;
  * string: `YYYY`, `YYYY-MM`, `YYYY-MM-DD`, or a date-time with `Z` or an
  * offset. Dates are read as UTC. One spec never mixes numbers and dates.
  *
- * In `slope`, `x` names one of the two positions and can be any string or
- * number.
+ * In `slope`, `dot` and `strip`, `x` is a label: one of the two positions, a
+ * category or a group. It can be any string or number, and a number or a date
+ * is never put on a scale.
+ *
+ * In `bump`, `x` is a position in an ordered sequence. `BumpSpec` says how
+ * the order is found.
  *
  * Where the chart prints an `x` value, it prints the value as the row wrote
  * it. The helper never reformats `x`.
@@ -56,7 +60,8 @@ export interface SeriesPoint extends Point {
 /**
  * A sentence written next to one data point. The text is plain, drawn with no
  * box, and is limited to `MAX_ANNOTATION_CHARS` characters. `at` must match
- * exactly one row. The helper chooses where the text goes and adds a thin
+ * exactly one row, except in `strip`, where equal observations are separate
+ * dots and `at` takes the first. The helper chooses where the text goes and adds a thin
  * leader line only when it must move the text away from the point.
  */
 export interface Annotation<At extends Point = Point> {
@@ -69,8 +74,9 @@ export interface Annotation<At extends Point = Point> {
 export const MAX_ANNOTATION_CHARS = 80;
 
 /**
- * The most series a `line` chart draws. The `dataviz` palette has this many
- * categorical colours and a ninth is never generated.
+ * The most series a `line` chart draws, and the most series a `bump` chart
+ * colours. The `dataviz` palette has this many categorical colours and a ninth
+ * is never generated.
  */
 export const MAX_LINE_SERIES = 8;
 
@@ -97,10 +103,12 @@ export interface NumberFormat {
  *
  * `x` and `y` name columns by the role of their data. `y` is always the
  * measured value, a finite number, and `x` is where the value sits: a time or
- * number, a category, or a position. The axis a column is drawn on depends on
- * the form: `dot` and `strip` draw `y` along the horizontal axis.
+ * number, a category, or a position. The names say nothing about the axis a
+ * column is drawn on: `dot` and `strip` draw `y` along the horizontal axis so
+ * that category names read as horizontal text. One table can therefore move
+ * between `slope`, `dot` and `line` by changing `form` alone.
  */
-interface FrameSpec {
+interface CommonSpec {
   /**
    * The table to draw, in any row order. Each form says how many rows it
    * needs, and which rows may share an `x` value.
@@ -123,8 +131,11 @@ interface FrameSpec {
   width?: number;
 }
 
-/** Fields of every form that draws `y` on a numeric scale. */
-interface BaseSpec extends FrameSpec {
+/**
+ * Fields of every form that draws `y` on a numeric scale and prints `y`
+ * values. `bump` is the one form that does neither, because it draws ranks.
+ */
+interface ScaledSpec extends CommonSpec {
   /** How `y` values are printed. */
   yFormat?: NumberFormat;
   /**
@@ -137,7 +148,7 @@ interface BaseSpec extends FrameSpec {
 }
 
 /** One small line with no axes and the last value printed after it. */
-export interface SparklineSpec extends BaseSpec {
+export interface SparklineSpec extends ScaledSpec {
   form: "sparkline";
   /** Mark the minimum and maximum points and print their values. Default true. */
   extremes?: boolean;
@@ -150,7 +161,7 @@ export interface SparklineSpec extends BaseSpec {
  * spanning the y scale's minimum to maximum with those two values as its only
  * labels. The x axis is a range frame in the same way.
  */
-interface LineBase extends BaseSpec {
+interface LineBase extends ScaledSpec {
   form: "line";
 }
 
@@ -179,7 +190,7 @@ export type LineSpec = OneLineSpec | ManyLinesSpec;
  * sparkline-sized line titled with its series name and last value. Panels are
  * in the order series first appear in `rows`. Every panel is one colour.
  */
-export interface MultiplesSpec extends BaseSpec {
+export interface MultiplesSpec extends ScaledSpec {
   form: "multiples";
   /** Column that names the series. Every value must be a string. */
   series: Column;
@@ -198,7 +209,7 @@ export interface MultiplesSpec extends BaseSpec {
  * its series name and value at both ends. Height grows with the number of
  * series so that the labels fit, and every line is one colour.
  */
-export interface SlopeSpec extends BaseSpec {
+export interface SlopeSpec extends ScaledSpec {
   form: "slope";
   /** Column that names the series. Every value must be a string. */
   series: Column;
@@ -239,11 +250,12 @@ export interface StripPoint extends Point {
  * The value axis is a range frame: a line from the scale's minimum to its
  * maximum, labelled with those two values. Rows are in the order `sort` gives.
  *
- * `x` names the category column, and every value must be a string. A category
- * is never read as a date or a number. `y` is the value. Height grows with the
- * number of categories, at most `MAX_DOT_CATEGORIES`.
+ * `x` names the category column. A category is a label, printed as the row
+ * wrote it, and is never read as a date or a number. `y` is the value. There
+ * are at least two categories and at most `MAX_DOT_CATEGORIES`, and height
+ * grows with their number.
  */
-interface DotBase extends BaseSpec {
+interface DotBase extends ScaledSpec {
   form: "dot";
   /**
    * A value that the finding is measured against, drawn as a thin line with
@@ -271,16 +283,20 @@ export interface OneDotSpec extends DotBase {
  * A dumbbell: two dots per category joined by a thin line, to show how far
  * one value moved to the other. `series` names the measure, such as "2025" and
  * "2026", and must hold exactly two distinct strings. Every category needs one
- * row for each. The measure that first appears in `rows` is the first, and its
- * dots take `--series-1`; the second takes `--series-2`. Each measure is named
- * once, by a direct label at its dot on the first row.
+ * row for each, and a spec that breaks either rule is refused with
+ * `dumbbell_needs_two_measures`. The measure that first appears in `rows` is
+ * the first, and its dots take `--series-1`; the second takes `--series-2`.
+ * Each measure is named once, by a direct label at its dot on the top row, so
+ * the reader never has to tell the two apart by colour alone.
  */
 export interface DumbbellSpec extends DotBase {
   /** Column that names the two measures. Every value must be a string. */
   series: Column;
   /**
-   * `"value"` sorts by the first measure, largest at the top. `"difference"`
-   * sorts by the distance between the two, largest at the top. `"none"` keeps
+   * `"difference"` sorts by the second measure minus the first, with its sign:
+   * the largest rise is at the top and the largest fall at the bottom, so
+   * the direction of a change is read from its place as well as its colours.
+   * `"value"` sorts by the first measure, largest at the top. `"none"` keeps
    * the order of first appearance. Default `"difference"`.
    */
   sort?: "value" | "difference" | "none";
@@ -299,31 +315,40 @@ export type DotSpec = OneDotSpec | DumbbellSpec;
  * `x` names the position column. When every value is a number, or every value
  * is an ISO 8601 date string, the positions are in order of value. Otherwise
  * they are in the order they first appear in `rows`, so a label such as
- * `"2025 Q1"` works. Positions are evenly spaced. `y` is read as a rank or a
- * score: within each position the series are ranked by `y`, a lower `y`
- * ranking better when `better` is `"low"`, and ties keep the order in which
- * the series first appear. Every series needs one row at every position, and
- * two rows of one series at one position are refused with `duplicate_point`.
- * There are at least two positions and two series.
+ * `"2025 Q1"` works. Positions are evenly spaced.
  *
- * Formatting and scale fields do not apply: ranks print as whole numbers.
+ * `y` is a rank or a score. Within each position the helper ranks the series
+ * by `y`, and `first` says which end of `y` is rank 1. Two series with equal
+ * `y` at one position are refused with `tied_rank`, because the helper cannot
+ * know the ranking's tie rule and any order it chose would be drawn as fact.
+ * Every series needs one row at every position, or the spec is refused with
+ * `series_incomplete`, and two rows of one series at one position are refused
+ * with `duplicate_point`. There are at least two positions and two series.
+ *
+ * `yFormat` and `yRange` are not fields of this form: it prints ranks, which
+ * are whole numbers, and never prints `y`.
  */
-export interface BumpSpec extends FrameSpec {
+export interface BumpSpec extends CommonSpec {
   form: "bump";
   /** Column that names the series. Every value must be a string. */
   series: Column;
   /**
-   * `"low"`: a lower `y` ranks better, as in a rank column where 1 is first.
-   * `"high"`: a higher `y` ranks better, as in a score. Default `"low"`.
+   * Which `y` is rank 1 at each position. `"lowest"` suits a rank column,
+   * where 1 is first, and a measure such as a lap time. `"highest"` suits a
+   * score. It is required, because the wrong direction draws the whole chart
+   * upside down and no check could catch it.
    */
-  better?: "low" | "high";
+  first: "lowest" | "highest";
   /**
-   * Names of the series the finding is about, at most `MAX_LINE_SERIES`. They
-   * take the series colours in the order given, and every other line is drawn
-   * in a fainter `currentColor`, labelled in the same way. Required when there
-   * are more than `MAX_LINE_SERIES` series. Default: every series coloured.
+   * Names of the series the finding is about, from 1 to `MAX_LINE_SERIES` of
+   * them, each a value of the `series` column and named once. They take the
+   * series colours in the order given, and every other line is drawn in a
+   * fainter `currentColor`, labelled in the same way. Required when there are
+   * more than `MAX_LINE_SERIES` series; without it such a chart is refused
+   * with `highlight_needed`. Default: every series coloured, in the order
+   * series first appear in `rows`.
    */
-  highlight?: readonly string[];
+  highlight?: readonly [string, ...string[]];
   annotations?: readonly Annotation<SeriesPoint>[];
 }
 
@@ -335,18 +360,20 @@ export interface BumpSpec extends FrameSpec {
  * With `median`, a short thin line marks each group's median and its value is
  * printed.
  *
- * `x` names the group column, every value a string, and `y` is the observed
- * value. Each row is one observation. Rows may repeat `x` and `y`, and
- * `duplicate_point` does not apply. At most `MAX_STRIP_GROUPS` groups and
- * `MAX_STRIP_POINTS` rows. Every group needs at least one row.
+ * `x` names the group column, and a group is a label, as a `dot` category is.
+ * `y` is the observed value. Each row is one observation. Rows may repeat `x`
+ * and `y`, and `duplicate_point` does not apply. One group is enough. There
+ * are at most `MAX_STRIP_GROUPS` groups and `MAX_STRIP_POINTS` rows. Dots that
+ * still overlap when a strip has reached its greatest height are refused with
+ * `points_collide`; the helper never draws one dot over another.
  */
-export interface StripSpec extends BaseSpec {
+export interface StripSpec extends ScaledSpec {
   form: "strip";
   /**
-   * `"value"` orders groups by median, the largest at the top. `"none"` keeps
-   * the order of first appearance. Default `"value"`.
+   * `"median"` orders groups by median, the largest at the top. `"none"` keeps
+   * the order of first appearance. Default `"median"`.
    */
-  sort?: "value" | "none";
+  sort?: "median" | "none";
   /** Mark and print each group's median. Default true. */
   median?: boolean;
   annotations?: readonly Annotation<StripPoint>[];
@@ -369,13 +396,16 @@ export type ChartSpec =
 export type ChartErrorCode =
   /**
    * The input is not JSON, or a spec field is missing, of the wrong type, out
-   * of its stated bounds, or not a field of the form. Recovery: correct the
+   * of its stated bounds, or not a field of the form. A `highlight` name that
+   * is not a value of the `series` column is out of bounds. Recovery: correct the
    * field the message names; the message lists what the field accepts.
    */
   | "invalid_spec"
   /**
-   * `rows` is empty, or a line has fewer than two rows. Recovery: supply more
-   * rows, or state the value in a sentence and draw no chart.
+   * `rows` is empty, a line has fewer than two rows, a `dot` chart has fewer
+   * than two categories, or a `bump` chart has fewer than two positions or
+   * two series. Recovery: supply more rows, or state the value in a sentence
+   * and draw no chart.
    */
   | "too_few_rows"
   /** A named column is absent from a row. Recovery: add it or fix the name. */
@@ -387,8 +417,9 @@ export type ChartErrorCode =
    */
   | "invalid_value"
   /**
-   * Two rows of one line share an `x` value. Recovery: aggregate the rows so
-   * each line has one row per `x`.
+   * Two rows of one line share an `x` value. A `dot` category's measure and a
+   * `bump` series count as a line here. Recovery: aggregate the rows so each
+   * line has one row per `x`.
    */
   | "duplicate_point"
   /**
@@ -407,19 +438,32 @@ export type ChartErrorCode =
    */
   | "annotation_does_not_fit"
   /**
-   * A `line` chart has more than `MAX_LINE_SERIES` series, or a `bump` chart
-   * has more and names no `highlight`. Recovery: the message names it. A line
-   * chart uses `multiples`, and a bump chart sets `highlight` to the series
-   * the finding is about.
+   * A `line` chart has more than `MAX_LINE_SERIES` series. Recovery: use
+   * `multiples`.
    */
   | "too_many_series"
   /**
-   * A form that needs every series at every position or measure has a series
-   * without one: a `bump` chart that lacks a row at some position, or a
-   * dumbbell that lacks one of its two measures. Recovery: give every series
-   * one row at each, or drop the series the message names.
+   * A `bump` chart has more than `MAX_LINE_SERIES` series and no `highlight`.
+   * Recovery: set `highlight` to the series the finding is about.
+   */
+  | "highlight_needed"
+  /**
+   * A `bump` series has no row at one of the positions. Recovery: give the
+   * series the message names one row at every position, or drop it.
    */
   | "series_incomplete"
+  /**
+   * Two `bump` series have the same `y` at one position. Recovery: give the
+   * two rows the message names different `y` values by the ranking's own tie
+   * rule, such as the rank column of the source.
+   */
+  | "tied_rank"
+  /**
+   * A dumbbell's `series` does not hold exactly two distinct values, or a
+   * category lacks a row for one of them. Recovery: give every category one
+   * row for each of two measures.
+   */
+  | "dumbbell_needs_two_measures"
   /**
    * A `dot` chart has more than `MAX_DOT_CATEGORIES` categories, or a `strip`
    * chart more than `MAX_STRIP_GROUPS` groups. Recovery: keep the categories

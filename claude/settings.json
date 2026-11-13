@@ -63,6 +63,7 @@
     }
   },
   "alwaysThinkingEnabled": true,
+  "subagentPromptCacheTtl": "1h",
   "tui": "fullscreen",
   "autoMemoryEnabled": true,
   "skipWorkflowUsageWarning": true,

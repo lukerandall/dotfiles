@@ -80,14 +80,19 @@ verbatim, as its last line.
 - To wait for CI on a GitHub pull request, run `gh pr checks <n> --watch` in
   the foreground with a Bash timeout of up to 600000 ms. If the timeout ends
   the command before CI finishes, run it again.
-  Never run `sleep` in the foreground; the harness blocks it.
-  To wait on any other condition, use the Monitor tool with an until-loop, or
-  start the command with `run_in_background`. A top-level session is re-invoked when a background
-  command exits. A subagent is not re-invoked, so a subagent never starts a
-  command in the background and then ends its turn to wait for it.
-- Make hand edits with Edit and Write. When a Bash command, a formatter or
-  another agent has changed a file since you read it,
-  Read the file again before you Edit or Write it.
+  Never run `sleep` in the foreground; the harness blocks it. A top-level
+  session waits on any other condition with the Monitor tool and an
+  until-loop, or starts the command with `run_in_background`, and is
+  re-invoked when the command exits.
+- A subagent is not re-invoked when a background command or a Monitor
+  finishes.
+  A subagent waits only with a command that blocks in the foreground,
+  such as `gh pr checks <n> --watch`, and never ends its turn while a
+  Monitor or a background command is still running.
+- Read a file before you first Edit or Write it.
+  Read it again when a Bash command, a formatter or another agent has
+  changed it since you read it. A new file needs no Read.
+  Make hand edits with Edit and Write.
 - Only the top-level session calls the `update_plan` and `wrap_up` tools, where
   the session has them. A subagent never calls them.
 

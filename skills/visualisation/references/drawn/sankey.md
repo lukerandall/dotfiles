@@ -8,7 +8,7 @@ Data needed: Counts for every from-to pair in each period. States that exist at 
 
 1. Use `d3-sankey` 0.12.3: `sankey().nodeAlign(sankeyLeft).extent(...)` computes node positions and link widths, and `sankeyLinkHorizontal()` gives each link's path.
 2. Give each stage one node per state. Add the end-state node only from the stage in which it first appears, and carry it forward with one link.
-3. Colour each link by its source state, with the end-state links in a neutral colour, and label every node with its name and count.
+3. Colour each link by its source state, with the end-state links in a neutral colour, and print a count on every node (beside its name) and on every flow (on its band, midway between the stages). A flow label needs no more than the value, and labels in one column are spread apart so that they do not overlap. The reader of a flow diagram asks how many moved, and the band width alone cannot answer.
 4. An alluvial diagram is the same drawing with the order of nodes in each stage kept the same, so that bands do not cross when a state does not change.
 
 The example uses `d3-sankey@0.12.3`, `d3-shape@3.2.0`, `d3-scale@4.0.2`, pinned, with the helpers in `common.md`. It writes a static SVG with no script, style or id: text in `currentColor` and colours as `var(--series-N, fallback)`.
@@ -50,6 +50,13 @@ export function sankeyChart(): string {
   for (const n of ns) {
     body += `<path d="M${r(n.x0)},${r(n.y0)}H${r(n.x1)}V${r(n.y1)}H${r(n.x0)}z" fill="${n.name === "Churned" ? "currentColor" : S(names.indexOf(n.name) + 1)}"${n.name === "Churned" ? ' fill-opacity="0.5"' : ""}/>`;
     body += T(n.stage === 2 ? n.x0 - 6 : n.x1 + 6, (n.y0 + n.y1) / 2, `${n.name} ${n.value}`, n.stage === 2 ? "end" : "start");
+  }
+  // Every flow carries its count on its band, midway between the stages. Labels in one column are spread 12 px apart.
+  for (const st of [0, 1]) {
+    const col = ls.filter((l: any) => l.source.stage === st).map((l: any) => ({ x: (l.source.x1 + l.target.x0) / 2, y: (l.y0 + l.y1) / 2, v: l.value }));
+    col.sort((a: any, b: any) => a.y - b.y);
+    col.forEach((c: any, i: number) => { if (i && c.y < col[i - 1].y + 12) c.y = col[i - 1].y + 12; });
+    for (const c of col) body += T(c.x, c.y, String(c.v), "middle");
   }
   stages.forEach((s, i) => (body += T(i === 0 ? 10 : i === 1 ? 300 : 590, 8, s, i === 0 ? "start" : i === 1 ? "middle" : "end", true)));
   return svg(244, "Customers moving between plans and churn, January to July: Free loses the most to churn.", body, 600);

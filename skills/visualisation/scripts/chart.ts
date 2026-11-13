@@ -2138,7 +2138,7 @@ function drawDot(m: DotModel): string {
   // leaves room for the longest name as well as for the value labels.
   const rightPad = Math.max(
     ...printed.map((p) => tw(p.right) + 12),
-    ...(named ? m.measures.map((s) => tw(s) + 6) : []),
+    ...(named ? m.measures.map((s) => tw(s) + 3) : []),
   );
   const x0 = leftM + leftPad;
   const x1 = W - rightPad;

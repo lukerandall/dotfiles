@@ -86,6 +86,8 @@ Not suited: categories that are periods of one series (use `line`), and fewer th
 
 Suits: two values per category, where the finding is the size and direction of the move, such as 2025 against 2026 for each region. It is a dot spec with `series` naming the column that holds the two measures. The helper draws one dot per measure joined by a thin line, names each measure once on the top row, and sorts by the second measure minus the first, so rises are at the top and falls at the bottom. Every category needs one row for each measure.
 
+A paired comparison shows both values, because a percent change alone hides whether a rise is 5 items or 5,000. Pass the two values to the dumbbell, and put the percent change in a note (`annotations`) when the reader asks how much. Do not replace the pair with the percent. The axis is linear. When the categories span more than about 20 times from smallest to largest, the small ones sit on top of each other: split them into one dumbbell per size band (call the helper once for each band, so each has its own scale), or draw a log axis by hand. The helper has no log scale, and adding one would change its reviewed interface.
+
 ```json
 {"form":"dot","x":"region","y":"orders","series":"year","finding":"Delta grew most and Coast fell.","rows":[{"region":"Delta","year":"2025","orders":120},{"region":"Delta","year":"2026","orders":310},{"region":"Hills","year":"2025","orders":900},{"region":"Hills","year":"2026","orders":950},{"region":"Coast","year":"2025","orders":500},{"region":"Coast","year":"2026","orders":380}]}
 ```

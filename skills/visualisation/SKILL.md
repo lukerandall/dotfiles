@@ -11,7 +11,7 @@ Work through these seven steps in order. `dataviz` supplies colour, the palette,
 4. **Draw.** Use the helper for sparkline, line, multiples, slope, dot, dumbbell, bump and strip: write a spec (`references/forms.md` has one to copy for each) and run `deno run <base directory>/scripts/chart.ts < spec.json > chart.svg`. `<base directory>` is the skill's base directory, which is `~/.agents/skills/visualisation` when the skill is installed. `references/helper.md` lists the fields and the refusals. For every other form, follow that form's file in `references/drawn/`. `references/targets.md` says what the target page allows.
 5. **Present.** Label each series on the chart and put no legend there. Put each finding beside its data point as plain text (`references/annotation.md`). Draw no box, card, border or background around a label or the plot. Each axis line spans only the data's minimum to maximum and its end labels state those values (a range frame).
 6. **Colour.** Take colours and mark sizes from `dataviz`, define `--series-1` onward on the page from its palette, and run its validator.
-7. **Check.** Render the chart in the light and dark themes. Read the answer to the step 1 question off the chart alone. When you cannot, go back to step 3.
+7. **Check.** Render the chart in the light and dark themes. Read the answer to the step 1 question off the chart alone. When you cannot, go back to step 3. Then read every number printed on the chart, including the title, headline and annotations, back against the data. Recompute each computed value (a difference, a median, a percentage, a count) from the rows with a script, and never from memory or by eye. Correct any number that differs. Numbers the helper printed are its own work; any number you typed or drew into the SVG yourself needs this check.
 
 ## Overrides of `dataviz`
 
@@ -25,3 +25,4 @@ Work through these seven steps in order. `dataviz` supplies colour, the palette,
 - The chart came from `scripts/chart.ts`, or names the `references/drawn/` file it followed.
 - Every series is labelled on the chart, and no box surrounds a label or the plot.
 - The output contains no `<script>` when the target is hangar.
+- Every number printed on the chart has been read back against the data, and every computed value was recomputed from the rows by a script.

@@ -18,14 +18,15 @@ Each row gives the data shape, the form, its strength, when not to use it, where
 | --- | --- | --- | --- | --- | --- |
 | One value per category | Sorted bar | Length from a zero baseline; order by value when categories have no order of their own. Horizontal when labels are long | A baseline of zero hides the differences when values are close together | `dataviz` | Wilke 6 |
 | One value per category, values close together or the axis must not start at zero | Dot plot | Position on a common scale; the eye goes to the dot, not to the middle of a bar. Uses less ink than a bar and takes a second measure without clutter | Fewer than two categories | helper `dot` | Wilke 6.3; Robbins 2006; Cleveland and McGill 1984 |
-| Two values per category, the move between them is the finding | Dumbbell | Shows size and direction of each move, sorted by the move | More than two measures | helper `dot` with `series` | FT (dot plot, slope) |
+| Two values per category (before and after, this year and last), paired | Dumbbell | Shows both values on one scale and the move between them, sorted by the move. Print the absolute values beside the dots, and the percent change as a label when the reader asks "how much" | More than two measures. Categories whose values differ by more than about 20 times: the small categories collapse into a point on a linear axis. Use a log axis (drawn by hand, because the helper's scale is linear) or small multiples with one scale per group | helper `dot` with `series` | FT Visual Vocabulary (dot plot: "change or range across categories"); sorting by the move and the labels are convention |
+| Two values per category where only the relative change matters | Dot plot of percent change | One position per category on a common scale | The reader needs the size of each value: a percent change alone hides whether 50% is 5 items or 5,000. Use the dumbbell with the percent as a label | helper `dot` | Wilke 6.3 |
 
 ## Change over time
 
 | Data shape | Form | Strength | When not | Draw | Source |
 | --- | --- | --- | --- | --- | --- |
 | One series, many moments | Line | Points connected in time order; label lines directly instead of using a legend | Unordered categories | helper `line` | Wilke 14 |
-| Many series, each needs its own shape | Small multiples | Same scale and axes in every panel, so the reader compares by eye | Panels that do not share a scale | helper `multiples` | Tufte 1983 (page not checked) |
+| Many series, each needs its own shape | Small multiples | Same scale and axes in every panel, so the reader compares by eye | Panels that do not share a scale | helper `multiples` | Tufte 1983, second edition p. 168 (the page number comes from Masnick's guideline, https://masnick.org/projects/datatips/guidelines/small-multiples/; the book itself was not opened) |
 | One series in a table or a sentence | Sparkline | Word-sized; gives a number its history | When the reader must read values off it | helper `sparkline` | Tufte, sparkline notes |
 | Few items at two or three moments | Slopegraph | Identity of each case stays visible; slope shows size and direction of change | Many observations, or a question about the points between the two moments | helper `slope` | Wilke 12; FT |
 | Many series in very little height | Horizon chart | In Heer and others' experiment, 2-band charts were more accurate than line charts at heights under 24 pixels | Heights above that: use a line. Four or more bands: they cost time and accuracy. Readers who do not know how to read bands | `drawn/horizon` | Heer and others 2009 |

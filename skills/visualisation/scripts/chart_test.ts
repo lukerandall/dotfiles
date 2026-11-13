@@ -1370,6 +1370,10 @@ Deno.test("annotation_does_not_fit and the width check for the new forms", () =>
     }),
     "annotation_does_not_fit",
   );
+  // Twin: the same note on the default width fits.
+  admits(
+    dot({ annotations: [{ at: { x: "central" }, text: "x".repeat(70) }] }),
+  );
 });
 
 Deno.test("an unknown form message lists all seven forms", () => {
@@ -1439,7 +1443,8 @@ function outside(svg: string): string[] {
       const text = (m[2] ?? "").replace(/&(amp|lt|gt|quot|#39);/g, "x");
       const w = [...text].length * 11 * 0.57;
       const x = num(tag, "x")!;
-      const y = num(tag, "y")!;
+      // dy="0.32em" moves the baseline down by 0.32 of the 11 px font.
+      const y = num(tag, "y")! + (tag.includes('dy="0.32em"') ? 3.52 : 0);
       const anchor = tag.match(/text-anchor="(\w+)"/)?.[1] ?? "start";
       const left = anchor === "start"
         ? x
@@ -1465,9 +1470,26 @@ function outside(svg: string): string[] {
       );
     } else {
       const d = tag.match(/ d="([^"]+)"/)?.[1] ?? "";
-      const ns = [...d.matchAll(/-?\d+(?:\.\d+)?/g)].map((v) => Number(v[0]));
-      for (let i = 0; i + 1 < ns.length; i += 2) {
-        check("path point", ns[i], ns[i + 1], ns[i], ns[i + 1]);
+      // Follow the current point through M, L, H, V, Z and the curve commands.
+      let cx = 0;
+      let cy = 0;
+      for (const seg of d.matchAll(/([MLHVCZ])([^MLHVCZ]*)/g)) {
+        const ns = [...seg[2].matchAll(/-?\d+(?:\.\d+)?/g)].map((v) =>
+          Number(v[0])
+        );
+        if (seg[1] === "H") {
+          cx = ns[0];
+          check("path point", cx, cy, cx, cy);
+        } else if (seg[1] === "V") {
+          cy = ns[0];
+          check("path point", cx, cy, cx, cy);
+        } else if (seg[1] !== "Z") {
+          for (let i = 0; i + 1 < ns.length; i += 2) {
+            cx = ns[i];
+            cy = ns[i + 1];
+            check("path point", cx, cy, cx, cy);
+          }
+        }
       }
     }
   }
@@ -1561,19 +1583,57 @@ const cropSpecs: Record<string, ChartSpec> = {
     ),
   }),
   stripAnnotated: strip({
-    annotations: [{ at: { x: "db", y: 100 }, text: "Slow tail." }],
+    annotations: [{
+      at: { x: "db", y: stripRows().find((r) => r.service === "db")!.ms },
+      text: "Slow tail.",
+    }],
+  }),
+  dumbbellLongNames: dumbbell({
+    sort: "none",
+    rows: [
+      { region: "a", year: "Before the policy change", value: 1 },
+      { region: "a", year: "After the policy change", value: 9 },
+      { region: "b", year: "Before the policy change", value: 4 },
+      { region: "b", year: "After the policy change", value: 6 },
+    ],
   }),
 };
 
 for (const [name, spec] of Object.entries(cropSpecs)) {
+  // A ChartError fails the test: every crop spec is meant to draw.
   Deno.test(`nothing is cropped: ${name} draws every mark and label inside its viewBox`, () => {
-    let svg: string;
-    try {
-      svg = admits(spec);
-    } catch (e) {
-      if (e instanceof ChartError) return; // A refusal draws nothing to crop.
-      throw e;
-    }
-    assert.deepEqual(outside(svg), []);
+    assert.deepEqual(outside(admits(spec)), []);
   });
 }
+
+Deno.test("dumbbell: a long first measure name keeps inside the left edge", () => {
+  const svg = admits(cropSpecs.dumbbellLongNames);
+  assert.ok(svg.includes(">Before the policy change</text>"));
+  assert.deepEqual(outside(svg), []);
+});
+
+Deno.test("decimals: two different values never print the same", () => {
+  const svg = admits(
+    dot({
+      rows: [0, 5.2, 5.4, 10].map((value, i) => ({
+        region: REGIONS[i],
+        value,
+      })),
+    }),
+  );
+  assert.ok(svg.includes(">5.2</text>"), "prints 5.2");
+  assert.ok(svg.includes(">5.4</text>"), "prints 5.4");
+  // Twin: whole numbers keep no decimals.
+  assert.ok(!admits(dot()).includes(".0<"));
+});
+
+Deno.test("decimals: a strip median prints at its true value", () => {
+  const rows = [0, 2, 3, 100].map((ms) => ({ service: "api", ms }));
+  const svg = admits(strip({ rows }));
+  assert.ok(svg.includes("median 2.5"), "prints median 2.5");
+  // Twin: a median that is a whole number keeps none.
+  const whole = admits(
+    strip({ rows: [0, 2, 4, 100].map((ms) => ({ service: "api", ms })) }),
+  );
+  assert.ok(whole.includes("median 3<"));
+});

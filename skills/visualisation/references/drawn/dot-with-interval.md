@@ -21,6 +21,9 @@ Do not draw bars with error bars (Correll and Gleicher 2014), and do not mix sta
 The SVG it produces is `examples/dot-with-interval.svg`.
 
 ```ts
+/** A number with U+2212 for its minus sign, so the estimate and both bounds use one spelling. */
+const minus = (n: number): string => (n < 0 ? "−" : "") + Math.abs(n);
+
 export function dotWithInterval(): string {
   const rows: [string, number, number, number][] = [["Checkout", 18, 12, 24], ["Search", 9, 5, 13], ["Onboarding", 4, -3, 11], ["Billing", -3, -9, 3], ["Reports", -11, -14, -8]];
   const x = scaleLinear().domain([-16, 26]).range([110, 560]);
@@ -28,7 +31,7 @@ export function dotWithInterval(): string {
   rows.forEach(([name, v, lo, hi], i) => {
     const y = 20 + i * 28;
     body += T(100, y, name, "end") + L(x(lo), y, x(hi), y, 0.8, 2) + `<circle cx="${r(x(v))}" cy="${y}" r="4" fill="${S(1)}"/>`;
-    body += T(x(hi) + 8, y, `${v > 0 ? "+" : "−"}${Math.abs(v)} (${lo} to ${hi})`.replace("-", "−"), "start", true);
+    body += T(x(hi) + 8, y, `${v > 0 ? "+" : ""}${minus(v)} (${minus(lo)} to ${minus(hi)})`, "start", true);
   });
   return svg(12 + rows.length * 28 + 18, "Change in task success by flow with 95 percent intervals: Checkout and Search rose, Reports fell.", body);
 }

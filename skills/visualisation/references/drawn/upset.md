@@ -39,7 +39,9 @@ export function upset(): string {
     body += `<path d="M${112},${rowY(s) - 6}h${r(bw(sizes[s]))}v12h${-r(bw(sizes[s]))}z" fill="${S(2)}" transform="translate(-0,0)"/>`;
     body += T(112 + bw(sizes[s]) + 6, rowY(s), String(sizes[s]), "start", true);
   });
+  const users = 400, shown = combos.reduce((a, [, n]) => a + n, 0);   // the combinations drawn do not cover every user
   body += T(260, 12, "users with exactly this combination", "start", true) + T(10, 140, "set size", "start", true);
-  return svg(rowY(4) + 18, "Feature combinations across 400 users: Search alone is most common, then Search with Export.", body);
+  body += T(10, rowY(4) + 28, `${users - shown} more users are in combinations too small to draw.`, "start", true);
+  return svg(rowY(4) + 40, `Feature combinations across ${users} users: Search alone is most common, then Search with Export. The ${combos.length} combinations drawn hold ${shown} users; ${users - shown} are in other combinations.`, body);
 }
 ```

@@ -604,17 +604,8 @@ const ALL_FORMS = [
   "bump",
   "strip",
 ];
-const BASE_KEYS = [
-  "form",
-  "rows",
-  "x",
-  "y",
-  "finding",
-  "width",
-  "yFormat",
-  "yRange",
-  "annotations",
-];
+/** Keys the sparkline, line, multiples and slope forms take beyond the shared ones. */
+const OLD_KEYS = ["yFormat", "yRange", "annotations"];
 const EXTRA_KEYS: Record<string, string[]> = {
   sparkline: ["extremes"],
   line: ["series"],
@@ -698,15 +689,7 @@ function parse(input: unknown): Model {
       }.`,
     );
   }
-  checkKeys(input, [...BASE_KEYS, ...EXTRA_KEYS[form]], `A ${form} spec`);
-  for (const k of ["x", "y"]) {
-    if (typeof input[k] !== "string" || input[k] === "") {
-      fail("invalid_spec", `"${k}" must name a column, as a non-empty string.`);
-    }
-  }
-  if (typeof input.finding !== "string" || input.finding.trim() === "") {
-    fail("invalid_spec", `"finding" must be a non-empty sentence.`);
-  }
+  const frame = readFrame(input, form, [...OLD_KEYS, ...EXTRA_KEYS[form]]);
   const hasSeries = form !== "sparkline" && input.series !== undefined;
   if (form === "multiples" || form === "slope") {
     if (typeof input.series !== "string" || input.series === "") {
@@ -721,13 +704,7 @@ function parse(input: unknown): Model {
   ) {
     fail("invalid_spec", `"series" must name a column, as a non-empty string.`);
   }
-  let width: number | undefined;
-  if (input.width !== undefined) {
-    if (!isNum(input.width) || input.width < 40) {
-      fail("invalid_spec", `"width" must be a number of at least 40.`);
-    }
-    width = input.width;
-  }
+  const { width, xCol, yCol, rows } = frame;
   const fmt = parseFormat(input.yFormat);
   const yRange = parseRange(input.yRange);
   if (input.extremes !== undefined && typeof input.extremes !== "boolean") {
@@ -744,59 +721,17 @@ function parse(input: unknown): Model {
     columns = input.columns;
   }
 
-  const xCol = String(input.x);
-  const yCol = String(input.y);
   const sCol = hasSeries || form === "multiples" || form === "slope"
     ? String(input.series)
     : undefined;
-  const rows = input.rows;
-  if (!Array.isArray(rows)) {
-    fail("invalid_spec", `"rows" must be an array of objects.`);
-  }
-  if (rows.length === 0) {
-    fail(
-      "too_few_rows",
-      "rows is empty. Supply rows, or state the finding in a sentence and draw no chart.",
-    );
-  }
+  nonEmptyRows(frame);
 
   const byName = new Map<string, Series>();
   let kind: "number" | "date" | undefined;
-  rows.forEach((row: unknown, i: number) => {
-    if (!isObj(row)) fail("invalid_spec", `rows[${i}] must be an object.`, i);
-    for (const col of [xCol, yCol, ...(sCol ? [sCol] : [])]) {
-      if (!Object.hasOwn(row, col)) {
-        fail(
-          "missing_column",
-          `rows[${i}] has no column "${col}". Add it, or change the spec to name an existing column.`,
-          i,
-        );
-      }
-    }
-    const y = row[yCol];
-    if (!isNum(y)) {
-      fail(
-        "invalid_value",
-        `rows[${i}].${yCol} is ${
-          JSON.stringify(y)
-        }; y must be a finite number. Fix or drop the row.`,
-        i,
-      );
-    }
-    let name: string | null = null;
-    if (sCol) {
-      const s = row[sCol];
-      if (typeof s !== "string") {
-        fail(
-          "invalid_value",
-          `rows[${i}].${sCol} is ${
-            JSON.stringify(s)
-          }; a series must be a string. Fix or drop the row.`,
-          i,
-        );
-      }
-      name = s;
-    }
+  rows.forEach((cell: unknown, i: number) => {
+    const row = readRow(cell, i, [xCol, yCol, ...(sCol ? [sCol] : [])]);
+    const y = readValue(row, i, yCol);
+    const name = sCol ? readName(row, i, sCol) : null;
     const raw = row[xCol];
     let x: number;
     if (form === "slope") {
@@ -919,7 +854,7 @@ function parse(input: unknown): Model {
   const notes = parseNotes(input.annotations, lines, sCol !== undefined);
   return {
     form,
-    finding: input.finding,
+    finding: frame.finding,
     width,
     fmt,
     yRange,
@@ -1079,20 +1014,18 @@ function formatNumber(v: number, fmt: NumberFormat, decimals: number): string {
 }
 
 /**
- * Digits, at most 2, that print `lo` and `hi` as different numbers and print
- * no other shown value the same as either of them.
+ * The fewest digits, at most 2, with which no two different `printed` values
+ * print the same and every `computed` value (a median, a total) prints at its
+ * true value. It returns 2 when no smaller count does both.
  */
-function defaultDecimals(lo: number, hi: number, shown: number[]): number {
+function defaultDecimals(printed: number[], computed: number[] = []): number {
+  const distinct = [...new Set(printed)];
   for (let d = 0; d < 2; d++) {
-    const flo = formatNumber(lo, {}, d);
-    const fhi = formatNumber(hi, {}, d);
-    if (flo === fhi) continue;
-    const clash = shown.some((v) => {
-      if (v === lo || v === hi) return false;
-      const f = formatNumber(v, {}, d);
-      return f === flo || f === fhi;
-    });
-    if (!clash) return d;
+    const text = new Set(distinct.map((v) => formatNumber(v, {}, d)));
+    const exact = computed.every((v) =>
+      Math.abs(Number(Math.abs(v).toFixed(d)) - Math.abs(v)) < 1e-9
+    );
+    if (text.size === distinct.length && exact) return d;
   }
   return 2;
 }
@@ -1130,7 +1063,7 @@ function yScale(m: Model): Scale {
       ? [first, last]
       : [last, ...(m.form === "sparkline" ? span(l.pts.map((p) => p.y)) : [])];
   });
-  const d = m.fmt.decimals ?? defaultDecimals(lo, hi, shown);
+  const d = m.fmt.decimals ?? defaultDecimals([lo, hi, ...shown]);
   return { lo, hi, label: (v) => formatNumber(v, m.fmt, d) };
 }
 
@@ -1319,24 +1252,39 @@ class Placer {
   }
 }
 
-function drawNotes(
+interface Placed {
+  px: number;
+  py: number;
+  text: string;
+}
+
+/** Place each annotation beside its point, or refuse the one that cannot fit. */
+function placeNotes(placer: Placer, notes: Placed[]): string[] {
+  return notes.map(({ px, py, text }) => {
+    const s = placer.place(px, py, text);
+    if (!s) {
+      fail(
+        "annotation_does_not_fit",
+        `The annotation "${text}" cannot be placed without covering data or another label. Remove it, or raise width.`,
+      );
+    }
+    return s;
+  });
+}
+
+/** Annotations of the older forms, located by the point each one names. */
+function placeModelNotes(
   placer: Placer,
   notes: Note[],
   at: (n: Note) => [number, number],
 ): string[] {
-  const out: string[] = [];
-  for (const note of notes) {
-    const [px, py] = at(note);
-    const s = placer.place(px, py, note.text);
-    if (!s) {
-      fail(
-        "annotation_does_not_fit",
-        `The annotation "${note.text}" cannot be placed without covering data or another label. Remove it, or raise width.`,
-      );
-    }
-    out.push(s);
-  }
-  return out;
+  return placeNotes(
+    placer,
+    notes.map((n) => {
+      const [px, py] = at(n);
+      return { px, py, text: n.text };
+    }),
+  );
 }
 
 /**
@@ -1426,7 +1374,7 @@ function drawSparkline(m: Model): string {
       placer.add(textRect(tx, ty, label, "middle"));
     }
   }
-  body.push(...drawNotes(placer, m.notes, (note) => {
+  body.push(...placeModelNotes(placer, m.notes, (note) => {
     const i = pts.indexOf(note.pt);
     return xy[i];
   }));
@@ -1547,7 +1495,7 @@ function drawLine(m: Model): string {
     });
   }
 
-  body.push(...drawNotes(placer, m.notes, (note) => {
+  body.push(...placeModelNotes(placer, m.notes, (note) => {
     const li = m.lines.findIndex((l) => l.name === note.series);
     const pi = m.lines[li].pts.indexOf(note.pt);
     return xyAll[li][pi];
@@ -1594,7 +1542,9 @@ function drawMultiples(m: Model): string {
     placer.segs = segsOf(xy);
     placer.add(textRect(ox, oy + 11, title, "start"));
     const mine = m.notes.filter((note) => note.series === l.name);
-    body.push(...drawNotes(placer, mine, (note) => xy[l.pts.indexOf(note.pt)]));
+    body.push(
+      ...placeModelNotes(placer, mine, (note) => xy[l.pts.indexOf(note.pt)]),
+    );
   });
   const pts = m.lines.flatMap((l) => l.pts);
   const firstX = pts.reduce((a, p) => (p.x < a.x ? p : a));
@@ -1677,7 +1627,7 @@ function drawSlope(m: Model): string {
     body.push(textEl(x0 - 7, slotL[i], left[i], "end", false, true));
     body.push(textEl(x1 + 7, slotR[i], right[i], "start", false, true));
   });
-  body.push(...drawNotes(placer, m.notes, (note) => {
+  body.push(...placeModelNotes(placer, m.notes, (note) => {
     const li = m.lines.findIndex((l) => l.name === note.series);
     return note.pt.x === 0 ? [x0, idealL[li]] : [x1, idealR[li]];
   }));
@@ -1865,26 +1815,6 @@ function noRowFor(i: number, at: Obj): never {
       Object.entries(at).map(([k, v]) => `${k}=${JSON.stringify(v)}`).join(", ")
     }). Copy "at" from a row.`,
   );
-}
-
-interface Placed {
-  px: number;
-  py: number;
-  text: string;
-}
-
-/** Place each annotation beside its point, or refuse the one that cannot fit. */
-function placeNotes(placer: Placer, notes: Placed[]): string[] {
-  return notes.map(({ px, py, text }) => {
-    const s = placer.place(px, py, text);
-    if (!s) {
-      fail(
-        "annotation_does_not_fit",
-        `The annotation "${text}" cannot be placed without covering data or another label. Remove it, or raise width.`,
-      );
-    }
-    return s;
-  });
 }
 
 /** Where a label centred at `x` goes so that it stays inside the chart. */
@@ -2118,7 +2048,7 @@ function drawDot(m: DotModel): string {
     [...all, ...(m.reference ? [m.reference.value] : [])],
     m.yRange,
   );
-  const d = m.fmt.decimals ?? defaultDecimals(lo, hi, all);
+  const d = m.fmt.decimals ?? defaultDecimals([lo, hi, ...all]);
   const label = (v: number) => formatNumber(v, m.fmt, d);
   const printed = m.cats.map((c) => {
     if (!named) return { left: undefined, right: label(c.vals[0]) };
@@ -2130,12 +2060,13 @@ function drawDot(m: DotModel): string {
     };
   });
   const leftM = Math.max(...m.cats.map((c) => tw(String(c.label)))) + 12;
+  // A measure name stands beside its dot on the top row, so each edge leaves
+  // room for the longest name as well as for the value labels.
   const leftPad = Math.max(
     8,
     ...printed.map((p) => p.left ? tw(p.left) + 12 : 0),
+    ...(named ? m.measures.map((s) => tw(s) + 3 - leftM) : []),
   );
-  // A measure name stands beside its dot on the top row, so the right edge
-  // leaves room for the longest name as well as for the value labels.
   const rightPad = Math.max(
     ...printed.map((p) => tw(p.right) + 12),
     ...(named ? m.measures.map((s) => tw(s) + 3) : []),
@@ -2648,7 +2579,7 @@ function drawStrip(m: StripModel): string {
   const all = m.groups.flatMap((g) => g.values);
   const [lo, hi] = valueSpan(all, m.yRange);
   const medians = m.groups.map((g) => medianOf(g.values));
-  const d = m.fmt.decimals ?? defaultDecimals(lo, hi, medians);
+  const d = m.fmt.decimals ?? defaultDecimals([lo, hi, ...medians], medians);
   const label = (v: number) => formatNumber(v, m.fmt, d);
   const leftM = Math.max(...m.groups.map((g) => tw(String(g.label)))) + 12;
   const medText = medians.map((v) => `median ${label(v)}`);

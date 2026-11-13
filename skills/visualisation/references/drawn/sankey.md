@@ -23,6 +23,12 @@ The SVG it produces is `examples/sankey.svg`.
 
 ```ts
 import { sankey, sankeyLeft, sankeyLinkHorizontal } from "npm:d3-sankey@0.12.3";
+import type { SankeyLink, SankeyNode } from "npm:d3-sankey@0.12.3";
+
+interface PlanNode { name: string; stage: number }
+interface PlanLink { source: number; target: number; value: number; from: number }
+type Node = SankeyNode<PlanNode, PlanLink>;
+type Link = SankeyLink<PlanNode, PlanLink>;
 
 export function sankeyChart(): string {
   const names = ["Free", "Pro", "Team", "Churned"];
@@ -33,18 +39,18 @@ export function sankeyChart(): string {
     [[235, 15, 0, 20], [0, 160, 10, 10], [0, 0, 100, 5]],
   ];
   // One node per plan per stage. Churned customers get a node only from the stage they leave.
-  const nodes: { name: string; stage: number }[] = [];
+  const nodes: PlanNode[] = [];
   const id = new Map<string, number>();
   stages.forEach((_, st) => names.forEach((n) => { if (n !== "Churned" || st > 0) { id.set(`${st}:${n}`, nodes.length); nodes.push({ name: n, stage: st }); } }));
-  const links: { source: number; target: number; value: number; from: number }[] = [];
+  const links: PlanLink[] = [];
   flow.forEach((m, st) => m.forEach((row, from) => row.forEach((v, to) => {
     if (v) links.push({ source: id.get(`${st}:${names[from]}`)!, target: id.get(`${st + 1}:${names[to]}`)!, value: v, from });
   })));
   const gone = flow[0].reduce((a, row) => a + row[3], 0);              // already churned in the first period
   links.push({ source: id.get("1:Churned")!, target: id.get("2:Churned")!, value: gone, from: 3 });
-  const g = sankey<any, any>().nodeWidth(14).nodePadding(14).nodeAlign(sankeyLeft).extent([[10, 22], [590, 230]]);
+  const g = sankey<PlanNode, PlanLink>().nodeWidth(14).nodePadding(14).nodeAlign(sankeyLeft).extent([[10, 22], [590, 230]]);
   const { nodes: ns, links: ls } = g({ nodes: nodes.map((d) => ({ ...d })), links: links.map((d) => ({ ...d })) });
-  const path = sankeyLinkHorizontal();
+  const path = sankeyLinkHorizontal<PlanNode, PlanLink>();
   let body = "";
   for (const l of ls) body += `<path d="${path(l)}" fill="none" stroke="${l.from === 3 ? "currentColor" : S(l.from + 1)}" stroke-opacity="${l.from === 3 ? 0.2 : 0.4}" stroke-width="${r(Math.max(1, l.width))}"/>`;
   for (const n of ns) {
@@ -53,9 +59,9 @@ export function sankeyChart(): string {
   }
   // Every flow carries its count on its band, midway between the stages. Labels in one column are spread 12 px apart.
   for (const st of [0, 1]) {
-    const col = ls.filter((l: any) => l.source.stage === st).map((l: any) => ({ x: (l.source.x1 + l.target.x0) / 2, y: (l.y0 + l.y1) / 2, v: l.value }));
-    col.sort((a: any, b: any) => a.y - b.y);
-    col.forEach((c: any, i: number) => { if (i && c.y < col[i - 1].y + 12) c.y = col[i - 1].y + 12; });
+    const col: { x: number; y: number; v: number }[] = ls.filter((l: Link) => (l.source as Node).stage === st).map((l: Link) => ({ x: ((l.source as Node).x1! + (l.target as Node).x0!) / 2, y: (l.y0! + l.y1!) / 2, v: l.value }));
+    col.sort((a, b) => a.y - b.y);
+    col.forEach((c, i) => { if (i && c.y < col[i - 1].y + 12) c.y = col[i - 1].y + 12; });
     for (const c of col) body += T(c.x, c.y, String(c.v), "middle");
   }
   stages.forEach((s, i) => (body += T(i === 0 ? 10 : i === 1 ? 300 : 590, 8, s, i === 0 ? "start" : i === 1 ? "middle" : "end", true)));

@@ -42,7 +42,7 @@ Each row gives the data shape, the form, its strength, when not to use it, where
 
 | Data shape | Form | Strength | When not | Draw | Source |
 | --- | --- | --- | --- | --- | --- |
-| Raw values, tens to a few hundred per group | Strip plot with dots moved apart (beeswarm) | Shows every value, so clusters and outliers are visible | So many points that they overplot | helper `strip` | Wilke 9.1 |
+| Raw values for each of several groups, up to the helper's own limit of a few hundred per group (a limit of the helper, not of the form) | Strip plot, with the dots moved apart so they do not overlap | Shows every value, so clusters and outliers are visible | So many points that they overplot. Wilke's remedies are jitter and a sina plot, which the helper does not draw | helper `strip` | Wilke 9.1 (strip charts with jitter, sina plots). The helper's placement of dots is its own convention |
 | One distribution, or a few, with enough values | Histogram | Familiar; shows shape | The bin width changes the picture, so try several. Overlaid or stacked histograms of several groups are hard to read; use multiples of one histogram per group | `drawn/histogram` | Wilke 7 |
 | Many distributions, or a distribution changing over time | Ridgeline | Scales to very large numbers of distributions; works well for trends in distributions over time | Built from histograms, where bars from different groups align confusingly: use density curves. Density curves mislead with few points | `drawn/ridgeline` | Wilke 7, 9.2 |
 | Many groups, a compact summary, and a reader who knows the form | Box plot | Compact, standardised, good side by side | Hides the shape: a bimodal and a unimodal group can look the same | `drawn/box-plot` | Wilke 9.1 |
@@ -76,7 +76,7 @@ Each row gives the data shape, the form, its strength, when not to use it, where
 | Data shape | Form | Strength | When not | Draw | Source |
 | --- | --- | --- | --- | --- | --- |
 | Counts moving between states over two or more periods | Sankey or alluvial | Traces where each group goes; handles three or more stages | Busy with many crossing bands. Order the stages to cut crossings, and put the colouring variable first | `drawn/sankey` | FT; Wilke 11 |
-| The same, with few states | Transition table | The exact count for every from-to pair | When the reader needs the shape of the flow rather than the numbers | `drawn/transition-table` | Tufte 2011 (forum) |
+| The same, with few states | Transition table | The exact count for every from-to pair | When the reader needs the shape of the flow rather than the numbers | `drawn/transition-table` | By definition: a table of counts is exact. No source in this guide discusses transition tables |
 
 ## Set overlap
 

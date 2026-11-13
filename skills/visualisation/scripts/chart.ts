@@ -1110,6 +1110,8 @@ function drawSparkline(m: Model): string {
           color(0)
         }" stroke="none"/>`,
       );
+      // The last point already prints its value after the line.
+      if (i === pts.length - 1) continue;
       const label = ys.label(pts[i].y);
       const w = tw(label);
       const tx = Math.min(Math.max(px, w / 2), W - w / 2);

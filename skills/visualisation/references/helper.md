@@ -4,7 +4,9 @@ Read this before you run `scripts/chart.ts`. `scripts/INTERFACE.md` explains why
 
 ## Run it
 
-    deno run -A skills/visualisation/scripts/chart.ts < spec.json > chart.svg
+    deno run <base directory>/scripts/chart.ts < spec.json > chart.svg
+
+`<base directory>` is the skill's base directory, which the harness announces when it loads the skill. An installed skill lives at `~/.agents/skills/visualisation`, so the command works from any project. The script needs no permission flag.
 
 The spec is JSON. `form` is `sparkline`, `line`, `multiples` or `slope`. Every spec takes:
 
@@ -14,7 +16,7 @@ The spec is JSON. `form` is `sparkline`, `line`, `multiples` or `slope`. Every s
 - `series` (a column name): required by `multiples` and `slope`, optional for `line`, absent from `sparkline`.
 - Optional: `width`, `yFormat` (`decimals`, `prefix`, `suffix`), `yRange` (two numbers the scale must include), `annotations` (`{ "at": { "x", "series" }, "text" }`), and per form `extremes` or `columns`.
 
-The output is one `<svg>` with a `viewBox`, no `<script>`, `<style>` or `id`, text in `currentColor` and series lines in `var(--series-N, fallback)`.
+The output is one `<svg>` with a `viewBox`, no `<script>`, `<style>` or `id`, text in `currentColor` and series lines in `var(--series-N, fallback)`. The fallback is the `dataviz` palette's light value for slot N. A `line` chart labels each series at its own last point, and a series that ends before the others gets its label placed beside that end. Multiples print the shared y range and x span once under the panels.
 
 ## Refusals
 
@@ -32,4 +34,4 @@ A refused spec writes nothing to stdout, prints `<code>: <message>` to stderr an
 | `annotation_too_long` | Shorten the text to 80 characters. |
 | `annotation_does_not_fit` | Remove that annotation, or raise `width`. |
 | `too_many_series` | Use `multiples`. |
-| `labels_collide` | Use `multiples`. |
+| `labels_collide` | Use `multiples`, or supply rows up to the common last `x` when one series ends early. |

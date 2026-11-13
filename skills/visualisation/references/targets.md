@@ -20,4 +20,4 @@ In a Codex session `dataviz` may not exist. The skill still applies. Use `curren
 
 ## When Deno cannot fetch the packages
 
-The first run of the helper fetches three pinned npm packages. With no network the command fails and writes no SVG. Run it again with a network, or draw the SVG by hand following the examples in `forms.md`.
+The first run of the helper fetches three pinned npm packages. With no network the command fails and writes no SVG. Run it again with a network, or draw the SVG by hand following the worked SVG examples in `forms.md`.

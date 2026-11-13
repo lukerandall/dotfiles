@@ -7,9 +7,9 @@
  * Input that is not JSON is refused the same way, with code `invalid_spec`.
  * Other code imports `render` and nothing else.
  *
- * Planned libraries (see /evals/visualisation-helper-library): d3-scale 4.0.2,
+ * Libraries (see /evals/visualisation-helper-library): d3-scale 4.0.2,
  * d3-shape 3.2.0 and d3-array 3.2.4. No type or format string from them
- * appears here, so the choice can change without changing a spec.
+ * appears in the interface, so the choice can change without changing a spec.
  */
 
 import { scaleLinear } from "npm:d3-scale@4.0.2";
@@ -81,7 +81,8 @@ export const MAX_LINE_SERIES = 8;
 export interface NumberFormat {
   /**
    * Digits after the decimal point, 0 to 6. Default: the fewest digits, at
-   * most 2, that print the data's minimum and maximum as different numbers.
+   * most 2, that print the data's minimum and maximum as different numbers and
+   * print no other shown value (a last value, a slope end) the same as either.
    */
   decimals?: number;
   /** Text before each number, such as `"$"`. Default none. */
@@ -245,8 +246,9 @@ export type ChartErrorCode =
    */
   | "too_many_series"
   /**
-   * A `line` chart's end-of-line labels still collide after layout.
-   * Recovery: use `multiples`.
+   * A `line` chart's end-of-line labels still collide after layout, or the
+   * label of a series that ends early has no free place. Recovery: use
+   * `multiples`, or supply rows up to the common last `x`.
    */
   | "labels_collide";
 
@@ -292,6 +294,11 @@ export class ChartError extends Error {
  * @throws {ChartError} when the spec is refused.
  */
 export function render(spec: ChartSpec): string {
+  return renderUnknown(spec);
+}
+
+/** `render` for a value of unknown type, such as parsed JSON. */
+function renderUnknown(spec: unknown): string {
   const model = parse(spec);
   switch (model.form) {
     case "sparkline":
@@ -343,7 +350,7 @@ interface Model {
   positions: [string | number, string | number] | undefined;
 }
 
-const FORMS = ["sparkline", "line", "multiples", "slope"];
+const FORMS: Model["form"][] = ["sparkline", "line", "multiples", "slope"];
 const BASE_KEYS = [
   "form",
   "rows",
@@ -368,6 +375,11 @@ function fail(code: ChartErrorCode, message: string, row?: number): never {
 
 function isObj(v: unknown): v is Obj {
   return typeof v === "object" && v !== null && !Array.isArray(v);
+}
+
+function isForm(v: unknown): v is Model["form"] {
+  return v === "sparkline" || v === "line" || v === "multiples" ||
+    v === "slope";
 }
 
 function isNum(v: unknown): v is number {
@@ -425,7 +437,7 @@ function parse(input: unknown): Model {
     );
   }
   const form = input.form;
-  if (typeof form !== "string" || !FORMS.includes(form)) {
+  if (!isForm(form)) {
     fail(
       "invalid_spec",
       `"form" must be one of ${FORMS.join(", ")}; got ${JSON.stringify(form)}.`,
@@ -454,8 +466,12 @@ function parse(input: unknown): Model {
   ) {
     fail("invalid_spec", `"series" must name a column, as a non-empty string.`);
   }
-  if (input.width !== undefined && (!isNum(input.width) || input.width < 40)) {
-    fail("invalid_spec", `"width" must be a number of at least 40.`);
+  let width: number | undefined;
+  if (input.width !== undefined) {
+    if (!isNum(input.width) || input.width < 40) {
+      fail("invalid_spec", `"width" must be a number of at least 40.`);
+    }
+    width = input.width;
   }
   const fmt = parseFormat(input.yFormat);
   let yRange: readonly [number, number] | undefined;
@@ -472,12 +488,15 @@ function parse(input: unknown): Model {
   if (input.extremes !== undefined && typeof input.extremes !== "boolean") {
     fail("invalid_spec", `"extremes" must be true or false.`);
   }
-  if (
-    input.columns !== undefined &&
-    (!isNum(input.columns) || !Number.isInteger(input.columns) ||
-      input.columns < 1)
-  ) {
-    fail("invalid_spec", `"columns" must be a whole number of at least 1.`);
+  let columns: number | undefined;
+  if (input.columns !== undefined) {
+    if (
+      !isNum(input.columns) || !Number.isInteger(input.columns) ||
+      input.columns < 1
+    ) {
+      fail("invalid_spec", `"columns" must be a whole number of at least 1.`);
+    }
+    columns = input.columns;
   }
 
   const xCol = String(input.x);
@@ -654,13 +673,13 @@ function parse(input: unknown): Model {
 
   const notes = parseNotes(input.annotations, lines, sCol !== undefined);
   return {
-    form: form as Model["form"],
+    form,
     finding: input.finding,
-    width: input.width as number | undefined,
+    width,
     fmt,
     yRange,
     extremes: input.extremes !== false,
-    columns: input.columns as number | undefined,
+    columns,
     lines,
     notes,
     positions,
@@ -692,7 +711,8 @@ function parseFormat(v: unknown): NumberFormat {
     }
     out.decimals = v.decimals;
   }
-  for (const k of ["prefix", "suffix"] as const) {
+  const affixes: ("prefix" | "suffix")[] = ["prefix", "suffix"];
+  for (const k of affixes) {
     const f = v[k];
     if (f !== undefined) {
       if (typeof f !== "string") {
@@ -759,15 +779,16 @@ function parseNotes(v: unknown, lines: Series[], named: boolean): Note[] {
 
 const FONT = 11;
 const LINE_H = 13;
+/** The dataviz categorical palette, light values, in slot order. */
 const PALETTE = [
-  "#4477aa",
-  "#ee6677",
-  "#228833",
-  "#ccbb44",
-  "#66ccee",
-  "#aa3377",
-  "#ee8866",
-  "#44bb99",
+  "#2a78d6",
+  "#eb6834",
+  "#1baf7a",
+  "#eda100",
+  "#e87ba4",
+  "#008300",
+  "#6250d6",
+  "#e34948",
 ];
 
 function color(i: number): string {
@@ -801,12 +822,32 @@ function formatNumber(v: number, fmt: NumberFormat, decimals: number): string {
   return `${negative ? "-" : ""}${fmt.prefix ?? ""}${body}${fmt.suffix ?? ""}`;
 }
 
-/** Digits that print `lo` and `hi` as different numbers, at most 2. */
-function defaultDecimals(lo: number, hi: number): number {
+/**
+ * Digits, at most 2, that print `lo` and `hi` as different numbers and print
+ * no other shown value the same as either of them.
+ */
+function defaultDecimals(lo: number, hi: number, shown: number[]): number {
   for (let d = 0; d < 2; d++) {
-    if (formatNumber(lo, {}, d) !== formatNumber(hi, {}, d)) return d;
+    const flo = formatNumber(lo, {}, d);
+    const fhi = formatNumber(hi, {}, d);
+    if (flo === fhi) continue;
+    const clash = shown.some((v) => {
+      if (v === lo || v === hi) return false;
+      const f = formatNumber(v, {}, d);
+      return f === flo || f === fhi;
+    });
+    if (!clash) return d;
   }
   return 2;
+}
+
+/** Minimum and maximum of a list that has at least one number. */
+function span(values: number[]): [number, number] {
+  const [lo, hi] = extent(values);
+  if (lo === undefined || hi === undefined) {
+    return fail("too_few_rows", "There are no values to draw.");
+  }
+  return [lo, hi];
 }
 
 interface Scale {
@@ -817,7 +858,7 @@ interface Scale {
 
 function yScale(m: Model): Scale {
   const ys = m.lines.flatMap((l) => l.pts.map((p) => p.y));
-  let [lo, hi] = extent(ys) as [number, number];
+  let [lo, hi] = span(ys);
   if (m.yRange) {
     lo = Math.min(lo, m.yRange[0]);
     hi = Math.max(hi, m.yRange[1]);
@@ -826,15 +867,19 @@ function yScale(m: Model): Scale {
     lo -= 1;
     hi += 1;
   }
-  const d = m.fmt.decimals ?? defaultDecimals(lo, hi);
+  const shown = m.lines.flatMap((l) => {
+    const first = l.pts[0].y;
+    const last = l.pts[l.pts.length - 1].y;
+    return m.form === "slope"
+      ? [first, last]
+      : [last, ...(m.form === "sparkline" ? span(l.pts.map((p) => p.y)) : [])];
+  });
+  const d = m.fmt.decimals ?? defaultDecimals(lo, hi, shown);
   return { lo, hi, label: (v) => formatNumber(v, m.fmt, d) };
 }
 
 function xDomain(lines: Series[]): [number, number] {
-  return extent(lines.flatMap((l) => l.pts.map((p) => p.x))) as [
-    number,
-    number,
-  ];
+  return span(lines.flatMap((l) => l.pts.map((p) => p.x)));
 }
 
 // Drawing primitives -------------------------------------------------------
@@ -919,10 +964,14 @@ function segsOf(pts: [number, number][]): Seg[] {
 }
 
 /** Where annotations may go: inside `bounds`, clear of rects and line segments. */
-class Board {
+class Placer {
   rects: Rect[] = [];
   segs: Seg[] = [];
-  constructor(readonly bounds: Rect) {}
+  bounds: Rect;
+
+  constructor(bounds: Rect) {
+    this.bounds = bounds;
+  }
 
   add(r: Rect): void {
     this.rects.push(r);
@@ -1015,14 +1064,14 @@ class Board {
 }
 
 function drawNotes(
-  board: Board,
+  placer: Placer,
   notes: Note[],
   at: (n: Note) => [number, number],
 ): string[] {
   const out: string[] = [];
   for (const note of notes) {
     const [px, py] = at(note);
-    const s = board.place(px, py, note.text);
+    const s = placer.place(px, py, note.text);
     if (!s) {
       fail(
         "annotation_does_not_fit",
@@ -1089,12 +1138,12 @@ function drawSparkline(m: Model): string {
   const sy = scaleLinear().domain([ys.lo, ys.hi]).range([H - pad, pad]);
   const xy = pts.map((p): [number, number] => [sx(p.x), sy(p.y)]);
   const body: string[] = [pathEl(linePath(xy), color(0), 1.5)];
-  const board = new Board({ x0: 0, y0: 0, x1: W, y1: H });
-  board.segs = segsOf(xy);
+  const placer = new Placer({ x0: 0, y0: 0, x1: W, y1: H });
+  placer.segs = segsOf(xy);
   const lx = xy[xy.length - 1][0] + 6;
   const ly = xy[xy.length - 1][1];
   body.push(textEl(lx, ly, lastLabel, "start", false, true));
-  board.add(textRect(lx, ly, lastLabel, "start", true));
+  placer.add(textRect(lx, ly, lastLabel, "start", true));
   if (m.extremes) {
     let lo = 0;
     let hi = 0;
@@ -1118,10 +1167,10 @@ function drawSparkline(m: Model): string {
       const above = i === hi;
       const ty = above ? py - 5 : py + FONT + 1;
       body.push(textEl(tx, ty, label, "middle", true));
-      board.add(textRect(tx, ty, label, "middle"));
+      placer.add(textRect(tx, ty, label, "middle"));
     }
   }
-  body.push(...drawNotes(board, m.notes, (note) => {
+  body.push(...drawNotes(placer, m.notes, (note) => {
     const i = pts.indexOf(note.pt);
     return xy[i];
   }));
@@ -1159,7 +1208,7 @@ function drawLine(m: Model): string {
   const sx = scaleLinear().domain([dx0, dx1]).range([x0, x1]);
   const sy = scaleLinear().domain([ys.lo, ys.hi]).range([y1, y0]);
   const body: string[] = [];
-  const board = new Board({ x0: 0, y0: 0, x1: W, y1: H });
+  const placer = new Placer({ x0: 0, y0: 0, x1: W, y1: H });
 
   // Range frame: each axis spans the scale's minimum to maximum.
   const ax = leftM + 2;
@@ -1168,8 +1217,8 @@ function drawLine(m: Model): string {
   );
   body.push(textEl(ax - 4, sy(ys.hi), hiLabel, "end", true, true));
   body.push(textEl(ax - 4, sy(ys.lo), loLabel, "end", true, true));
-  board.add(textRect(ax - 4, sy(ys.hi), hiLabel, "end", true));
-  board.add(textRect(ax - 4, sy(ys.lo), loLabel, "end", true));
+  placer.add(textRect(ax - 4, sy(ys.hi), hiLabel, "end", true));
+  placer.add(textRect(ax - 4, sy(ys.lo), loLabel, "end", true));
   const first = m.lines.flatMap((l) => l.pts).reduce((
     a,
     p,
@@ -1186,30 +1235,35 @@ function drawLine(m: Model): string {
   const ll = String(lastX.raw);
   body.push(textEl(sx(dx0), axisY + 13, fl, "start", true));
   body.push(textEl(sx(dx1), axisY + 13, ll, "end", true));
-  board.add(textRect(sx(dx0), axisY + 13, fl, "start"));
-  board.add(textRect(sx(dx1), axisY + 13, ll, "end"));
+  placer.add(textRect(sx(dx0), axisY + 13, fl, "start"));
+  placer.add(textRect(sx(dx1), axisY + 13, ll, "end"));
 
   const xyAll = m.lines.map((l) =>
     l.pts.map((p): [number, number] => [sx(p.x), sy(p.y)])
   );
   m.lines.forEach((_l, i) => {
     body.push(pathEl(linePath(xyAll[i]), color(i), 1.5));
-    board.segs.push(...segsOf(xyAll[i]));
+    placer.segs.push(...segsOf(xyAll[i]));
   });
 
   if (many) {
+    // Series that reach the last x share one column of labels, spread apart.
+    // A series that stops earlier gets its label beside its own end, placed
+    // clear of the lines and labels already drawn.
     const ends = xyAll.map((xy) => xy[xy.length - 1]);
-    const slots = spread(ends.map((e) => e[1]), LINE_H, y0 - 4, y1 + 4);
+    const full = m.lines.map((l) => l.pts[l.pts.length - 1].x === dx1);
+    const idx = m.lines.map((_l, i) => i).filter((i) => full[i]);
+    const slots = spread(idx.map((i) => ends[i][1]), LINE_H, y0 - 4, y1 + 4);
     if (!slots) {
       fail(
         "labels_collide",
-        `The ${m.lines.length} end-of-line labels do not fit without overlapping. Use form "multiples".`,
+        `The ${idx.length} end-of-line labels do not fit without overlapping. Use form "multiples".`,
       );
     }
-    m.lines.forEach((l, i) => {
+    idx.forEach((i, k) => {
       const [px, py] = ends[i];
-      const ly = slots[i];
-      const name = l.name ?? "";
+      const ly = slots[k];
+      const name = m.lines[i].name ?? "";
       if (Math.abs(ly - py) > 3) {
         body.push(
           pathEl(
@@ -1221,11 +1275,23 @@ function drawLine(m: Model): string {
         );
       }
       body.push(textEl(px + 7, ly, name, "start", false, true));
-      board.add(textRect(px + 7, ly, name, "start", true));
+      placer.add(textRect(px + 7, ly, name, "start", true));
+    });
+    m.lines.forEach((l, i) => {
+      if (full[i]) return;
+      const [px, py] = ends[i];
+      const s = placer.place(px, py, l.name ?? "");
+      if (!s) {
+        fail(
+          "labels_collide",
+          `The label for series "${l.name}", which ends before the others, cannot be placed without covering a line or a label. Supply rows to the common last x, or use form "multiples".`,
+        );
+      }
+      body.push(s);
     });
   }
 
-  body.push(...drawNotes(board, m.notes, (note) => {
+  body.push(...drawNotes(placer, m.notes, (note) => {
     const li = m.lines.findIndex((l) => l.name === note.series);
     const pi = m.lines[li].pts.indexOf(note.pt);
     return xyAll[li][pi];
@@ -1268,13 +1334,27 @@ function drawMultiples(m: Model): string {
     const title = `${l.name} ${ys.label(l.pts[l.pts.length - 1].y)}`;
     body.push(textEl(ox, oy + 11, title, "start"));
     body.push(pathEl(linePath(xy), color(0), 1.5));
-    const board = new Board({ x0: ox, y0: oy, x1: ox + pw, y1: oy + ph });
-    board.segs = segsOf(xy);
-    board.add(textRect(ox, oy + 11, title, "start"));
+    const placer = new Placer({ x0: ox, y0: oy, x1: ox + pw, y1: oy + ph });
+    placer.segs = segsOf(xy);
+    placer.add(textRect(ox, oy + 11, title, "start"));
     const mine = m.notes.filter((note) => note.series === l.name);
-    body.push(...drawNotes(board, mine, (note) => xy[l.pts.indexOf(note.pt)]));
+    body.push(...drawNotes(placer, mine, (note) => xy[l.pts.indexOf(note.pt)]));
   });
-  return svgWrap(W, H, m.finding, body);
+  const pts = m.lines.flatMap((l) => l.pts);
+  const firstX = pts.reduce((a, p) => (p.x < a.x ? p : a));
+  const lastX = pts.reduce((a, p) => (p.x > a.x ? p : a));
+  body.push(
+    textEl(
+      0,
+      H + 14,
+      `Same scale in every panel: ${ys.label(ys.lo)} to ${ys.label(ys.hi)}, ${
+        String(firstX.raw)
+      } to ${String(lastX.raw)}`,
+      "start",
+      true,
+    ),
+  );
+  return svgWrap(W, H + 20, m.finding, body);
 }
 
 // Slopegraph ---------------------------------------------------------------
@@ -1304,7 +1384,7 @@ function drawSlope(m: Model): string {
   const slotR = spread(idealR, LINE_H, top - 6, Infinity) ?? idealR;
   const H = Math.max(top + plotH + 14, Math.max(...slotL, ...slotR) + 14);
   const body: string[] = [];
-  const board = new Board({ x0: x0 + 4, y0: top - 6, x1: x1 - 4, y1: H });
+  const placer = new Placer({ x0: x0 + 4, y0: top - 6, x1: x1 - 4, y1: H });
   const hl = String(positions[0]);
   const hr = String(positions[1]);
   body.push(textEl(x0, 11, hl, "middle", true));
@@ -1317,7 +1397,7 @@ function drawSlope(m: Model): string {
         1.5,
       ),
     );
-    board.segs.push([x0, idealL[i], x1, idealR[i]]);
+    placer.segs.push([x0, idealL[i], x1, idealR[i]]);
     if (Math.abs(slotL[i] - idealL[i]) > 3) {
       body.push(
         pathEl(
@@ -1341,7 +1421,7 @@ function drawSlope(m: Model): string {
     body.push(textEl(x0 - 7, slotL[i], left[i], "end", false, true));
     body.push(textEl(x1 + 7, slotR[i], right[i], "start", false, true));
   });
-  body.push(...drawNotes(board, m.notes, (note) => {
+  body.push(...drawNotes(placer, m.notes, (note) => {
     const li = m.lines.findIndex((l) => l.name === note.series);
     return note.pt.x === 0 ? [x0, idealL[li]] : [x1, idealR[li]];
   }));
@@ -1362,8 +1442,7 @@ async function main(): Promise<void> {
         `The input is not JSON: ${e instanceof Error ? e.message : String(e)}`,
       );
     }
-    // render checks the value at run time, so an untyped spec is safe here.
-    const svg = render(spec as ChartSpec);
+    const svg = renderUnknown(spec);
     await Deno.stdout.write(new TextEncoder().encode(svg + "\n"));
   } catch (e) {
     if (e instanceof ChartError) {

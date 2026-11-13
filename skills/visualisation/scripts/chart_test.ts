@@ -162,6 +162,37 @@ Deno.test("escaping: no spec string can add markup", () => {
   assert.ok(svg.includes("&quot;&gt;&lt;script&gt;"));
 });
 
+Deno.test("escaping: every printed string path is escaped", () => {
+  const evil = `<u>&"`;
+  const out = "&lt;u&gt;&amp;&quot;";
+  // yFormat prefix and suffix appear on the range frame and end labels.
+  const fmt = admits(
+    oneLine({ yFormat: { prefix: evil, suffix: evil, decimals: 0 } }),
+  );
+  assert.ok(!fmt.includes("<u>"));
+  assert.ok(fmt.includes(`${out}10${out}`));
+  // Slope position labels and series names.
+  const rows = slopeRows(["a", "b"]).map((r) => ({
+    ...r,
+    when: r.when === "2024" ? evil : "2025",
+    who: `${r.who}${evil}`,
+  }));
+  const sl = admits(slope({ rows }));
+  assert.ok(!sl.includes("<u>"));
+  assert.ok(sl.includes(`>${out}</text>`));
+  assert.ok(sl.includes(`a${out} 10`));
+  // Multiples titles and the shared scale line.
+  const mu = admits(
+    multiples({
+      rows: seriesRows([evil, "b"]),
+      yFormat: { suffix: evil },
+    }),
+  );
+  assert.ok(!mu.includes("<u>"));
+  assert.ok(mu.includes(`>${out} 25${out}</text>`));
+  assert.ok(mu.includes(`10${out} to 32${out}`));
+});
+
 // Content of each form -----------------------------------------------------
 
 Deno.test("line: names each series at its end and prints the range frame", () => {
@@ -316,6 +347,7 @@ Deno.test("invalid_spec: input is not an object", () => {
   refuses(null, "invalid_spec");
   refuses("line", "invalid_spec");
   refuses([], "invalid_spec");
+  admits(oneLine());
 });
 
 Deno.test("invalid_spec: form", () => {
@@ -540,7 +572,7 @@ Deno.test("nothing is half drawn: a refusal throws before any output", () => {
 
 async function cli(input: string) {
   const cmd = new Deno.Command(Deno.execPath(), {
-    args: ["run", "-A", new URL("./chart.ts", import.meta.url).pathname],
+    args: ["run", new URL("./chart.ts", import.meta.url).pathname],
     stdin: "piped",
     stdout: "piped",
     stderr: "piped",
@@ -576,4 +608,92 @@ Deno.test("cli: input that is not JSON is invalid_spec", async () => {
   assert.equal(r.code, 2);
   assert.equal(r.stdout, "");
   assert.match(r.stderr, /^invalid_spec: /);
+});
+
+// Review findings ----------------------------------------------------------
+
+Deno.test("palette: fallback colours are the dataviz light values in slot order", () => {
+  const names = Array.from({ length: 8 }, (_, i) => `s${i}`);
+  const rows = names.flatMap((s, k) =>
+    MONTHS.map((m, i) => ({ month: m, value: i * 10 + k, who: s }))
+  );
+  const svg = admits(line({ rows, width: 900 }));
+  const light = [
+    "#2a78d6",
+    "#eb6834",
+    "#1baf7a",
+    "#eda100",
+    "#e87ba4",
+    "#008300",
+    "#6250d6",
+    "#e34948",
+  ];
+  light.forEach((hex, i) => {
+    assert.ok(svg.includes(`var(--series-${i + 1}, ${hex})`), `slot ${i + 1}`);
+  });
+});
+
+Deno.test("line: a series that ends early is labelled clear of the other lines", () => {
+  const long = [10, 14, 13, 18, 22, 25];
+  const rows = [
+    ...MONTHS.map((m, i) => ({ month: m, value: long[i], who: "long" })),
+    ...MONTHS.slice(0, 3).map((m, i) => ({
+      month: m,
+      value: [11, 12, 14][i],
+      who: "short",
+    })),
+  ];
+  const svg = admits(line({ rows }));
+  const tag = svg.match(
+    /<text x="([\d.]+)" y="([\d.]+)"( dy="0.32em")?[^>]*>short<\/text>/,
+  )!;
+  assert.ok(tag, "label present");
+  const x0 = Number(tag[1]);
+  const mid = Number(tag[2]) + (tag[3] ? 0 : -3.5);
+  const w = "short".length * 11 * 0.57;
+  const d = svg.match(/<path d="([^"]+)"[^>]*stroke="var\(--series-1,/)![1];
+  const nums = [...d.matchAll(/(-?[\d.]+),(-?[\d.]+)/g)].map((m) => [
+    Number(m[1]),
+    Number(m[2]),
+  ]);
+  for (let i = 1; i < nums.length; i++) {
+    for (let t = 0; t <= 1; t += 0.02) {
+      const px = nums[i - 1][0] + (nums[i][0] - nums[i - 1][0]) * t;
+      const py = nums[i - 1][1] + (nums[i][1] - nums[i - 1][1]) * t;
+      const inside = px >= x0 - 1 && px <= x0 + w + 1 && py >= mid - 6.5 &&
+        py <= mid + 6.5;
+      assert.ok(!inside, `the long line crosses the label at ${px},${py}`);
+    }
+  }
+  // Twin: series that all end together keep their labels in one column.
+  const same = admits(line());
+  const xs = ["north", "south"].map((n) =>
+    Number(same.match(new RegExp(`<text x="([\\d.]+)"[^>]*>${n}</text>`))![1])
+  );
+  assert.equal(xs[0], xs[1]);
+});
+
+Deno.test("decimals: a value that is not an extreme never prints as one", () => {
+  const rows = [1, 2, 9, 8.9].map((v, i) => ({ t: i, v }));
+  const svg = admits({
+    form: "sparkline",
+    rows,
+    x: "t",
+    y: "v",
+    finding: "f.",
+  });
+  assert.match(svg, />8\.9<\/text>/);
+  assert.match(svg, />9\.0<\/text>/);
+  // Twin: when no printed value is close to an extreme, whole numbers stay.
+  const plain = admits(spark());
+  assert.match(plain, />25<\/text>/);
+  assert.ok(!plain.includes("25.0"));
+});
+
+Deno.test("multiples: the shared scale is printed once", () => {
+  const svg = admits(multiples());
+  const hits = svg.match(
+    /Same scale in every panel: 10 to 46, 2025-01 to 2025-06/g,
+  );
+  assert.equal(hits?.length, 1);
 });

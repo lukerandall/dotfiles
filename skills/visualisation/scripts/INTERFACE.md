@@ -1,6 +1,7 @@
 # Chart helper interface
 
-`chart.ts` is the reviewed interface. It has no implementation yet.
+`chart.ts` holds this interface and its implementation. The spec and the
+refusals below are what `render` accepts and throws.
 
 ## What the helper does
 
@@ -18,7 +19,7 @@ need:
 | ----------- | ------------------- | ------------------------------------------------------------------------------------ |
 | `sparkline` | `extremes`          | One small line, no axes, last value after it.                                        |
 | `line`      | optional `series`   | One line, or several with each series named at its line end. Range-frame axes.       |
-| `multiples` | `series`, `columns` | One panel per series on shared x and y scales.                                       |
+| `multiples` | `series`, `columns` | One panel per series on shared x and y scales, with the scale printed once.          |
 | `slope`     | `series`            | One line per series between two positions, labelled with name and value at each end. |
 
 The spec is a union keyed by `form`, so a field that one form does not use is a
@@ -63,19 +64,19 @@ annotation to name the series too.
 
 ## Refusals
 
-| Code                        | Cause                                                                         | Recovery                                       |
-| --------------------------- | ----------------------------------------------------------------------------- | ---------------------------------------------- |
-| `invalid_spec`              | Input is not JSON, or a field is missing, mistyped, out of bounds or unknown. | Correct the field the message names.           |
-| `too_few_rows`              | `rows` is empty, or a line has fewer than two rows.                           | Supply more rows, or write a sentence instead. |
-| `missing_column`            | A named column is absent from a row.                                          | Add the column or fix the name.                |
-| `invalid_value`             | A cell holds a value its column cannot take.                                  | Fix or drop the row.                           |
-| `duplicate_point`           | Two rows of one line share an `x` value.                                      | Aggregate to one row per `x`.                  |
-| `slope_needs_two_positions` | `x` does not hold two distinct values, or a series lacks one of them.         | Give every series one row at each of two `x`.  |
-| `annotation_matches_no_row` | An annotation's `at` matches no row.                                          | Copy `at` from a row.                          |
-| `annotation_too_long`       | An annotation's `text` exceeds 80 characters.                                 | Shorten the text.                              |
-| `annotation_does_not_fit`   | An annotation cannot be placed without covering data or a label.              | Remove that annotation, or raise `width`.      |
-| `too_many_series`           | A `line` chart has more than 8 series.                                        | Use `multiples`.                               |
-| `labels_collide`            | A `line` chart's end labels still collide after layout.                       | Use `multiples`.                               |
+| Code                        | Cause                                                                                                          | Recovery                                                   |
+| --------------------------- | -------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| `invalid_spec`              | Input is not JSON, or a field is missing, mistyped, out of bounds or unknown.                                  | Correct the field the message names.                       |
+| `too_few_rows`              | `rows` is empty, or a line has fewer than two rows.                                                            | Supply more rows, or write a sentence instead.             |
+| `missing_column`            | A named column is absent from a row.                                                                           | Add the column or fix the name.                            |
+| `invalid_value`             | A cell holds a value its column cannot take.                                                                   | Fix or drop the row.                                       |
+| `duplicate_point`           | Two rows of one line share an `x` value.                                                                       | Aggregate to one row per `x`.                              |
+| `slope_needs_two_positions` | `x` does not hold two distinct values, or a series lacks one of them.                                          | Give every series one row at each of two `x`.              |
+| `annotation_matches_no_row` | An annotation's `at` matches no row.                                                                           | Copy `at` from a row.                                      |
+| `annotation_too_long`       | An annotation's `text` exceeds 80 characters.                                                                  | Shorten the text.                                          |
+| `annotation_does_not_fit`   | An annotation cannot be placed without covering data or a label.                                               | Remove that annotation, or raise `width`.                  |
+| `too_many_series`           | A `line` chart has more than 8 series.                                                                         | Use `multiples`.                                           |
+| `labels_collide`            | A `line` chart's end labels still collide after layout, or one for a series that ends early has no free place. | Use `multiples`, or supply rows up to the common last `x`. |
 
 ## Output guarantees
 
@@ -162,19 +163,19 @@ joined causes that have different recoveries.
 - **The command line prints `<code>: <message>`**, and input that is not JSON is
   refused with `invalid_spec`, so every refusal an agent sees has a code.
 - **`render` checks its argument at run time.** The command line passes parsed
-  JSON, which the compiler never saw, and crumbkit's BASE-3 forbids the type
-  assertion that would otherwise be needed.
+  JSON, which the compiler never saw. The implementation narrows unknown values
+  with type guards and uses no type assertion.
 - **`main`, `BaseSpec` and `ChartForm` are no longer exported.** The header says
   other code imports `render` and nothing else. `ChartForm` had no user.
 - **`ChartError` declares its fields.** Constructor parameter properties are not
-  erasable syntax, which crumbkit's BASE-4 forbids.
+  erasable syntax, so the file stays valid under tools that strip only erasable
+  syntax.
 
 ### Considered and not changed
 
-- **`render` still throws.** crumbkit's BASE-23 would make a refusal a member of
-  a result union. The approved plan fixes `render(spec): string`, the dotfiles
-  repository does not adopt those standards, and the command line is the main
-  caller. The owner can reverse this before the build at low cost.
+- **`render` still throws.** A result union would suit a library better. The
+  approved plan fixes `render(spec): string`, and the command line is the main
+  caller. The owner can reverse this at low cost.
 - **A `null` in `y` is refused.** Drawing a gap would need rules for the last
   value and the extremes. The agent drops the row.
 - **`columns` and `extremes` stay.** Each is one optional field with a default.

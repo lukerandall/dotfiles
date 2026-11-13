@@ -1,21 +1,17 @@
 ---
 name: visualisation
-description: "Chart, graph, plot, sparkline, small multiples, slopegraph, annotate a line, or a chart on a hangar page: design it the Tufte way, with direct labels, inline annotations and no boxes. Load `dataviz` beside it."
+description: "Chart, graph, plot, visualise, which chart, distribution, ranking, flow, set overlap, a chart on a hangar page: choose the form that answers the reader's question, draw it with direct labels and no boxes. Names `dataviz`, which supplies colour; load it beside this skill."
 ---
 
-Design every chart in the order below. `dataviz` supplies colour, the palette, the validator, mark sizes and the anti-pattern list: read it now and do not repeat it. A diagram of a mechanism, such as an architecture or a flow, is not a chart: use `artifact-diagramming`. The page around the chart follows `artifact-design`; a hangar page takes board-ui's token stylesheet.
+Work through these seven steps in order. `dataviz` supplies colour, the palette, the validator, mark sizes and the anti-pattern list. A diagram of a mechanism, such as an architecture, is not a chart: use `artifact-diagramming`. The page around the chart follows `artifact-design`; a hangar page takes board-ui's token stylesheet.
 
-## Steps
-
-1. State the one finding the chart must show, in a sentence. When the sentence or a small table shows it as well, write that and draw no chart.
-2. Pick the form from `dataviz`'s form table, then check the four forms this skill adds: sparkline, small multiples, slopegraph and annotated line. `references/forms.md` says when each fits.
-3. Draw with the helper when the form is a sparkline, line, multiples or slope: write the spec and run `deno run <base directory>/scripts/chart.ts < spec.json > chart.svg`. `<base directory>` is the skill's base directory, which the harness announces when it loads the skill, and which is `~/.agents/skills/visualisation` when the skill is installed. `references/helper.md` gives the spec and the refusals. Draw by hand only for another form, or when the helper cannot run (`references/targets.md`).
-4. Put in the spec what the helper cannot guess: the `finding`, an annotation that states the finding next to its data point (`references/annotation.md`), `yFormat` and `yRange`. The helper labels each series at its line end and draws no legend and no box. A hand-drawn chart gets the same: direct labels, plain-text annotations with at most a thin leader line, and no box, card, border or background around an annotation or the plot.
-5. Check the output for data-ink. Each axis line spans only the data's minimum to maximum and its end labels state those values (a range frame). The plot has no frame, no heavy gridlines and no decoration.
-6. Take colour and mark sizes from `dataviz`, define `--series-1` onward on the page from its palette, and run its validator.
-7. Render the chart and look at it in the light and dark themes.
-
-Read `references/targets.md` to learn what the target page allows: a claude.ai artifact, a hangar first-version page and a later scripted hangar page differ.
+1. **Question.** Write one sentence naming the reader's task: compare, change over time, distribution, parts of a whole, correlation, ranking change, deviation, flow, set overlap, geography, cycle or uncertainty.
+2. **Data.** Write the column types, the counts and the shape: items, groups, periods, values per group.
+3. **Choose.** Look up the task and the data shape in `references/choosing.md`. Write the form and the reason, naming the row you used. When a sentence or a small table answers the question, write that and draw no chart.
+4. **Draw.** Use the helper for sparkline, line, multiples, slope, dot, dumbbell, bump and strip: write a spec (`references/forms.md` has one to copy for each) and run `deno run <base directory>/scripts/chart.ts < spec.json > chart.svg`. `<base directory>` is the skill's base directory, which is `~/.agents/skills/visualisation` when the skill is installed. `references/helper.md` lists the fields and the refusals. For every other form, follow that form's file in `references/drawn/`. `references/targets.md` says what the target page allows.
+5. **Present.** Label each series on the chart and put no legend there. Put each finding beside its data point as plain text (`references/annotation.md`). Draw no box, card, border or background around a label or the plot. Each axis line spans only the data's minimum to maximum and its end labels state those values (a range frame).
+6. **Colour.** Take colours and mark sizes from `dataviz`, define `--series-1` onward on the page from its palette, and run its validator.
+7. **Check.** Render the chart in the light and dark themes. Read the answer to the step 1 question off the chart alone. When you cannot, go back to step 3.
 
 ## Overrides of `dataviz`
 
@@ -24,8 +20,8 @@ Read `references/targets.md` to learn what the target page allows: a claude.ai a
 
 ## Done when
 
-- The chart came from `scripts/chart.ts`, or the reply says why it did not.
-- Every series is labelled on the chart.
-- No box surrounds a label or the plot.
-- Every annotation states a finding.
+- The question and the data shape are written down.
+- The reason for the form names a row of `references/choosing.md`.
+- The chart came from `scripts/chart.ts`, or names the `references/drawn/` file it followed.
+- Every series is labelled on the chart, and no box surrounds a label or the plot.
 - The output contains no `<script>` when the target is hangar.

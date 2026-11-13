@@ -1397,3 +1397,183 @@ Deno.test("cli: a dot spec prints the svg", async () => {
   assert.equal(bad.code, 2);
   assert.match(bad.stderr, /^too_few_rows: /);
 });
+
+// Nothing is cropped ---------------------------------------------------------
+
+/**
+ * Everything the svg draws that lies outside its viewBox: circles with their
+ * radius, text with an estimated width from its anchor, rects, lines and the
+ * coordinate pairs of paths.
+ */
+function outside(svg: string): string[] {
+  const vb = svg.match(/viewBox="0 0 ([\d.]+) ([\d.]+)"/)!;
+  const W = Number(vb[1]);
+  const H = Number(vb[2]);
+  const eps = 0.5;
+  const bad: string[] = [];
+  const check = (
+    what: string,
+    x0: number,
+    y0: number,
+    x1: number,
+    y1: number,
+  ) => {
+    if (x0 < -eps || y0 < -eps || x1 > W + eps || y1 > H + eps) {
+      bad.push(`${what} [${x0}, ${y0}, ${x1}, ${y1}] outside 0 0 ${W} ${H}`);
+    }
+  };
+  const num = (tag: string, name: string) => {
+    const m = tag.match(new RegExp(`\\s${name}="([-\\d.]+)"`));
+    return m ? Number(m[1]) : undefined;
+  };
+  for (
+    const m of svg.matchAll(
+      /<(circle|text|rect|line|path)\b[^>]*>(?:([^<]*)<\/text>)?/g,
+    )
+  ) {
+    const tag = m[0];
+    if (m[1] === "circle") {
+      const [cx, cy, r] = [num(tag, "cx")!, num(tag, "cy")!, num(tag, "r")!];
+      check(tag, cx - r, cy - r, cx + r, cy + r);
+    } else if (m[1] === "text") {
+      const text = (m[2] ?? "").replace(/&(amp|lt|gt|quot|#39);/g, "x");
+      const w = [...text].length * 11 * 0.57;
+      const x = num(tag, "x")!;
+      const y = num(tag, "y")!;
+      const anchor = tag.match(/text-anchor="(\w+)"/)?.[1] ?? "start";
+      const left = anchor === "start"
+        ? x
+        : anchor === "end"
+        ? x - w
+        : x - w / 2;
+      check(`text ${text}`, left, y - 9, left + w, y + 2);
+    } else if (m[1] === "rect") {
+      const [x, y, w, h] = [
+        num(tag, "x") ?? 0,
+        num(tag, "y") ?? 0,
+        num(tag, "width"),
+        num(tag, "height"),
+      ];
+      if (w !== undefined && h !== undefined) check(tag, x, y, x + w, y + h);
+    } else if (m[1] === "line") {
+      check(
+        tag,
+        Math.min(num(tag, "x1")!, num(tag, "x2")!),
+        Math.min(num(tag, "y1")!, num(tag, "y2")!),
+        Math.max(num(tag, "x1")!, num(tag, "x2")!),
+        Math.max(num(tag, "y1")!, num(tag, "y2")!),
+      );
+    } else {
+      const d = tag.match(/ d="([^"]+)"/)?.[1] ?? "";
+      const ns = [...d.matchAll(/-?\d+(?:\.\d+)?/g)].map((v) => Number(v[0]));
+      for (let i = 0; i + 1 < ns.length; i += 2) {
+        check("path point", ns[i], ns[i + 1], ns[i], ns[i + 1]);
+      }
+    }
+  }
+  return bad;
+}
+
+function bumpOf(series: number, over: Record<string, unknown> = {}): ChartSpec {
+  const names = Array.from({ length: series }, (_, i) => `team${i + 1}`);
+  const rows = names.flatMap((team, k) =>
+    QUARTERS.map((quarter, i) => ({
+      quarter,
+      team,
+      rank: ((k + i * 3) % series) + 1,
+    }))
+  );
+  return bump({
+    rows,
+    y: "rank",
+    first: "lowest",
+    highlight: names.slice(0, 3),
+    ...over,
+  });
+}
+
+Deno.test("bump: every rank of a 12-series and a 20-series chart is inside the viewBox", () => {
+  for (const series of [10, 12, 20]) {
+    const svg = admits(bumpOf(series));
+    const H = Number(svg.match(/viewBox="0 0 [\d.]+ ([\d.]+)"/)![1]);
+    const ys = circles(svg).map((c) => c[1]);
+    assert.equal(ys.length, series * QUARTERS.length);
+    assert.ok(
+      Math.max(...ys) + 3 <= H,
+      `${series} series: lowest dot is clipped`,
+    );
+    assert.ok(Math.min(...ys) - 3 >= 0);
+    assert.deepEqual(outside(svg), []);
+  }
+});
+
+const cropSpecs: Record<string, ChartSpec> = {
+  ...specs,
+  lineAnnotated: line({
+    annotations: [{
+      at: { x: "2025-06", series: "south" },
+      text: "South ends higher than north.",
+    }],
+  }),
+  lineNarrow: line({ width: 320 }),
+  lineEarlyEnd: line({
+    rows: seriesRows(["north", "south"]).filter((r) =>
+      !(r.who === "south" && r.month === "2025-06")
+    ),
+  }),
+  multiplesMany: multiples({
+    rows: seriesRows(Array.from({ length: 12 }, (_, i) => `service ${i + 1}`)),
+  }),
+  slopeMany: slope({
+    rows: slopeRows(Array.from({ length: 12 }, (_, i) => `category ${i + 1}`)),
+  }),
+  dotMany: dot({
+    rows: Array.from(
+      { length: 40 },
+      (_, i) => ({ region: `region ${i}`, value: i * 3 }),
+    ),
+  }),
+  dotReference: dot({ reference: { value: 30, label: "Target 30" } }),
+  dumbbellDisparate: dumbbell({
+    rows: [38000, 21000, 9500, 4200, 2600, 1500, 900, 520, 310, 160, 90, 45]
+      .flatMap((v, i) => [
+        { region: `region ${i}`, year: "2025", value: v },
+        {
+          region: `region ${i}`,
+          year: "2026",
+          value: Math.round(v * (1 + ((i % 5) - 2) * 0.15)),
+        },
+      ]),
+  }),
+  dotNegative: dot({ rows: dotRows([-12, 17, -35, 28, 50]) }),
+  bump12: bumpOf(12),
+  bump20: bumpOf(20),
+  bumpAnnotated: bump({
+    annotations: [{
+      at: { x: "2025 Q3", series: "D" },
+      text: "D takes the lead.",
+    }],
+  }),
+  strip12: strip({
+    rows: stripRows(
+      40,
+      Array.from({ length: 12 }, (_, i) => `service ${i + 1}`),
+    ),
+  }),
+  stripAnnotated: strip({
+    annotations: [{ at: { x: "db", y: 100 }, text: "Slow tail." }],
+  }),
+};
+
+for (const [name, spec] of Object.entries(cropSpecs)) {
+  Deno.test(`nothing is cropped: ${name} draws every mark and label inside its viewBox`, () => {
+    let svg: string;
+    try {
+      svg = admits(spec);
+    } catch (e) {
+      if (e instanceof ChartError) return; // A refusal draws nothing to crop.
+      throw e;
+    }
+    assert.deepEqual(outside(svg), []);
+  });
+}

@@ -2134,7 +2134,12 @@ function drawDot(m: DotModel): string {
     8,
     ...printed.map((p) => p.left ? tw(p.left) + 12 : 0),
   );
-  const rightPad = Math.max(...printed.map((p) => tw(p.right) + 12));
+  // A measure name stands beside its dot on the top row, so the right edge
+  // leaves room for the longest name as well as for the value labels.
+  const rightPad = Math.max(
+    ...printed.map((p) => tw(p.right) + 12),
+    ...(named ? m.measures.map((s) => tw(s) + 6) : []),
+  );
   const x0 = leftM + leftPad;
   const x1 = W - rightPad;
   if (x1 - x0 < 40) {

@@ -1,6 +1,6 @@
 /**
- * Static SVG charts in four Tufte forms. This file is the interface only:
- * every function body throws until the implementation lands.
+ * Static SVG charts in four Tufte forms. The interface comes
+ * first in this file and the implementation follows `render`.
  *
  * Command line: `deno run chart.ts < spec.json > chart.svg`. A refused spec
  * writes nothing to stdout, prints `<code>: <message>` to stderr and exits 2.
@@ -11,6 +11,10 @@
  * d3-shape 3.2.0 and d3-array 3.2.4. No type or format string from them
  * appears here, so the choice can change without changing a spec.
  */
+
+import { scaleLinear } from "npm:d3-scale@4.0.2";
+import { line as d3line } from "npm:d3-shape@3.2.0";
+import { extent } from "npm:d3-array@3.2.4";
 
 /** One record of the input table. Column values are read by name. */
 export type Row = Readonly<Record<string, string | number | null>>;
@@ -287,16 +291,1087 @@ export class ChartError extends Error {
  *
  * @throws {ChartError} when the spec is refused.
  */
-export function render(_spec: ChartSpec): string {
-  throw new Error("not implemented");
+export function render(spec: ChartSpec): string {
+  const model = parse(spec);
+  switch (model.form) {
+    case "sparkline":
+      return drawSparkline(model);
+    case "line":
+      return drawLine(model);
+    case "multiples":
+      return drawMultiples(model);
+    case "slope":
+      return drawSlope(model);
+  }
+}
+
+// Validation ---------------------------------------------------------------
+
+type Obj = Record<string, unknown>;
+
+interface Pt {
+  /** Position on the scale: a number, a date in milliseconds, or 0 or 1 in a slope. */
+  x: number;
+  /** The x cell as the row wrote it. */
+  raw: string | number;
+  y: number;
+  row: number;
+}
+
+interface Series {
+  name: string | null;
+  pts: Pt[];
+}
+
+interface Note {
+  series: string | null;
+  pt: Pt;
+  text: string;
+}
+
+interface Model {
+  form: "sparkline" | "line" | "multiples" | "slope";
+  finding: string;
+  width: number | undefined;
+  fmt: NumberFormat;
+  yRange: readonly [number, number] | undefined;
+  extremes: boolean;
+  columns: number | undefined;
+  lines: Series[];
+  notes: Note[];
+  /** For a slope: the two positions as written, left first. */
+  positions: [string | number, string | number] | undefined;
+}
+
+const FORMS = ["sparkline", "line", "multiples", "slope"];
+const BASE_KEYS = [
+  "form",
+  "rows",
+  "x",
+  "y",
+  "finding",
+  "width",
+  "yFormat",
+  "yRange",
+  "annotations",
+];
+const EXTRA_KEYS: Record<string, string[]> = {
+  sparkline: ["extremes"],
+  line: ["series"],
+  multiples: ["series", "columns"],
+  slope: ["series"],
+};
+
+function fail(code: ChartErrorCode, message: string, row?: number): never {
+  throw new ChartError(code, message, row);
+}
+
+function isObj(v: unknown): v is Obj {
+  return typeof v === "object" && v !== null && !Array.isArray(v);
+}
+
+function isNum(v: unknown): v is number {
+  return typeof v === "number" && Number.isFinite(v);
+}
+
+function checkKeys(o: Obj, allowed: string[], where: string): void {
+  for (const k of Object.keys(o)) {
+    if (!allowed.includes(k)) {
+      fail(
+        "invalid_spec",
+        `${where} has the unknown field "${k}". It accepts: ${
+          allowed.join(", ")
+        }.`,
+      );
+    }
+  }
+}
+
+const ISO =
+  /^(\d{4})(?:-(\d{2})(?:-(\d{2})(?:T(\d{2}):(\d{2})(?::(\d{2})(?:\.\d+)?)?(Z|[+-]\d{2}:\d{2}))?)?)?$/;
+
+/** Milliseconds since the epoch for an ISO 8601 string, or undefined. */
+function parseDate(s: string): number | undefined {
+  const m = ISO.exec(s);
+  if (!m) return undefined;
+  const [year, month, day, hour, minute, second] = [
+    Number(m[1]),
+    Number(m[2] ?? 1),
+    Number(m[3] ?? 1),
+    Number(m[4] ?? 0),
+    Number(m[5] ?? 0),
+    Number(m[6] ?? 0),
+  ];
+  if (hour > 23 || minute > 59 || second > 59) return undefined;
+  const d = new Date(0);
+  d.setUTCFullYear(year, month - 1, day);
+  d.setUTCHours(hour, minute, second, 0);
+  if (d.getUTCMonth() !== month - 1 || d.getUTCDate() !== day) return undefined;
+  let ms = d.getTime();
+  const zone = m[7];
+  if (zone && zone !== "Z") {
+    const sign = zone.startsWith("-") ? -1 : 1;
+    ms -= sign * (Number(zone.slice(1, 3)) * 60 + Number(zone.slice(4, 6))) *
+      60000;
+  }
+  return ms;
+}
+
+function parse(input: unknown): Model {
+  if (!isObj(input)) {
+    fail(
+      "invalid_spec",
+      "The spec must be a JSON object with a form and rows.",
+    );
+  }
+  const form = input.form;
+  if (typeof form !== "string" || !FORMS.includes(form)) {
+    fail(
+      "invalid_spec",
+      `"form" must be one of ${FORMS.join(", ")}; got ${JSON.stringify(form)}.`,
+    );
+  }
+  checkKeys(input, [...BASE_KEYS, ...EXTRA_KEYS[form]], `A ${form} spec`);
+  for (const k of ["x", "y"]) {
+    if (typeof input[k] !== "string" || input[k] === "") {
+      fail("invalid_spec", `"${k}" must name a column, as a non-empty string.`);
+    }
+  }
+  if (typeof input.finding !== "string" || input.finding.trim() === "") {
+    fail("invalid_spec", `"finding" must be a non-empty sentence.`);
+  }
+  const hasSeries = form !== "sparkline" && input.series !== undefined;
+  if (form === "multiples" || form === "slope") {
+    if (typeof input.series !== "string" || input.series === "") {
+      fail(
+        "invalid_spec",
+        `A ${form} spec needs "series", the name of a column.`,
+      );
+    }
+  } else if (
+    input.series !== undefined &&
+    (typeof input.series !== "string" || input.series === "")
+  ) {
+    fail("invalid_spec", `"series" must name a column, as a non-empty string.`);
+  }
+  if (input.width !== undefined && (!isNum(input.width) || input.width < 40)) {
+    fail("invalid_spec", `"width" must be a number of at least 40.`);
+  }
+  const fmt = parseFormat(input.yFormat);
+  let yRange: readonly [number, number] | undefined;
+  if (input.yRange !== undefined) {
+    const r = input.yRange;
+    if (
+      !Array.isArray(r) || r.length !== 2 || !isNum(r[0]) || !isNum(r[1]) ||
+      r[0] > r[1]
+    ) {
+      fail("invalid_spec", `"yRange" must be two numbers, the lower first.`);
+    }
+    yRange = [r[0], r[1]];
+  }
+  if (input.extremes !== undefined && typeof input.extremes !== "boolean") {
+    fail("invalid_spec", `"extremes" must be true or false.`);
+  }
+  if (
+    input.columns !== undefined &&
+    (!isNum(input.columns) || !Number.isInteger(input.columns) ||
+      input.columns < 1)
+  ) {
+    fail("invalid_spec", `"columns" must be a whole number of at least 1.`);
+  }
+
+  const xCol = String(input.x);
+  const yCol = String(input.y);
+  const sCol = hasSeries || form === "multiples" || form === "slope"
+    ? String(input.series)
+    : undefined;
+  const rows = input.rows;
+  if (!Array.isArray(rows)) {
+    fail("invalid_spec", `"rows" must be an array of objects.`);
+  }
+  if (rows.length === 0) {
+    fail(
+      "too_few_rows",
+      "rows is empty. Supply rows, or state the finding in a sentence and draw no chart.",
+    );
+  }
+
+  const byName = new Map<string, Series>();
+  let kind: "number" | "date" | undefined;
+  rows.forEach((row: unknown, i: number) => {
+    if (!isObj(row)) fail("invalid_spec", `rows[${i}] must be an object.`, i);
+    for (const col of [xCol, yCol, ...(sCol ? [sCol] : [])]) {
+      if (!Object.hasOwn(row, col)) {
+        fail(
+          "missing_column",
+          `rows[${i}] has no column "${col}". Add it, or change the spec to name an existing column.`,
+          i,
+        );
+      }
+    }
+    const y = row[yCol];
+    if (!isNum(y)) {
+      fail(
+        "invalid_value",
+        `rows[${i}].${yCol} is ${
+          JSON.stringify(y)
+        }; y must be a finite number. Fix or drop the row.`,
+        i,
+      );
+    }
+    let name: string | null = null;
+    if (sCol) {
+      const s = row[sCol];
+      if (typeof s !== "string") {
+        fail(
+          "invalid_value",
+          `rows[${i}].${sCol} is ${
+            JSON.stringify(s)
+          }; a series must be a string. Fix or drop the row.`,
+          i,
+        );
+      }
+      name = s;
+    }
+    const raw = row[xCol];
+    let x: number;
+    if (form === "slope") {
+      if (!(isNum(raw) || typeof raw === "string")) {
+        fail(
+          "invalid_value",
+          `rows[${i}].${xCol} is ${
+            JSON.stringify(raw)
+          }; a slope position must be a string or a number.`,
+          i,
+        );
+      }
+      x = 0;
+    } else if (isNum(raw)) {
+      if (kind === "date") mixed(i, xCol);
+      kind = "number";
+      x = raw;
+    } else if (typeof raw === "string") {
+      const ms = parseDate(raw);
+      if (ms === undefined) {
+        fail(
+          "invalid_value",
+          `rows[${i}].${xCol} is ${
+            JSON.stringify(raw)
+          }, which is neither a number nor an ISO 8601 date with a zone when it has a time. Fix or drop the row.`,
+          i,
+        );
+      }
+      if (kind === "number") mixed(i, xCol);
+      kind = "date";
+      x = ms;
+    } else {
+      fail(
+        "invalid_value",
+        `rows[${i}].${xCol} is ${
+          JSON.stringify(raw)
+        }; x must be a number or an ISO 8601 date string.`,
+        i,
+      );
+    }
+    const key = name ?? "";
+    let line = byName.get(key);
+    if (!line) {
+      line = { name, pts: [] };
+      byName.set(key, line);
+    }
+    line.pts.push({ x, raw, y, row: i });
+  });
+
+  const lines = [...byName.values()];
+  let positions: Model["positions"];
+
+  // Duplicate points come before the checks that count rows or positions.
+  for (const l of lines) {
+    const seen = new Set<string>();
+    for (const p of l.pts) {
+      const k = form === "slope" ? `${typeof p.raw}:${p.raw}` : String(p.x);
+      if (seen.has(k)) {
+        fail(
+          "duplicate_point",
+          `rows[${p.row}] repeats x=${JSON.stringify(p.raw)}${
+            l.name ? ` in series "${l.name}"` : ""
+          }. Aggregate the rows so each line has one row per x.`,
+          p.row,
+        );
+      }
+      seen.add(k);
+    }
+  }
+
+  if (form === "slope") {
+    const keys: string[] = [];
+    const raws: (string | number)[] = [];
+    for (const l of lines) {
+      for (const p of l.pts) {
+        const k = `${typeof p.raw}:${p.raw}`;
+        if (!keys.includes(k)) {
+          keys.push(k);
+          raws.push(p.raw);
+        }
+      }
+    }
+    if (keys.length !== 2) {
+      fail(
+        "slope_needs_two_positions",
+        `x holds ${keys.length} distinct values; a slope needs exactly 2. Give every series one row at each of two x values.`,
+      );
+    }
+    for (const l of lines) {
+      if (l.pts.length !== 2) {
+        fail(
+          "slope_needs_two_positions",
+          `Series "${l.name}" has a row at only one of the two x values. Give every series one row at each.`,
+        );
+      }
+      for (const p of l.pts) p.x = keys.indexOf(`${typeof p.raw}:${p.raw}`);
+      l.pts.sort((a, b) => a.x - b.x);
+    }
+    positions = [raws[0], raws[1]];
+  } else {
+    if (form === "line" && hasSeries && lines.length > MAX_LINE_SERIES) {
+      fail(
+        "too_many_series",
+        `A line chart draws at most ${MAX_LINE_SERIES} series and this has ${lines.length}. Use form "multiples".`,
+      );
+    }
+    for (const l of lines) {
+      if (l.pts.length < 2) {
+        fail(
+          "too_few_rows",
+          `${
+            l.name ? `Series "${l.name}" has` : "The line has"
+          } one row; a line needs at least two. Supply more rows, or state the value in a sentence.`,
+        );
+      }
+      l.pts.sort((a, b) => a.x - b.x);
+    }
+  }
+
+  const notes = parseNotes(input.annotations, lines, sCol !== undefined);
+  return {
+    form: form as Model["form"],
+    finding: input.finding,
+    width: input.width as number | undefined,
+    fmt,
+    yRange,
+    extremes: input.extremes !== false,
+    columns: input.columns as number | undefined,
+    lines,
+    notes,
+    positions,
+  };
+}
+
+function mixed(i: number, col: string): never {
+  return fail(
+    "invalid_value",
+    `rows[${i}].${col} mixes numbers and date strings in one x column. Use one kind throughout.`,
+    i,
+  );
+}
+
+function parseFormat(v: unknown): NumberFormat {
+  if (v === undefined) return {};
+  if (!isObj(v)) fail("invalid_spec", `"yFormat" must be an object.`);
+  checkKeys(v, ["decimals", "prefix", "suffix"], `"yFormat"`);
+  const out: NumberFormat = {};
+  if (v.decimals !== undefined) {
+    if (
+      !isNum(v.decimals) || !Number.isInteger(v.decimals) || v.decimals < 0 ||
+      v.decimals > 6
+    ) {
+      fail(
+        "invalid_spec",
+        `"yFormat.decimals" must be a whole number from 0 to 6.`,
+      );
+    }
+    out.decimals = v.decimals;
+  }
+  for (const k of ["prefix", "suffix"] as const) {
+    const f = v[k];
+    if (f !== undefined) {
+      if (typeof f !== "string") {
+        fail("invalid_spec", `"yFormat.${k}" must be a string.`);
+      }
+      out[k] = f;
+    }
+  }
+  return out;
+}
+
+function parseNotes(v: unknown, lines: Series[], named: boolean): Note[] {
+  if (v === undefined) return [];
+  if (!Array.isArray(v)) {
+    fail("invalid_spec", `"annotations" must be an array.`);
+  }
+  return v.map((a: unknown, i: number) => {
+    const where = `annotations[${i}]`;
+    if (!isObj(a)) {
+      fail("invalid_spec", `${where} must be an object with "at" and "text".`);
+    }
+    checkKeys(a, ["at", "text"], where);
+    if (typeof a.text !== "string" || a.text === "") {
+      fail("invalid_spec", `${where}.text must be a non-empty string.`);
+    }
+    const at = a.at;
+    if (!isObj(at)) {
+      fail("invalid_spec", `${where}.at must be an object with "x".`);
+    }
+    checkKeys(at, named ? ["x", "series"] : ["x"], `${where}.at`);
+    if (!(isNum(at.x) || typeof at.x === "string")) {
+      fail("invalid_spec", `${where}.at.x must be a string or a number.`);
+    }
+    if (named && typeof at.series !== "string") {
+      fail(
+        "invalid_spec",
+        `${where}.at needs "series", because this chart has a series column.`,
+      );
+    }
+    const count = [...a.text].length;
+    if (count > MAX_ANNOTATION_CHARS) {
+      fail(
+        "annotation_too_long",
+        `${where}.text has ${count} characters; the limit is ${MAX_ANNOTATION_CHARS}. Shorten it.`,
+      );
+    }
+    const line = lines.find((l) =>
+      (l.name ?? null) === (named ? at.series : null)
+    );
+    const pt = line?.pts.find((p) => p.raw === at.x);
+    if (!line || !pt) {
+      fail(
+        "annotation_matches_no_row",
+        `${where}.at matches no row (x=${JSON.stringify(at.x)}${
+          named ? `, series=${JSON.stringify(at.series)}` : ""
+        }). Copy "at" from a row.`,
+      );
+    }
+    return { series: line.name, pt, text: a.text };
+  });
+}
+
+// Numbers and text ---------------------------------------------------------
+
+const FONT = 11;
+const LINE_H = 13;
+const PALETTE = [
+  "#4477aa",
+  "#ee6677",
+  "#228833",
+  "#ccbb44",
+  "#66ccee",
+  "#aa3377",
+  "#ee8866",
+  "#44bb99",
+];
+
+function color(i: number): string {
+  return `var(--series-${i + 1}, ${PALETTE[i % PALETTE.length]})`;
+}
+
+function esc(s: string): string {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+}
+
+/** Estimated width of `s` in user units at the chart's font size. */
+function tw(s: string): number {
+  return Math.round([...s].length * FONT * 0.57 * 10) / 10;
+}
+
+function n(v: number): string {
+  const r = Math.round(v * 100) / 100;
+  return String(r === 0 ? 0 : r);
+}
+
+function group(digits: string): string {
+  return digits.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
+function formatNumber(v: number, fmt: NumberFormat, decimals: number): string {
+  const fixed = Math.abs(v).toFixed(decimals);
+  const [whole, frac] = fixed.split(".");
+  const body = group(whole) + (frac ? `.${frac}` : "");
+  const negative = v < 0 && Number(fixed) !== 0;
+  return `${negative ? "-" : ""}${fmt.prefix ?? ""}${body}${fmt.suffix ?? ""}`;
+}
+
+/** Digits that print `lo` and `hi` as different numbers, at most 2. */
+function defaultDecimals(lo: number, hi: number): number {
+  for (let d = 0; d < 2; d++) {
+    if (formatNumber(lo, {}, d) !== formatNumber(hi, {}, d)) return d;
+  }
+  return 2;
+}
+
+interface Scale {
+  lo: number;
+  hi: number;
+  label: (v: number) => string;
+}
+
+function yScale(m: Model): Scale {
+  const ys = m.lines.flatMap((l) => l.pts.map((p) => p.y));
+  let [lo, hi] = extent(ys) as [number, number];
+  if (m.yRange) {
+    lo = Math.min(lo, m.yRange[0]);
+    hi = Math.max(hi, m.yRange[1]);
+  }
+  if (lo === hi) {
+    lo -= 1;
+    hi += 1;
+  }
+  const d = m.fmt.decimals ?? defaultDecimals(lo, hi);
+  return { lo, hi, label: (v) => formatNumber(v, m.fmt, d) };
+}
+
+function xDomain(lines: Series[]): [number, number] {
+  return extent(lines.flatMap((l) => l.pts.map((p) => p.x))) as [
+    number,
+    number,
+  ];
+}
+
+// Drawing primitives -------------------------------------------------------
+
+interface Rect {
+  x0: number;
+  y0: number;
+  x1: number;
+  y1: number;
+}
+
+type Seg = [number, number, number, number];
+
+function textEl(
+  x: number,
+  y: number,
+  s: string,
+  anchor: "start" | "middle" | "end" = "start",
+  faint = false,
+  centre = false,
+): string {
+  return `<text x="${n(x)}" y="${n(y)}"${
+    anchor === "start" ? "" : ` text-anchor="${anchor}"`
+  }${centre ? ` dy="0.32em"` : ""}${faint ? ` fill-opacity="0.7"` : ""}>${
+    esc(s)
+  }</text>`;
+}
+
+/** The box a text element occupies. `y` is the baseline unless `centre`. */
+function textRect(
+  x: number,
+  y: number,
+  s: string,
+  anchor: "start" | "middle" | "end",
+  centre = false,
+): Rect {
+  const w = tw(s);
+  const x0 = anchor === "start" ? x : anchor === "end" ? x - w : x - w / 2;
+  const top = centre ? y - FONT / 2 : y - FONT + 2;
+  return { x0, y0: top, x1: x0 + w, y1: top + FONT };
+}
+
+function pathEl(
+  d: string,
+  stroke: string,
+  width: number,
+  opacity?: number,
+): string {
+  return `<path d="${d}" fill="none" stroke="${stroke}" stroke-width="${width}"${
+    opacity ? ` stroke-opacity="${opacity}"` : ""
+  }${
+    stroke.startsWith("var")
+      ? ` stroke-linejoin="round" stroke-linecap="round"`
+      : ""
+  }/>`;
+}
+
+function linePath(pts: [number, number][]): string {
+  const gen = d3line<[number, number]>().digits(2);
+  return gen(pts) ?? "";
+}
+
+function svgWrap(
+  w: number,
+  h: number,
+  finding: string,
+  body: string[],
+): string {
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${n(w)} ${
+    n(h)
+  }" role="img" aria-label="${
+    esc(finding)
+  }" font-size="${FONT}" fill="currentColor">${body.join("")}</svg>`;
+}
+
+function segsOf(pts: [number, number][]): Seg[] {
+  const out: Seg[] = [];
+  for (let i = 1; i < pts.length; i++) {
+    out.push([pts[i - 1][0], pts[i - 1][1], pts[i][0], pts[i][1]]);
+  }
+  return out;
+}
+
+/** Where annotations may go: inside `bounds`, clear of rects and line segments. */
+class Board {
+  rects: Rect[] = [];
+  segs: Seg[] = [];
+  constructor(readonly bounds: Rect) {}
+
+  add(r: Rect): void {
+    this.rects.push(r);
+  }
+
+  private hitsSeg(r: Rect): boolean {
+    const pad = 1.5;
+    for (const [ax, ay, bx, by] of this.segs) {
+      const steps = Math.ceil(Math.hypot(bx - ax, by - ay) / 1.5) + 1;
+      for (let i = 0; i <= steps; i++) {
+        const t = i / steps;
+        const px = ax + (bx - ax) * t;
+        const py = ay + (by - ay) * t;
+        if (
+          px >= r.x0 - pad && px <= r.x1 + pad && py >= r.y0 - pad &&
+          py <= r.y1 + pad
+        ) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  fits(r: Rect): boolean {
+    const b = this.bounds;
+    if (r.x0 < b.x0 || r.x1 > b.x1 || r.y0 < b.y0 || r.y1 > b.y1) return false;
+    for (const o of this.rects) {
+      if (
+        r.x0 < o.x1 + 1 && r.x1 > o.x0 - 1 && r.y0 < o.y1 + 1 && r.y1 > o.y0 - 1
+      ) {
+        return false;
+      }
+    }
+    return !this.hitsSeg(r);
+  }
+
+  /** Draw `text` beside (px, py), or return undefined when nothing fits. */
+  place(px: number, py: number, text: string): string | undefined {
+    const w = tw(text);
+    const h = FONT;
+    for (const d of [6, 18, 32]) {
+      const spots: {
+        x0: number;
+        y1: number;
+        anchor: "start" | "middle" | "end";
+      }[] = [
+        { x0: px - w / 2, y1: py - d, anchor: "middle" },
+        { x0: px - 2, y1: py - d, anchor: "start" },
+        { x0: px - w + 2, y1: py - d, anchor: "end" },
+        { x0: px - w / 2, y1: py + d + h, anchor: "middle" },
+        { x0: px - 2, y1: py + d + h, anchor: "start" },
+        { x0: px - w + 2, y1: py + d + h, anchor: "end" },
+        { x0: px + d, y1: py + h / 2, anchor: "start" },
+        { x0: px - d - w, y1: py + h / 2, anchor: "end" },
+      ];
+      for (const s of spots) {
+        const rect: Rect = { x0: s.x0, x1: s.x0 + w, y0: s.y1 - h, y1: s.y1 };
+        if (!this.fits(rect)) continue;
+        this.add(rect);
+        const tx = s.anchor === "start"
+          ? rect.x0
+          : s.anchor === "end"
+          ? rect.x1
+          : (rect.x0 + rect.x1) / 2;
+        const ty = rect.y1 - 2;
+        const out: string[] = [];
+        if (d > 6) {
+          const ex = Math.min(Math.max(px, rect.x0), rect.x1);
+          const ey = py < rect.y0
+            ? rect.y0
+            : py > rect.y1
+            ? rect.y1
+            : (rect.y0 + rect.y1) / 2;
+          out.push(
+            pathEl(
+              `M${n(px)},${n(py)}L${n(ex)},${n(ey)}`,
+              "currentColor",
+              0.75,
+              0.5,
+            ),
+          );
+        }
+        out.push(textEl(tx, ty, text, s.anchor));
+        return out.join("");
+      }
+    }
+    return undefined;
+  }
+}
+
+function drawNotes(
+  board: Board,
+  notes: Note[],
+  at: (n: Note) => [number, number],
+): string[] {
+  const out: string[] = [];
+  for (const note of notes) {
+    const [px, py] = at(note);
+    const s = board.place(px, py, note.text);
+    if (!s) {
+      fail(
+        "annotation_does_not_fit",
+        `The annotation "${note.text}" cannot be placed without covering data or another label. Remove it, or raise width.`,
+      );
+    }
+    out.push(s);
+  }
+  return out;
 }
 
 /**
- * Command-line entry: read JSON from stdin and write SVG to stdout. On
- * `ChartError`, write `<code>: <message>` to stderr and exit 2.
+ * Spread label positions at least `gap` apart, keeping their order. Returns
+ * undefined when they cannot fit between `lo` and `hi`.
  */
-function main(): Promise<void> {
-  throw new Error("not implemented");
+function spread(
+  ideal: number[],
+  gap: number,
+  lo: number,
+  hi: number,
+): number[] | undefined {
+  const order = ideal.map((_, i) => i).sort((a, b) =>
+    ideal[a] - ideal[b] || a - b
+  );
+  const pos = order.map((i) => Math.max(ideal[i], lo));
+  for (let i = 1; i < pos.length; i++) {
+    pos[i] = Math.max(pos[i], pos[i - 1] + gap);
+  }
+  if (pos.length && pos[pos.length - 1] > hi) {
+    pos[pos.length - 1] = hi;
+    for (let i = pos.length - 2; i >= 0; i--) {
+      pos[i] = Math.min(pos[i], pos[i + 1] - gap);
+    }
+    if (pos[0] < lo - 1e-9) return undefined;
+  }
+  const out: number[] = [];
+  order.forEach((idx, k) => (out[idx] = pos[k]));
+  return out;
+}
+
+// Sparkline ----------------------------------------------------------------
+
+function drawSparkline(m: Model): string {
+  const W = m.width ?? 160;
+  const withNotes = m.notes.length > 0;
+  const H = withNotes ? 72 : 40;
+  const pad = withNotes ? 28 : 14;
+  const ys = yScale(m);
+  const pts = m.lines[0].pts;
+  const last = pts[pts.length - 1];
+  const lastLabel = ys.label(last.y);
+  const x0 = 4;
+  const x1 = W - tw(lastLabel) - 10;
+  if (x1 - x0 < 20) {
+    fail(
+      "invalid_spec",
+      `width ${W} is too small for the last value's label. Raise it to at least ${
+        Math.ceil(W + 20 - (x1 - x0))
+      }.`,
+    );
+  }
+  const [dx0, dx1] = xDomain(m.lines);
+  const sx = scaleLinear().domain([dx0, dx1]).range([x0, x1]);
+  const sy = scaleLinear().domain([ys.lo, ys.hi]).range([H - pad, pad]);
+  const xy = pts.map((p): [number, number] => [sx(p.x), sy(p.y)]);
+  const body: string[] = [pathEl(linePath(xy), color(0), 1.5)];
+  const board = new Board({ x0: 0, y0: 0, x1: W, y1: H });
+  board.segs = segsOf(xy);
+  const lx = xy[xy.length - 1][0] + 6;
+  const ly = xy[xy.length - 1][1];
+  body.push(textEl(lx, ly, lastLabel, "start", false, true));
+  board.add(textRect(lx, ly, lastLabel, "start", true));
+  if (m.extremes) {
+    let lo = 0;
+    let hi = 0;
+    pts.forEach((p, i) => {
+      if (p.y < pts[lo].y) lo = i;
+      if (p.y > pts[hi].y) hi = i;
+    });
+    const marks = lo === hi ? [hi] : [hi, lo];
+    for (const i of marks) {
+      const [px, py] = xy[i];
+      body.push(
+        `<circle cx="${n(px)}" cy="${n(py)}" r="2" fill="${
+          color(0)
+        }" stroke="none"/>`,
+      );
+      const label = ys.label(pts[i].y);
+      const w = tw(label);
+      const tx = Math.min(Math.max(px, w / 2), W - w / 2);
+      const above = i === hi;
+      const ty = above ? py - 5 : py + FONT + 1;
+      body.push(textEl(tx, ty, label, "middle", true));
+      board.add(textRect(tx, ty, label, "middle"));
+    }
+  }
+  body.push(...drawNotes(board, m.notes, (note) => {
+    const i = pts.indexOf(note.pt);
+    return xy[i];
+  }));
+  return svgWrap(W, H, m.finding, body);
+}
+
+// Line ---------------------------------------------------------------------
+
+function drawLine(m: Model): string {
+  const W = m.width ?? 640;
+  const H = Math.max(80, Math.round(W * 0.3));
+  const ys = yScale(m);
+  const many = m.lines[0].name !== null;
+  const loLabel = ys.label(ys.lo);
+  const hiLabel = ys.label(ys.hi);
+  const leftM = Math.max(tw(loLabel), tw(hiLabel)) + 12;
+  const rightM = many
+    ? Math.max(...m.lines.map((l) => tw(l.name ?? ""))) + 14
+    : 8;
+  const top = 12;
+  const bottom = 28;
+  const x0 = leftM + 8;
+  const x1 = W - rightM;
+  if (x1 - x0 < 40) {
+    fail(
+      "invalid_spec",
+      `width ${W} is too small for these labels. Raise it to at least ${
+        Math.ceil(W + 40 - (x1 - x0))
+      }.`,
+    );
+  }
+  const y0 = top;
+  const y1 = H - bottom;
+  const [dx0, dx1] = xDomain(m.lines);
+  const sx = scaleLinear().domain([dx0, dx1]).range([x0, x1]);
+  const sy = scaleLinear().domain([ys.lo, ys.hi]).range([y1, y0]);
+  const body: string[] = [];
+  const board = new Board({ x0: 0, y0: 0, x1: W, y1: H });
+
+  // Range frame: each axis spans the scale's minimum to maximum.
+  const ax = leftM + 2;
+  body.push(
+    pathEl(`M${n(ax)},${n(sy(ys.lo))}V${n(sy(ys.hi))}`, "currentColor", 1, 0.5),
+  );
+  body.push(textEl(ax - 4, sy(ys.hi), hiLabel, "end", true, true));
+  body.push(textEl(ax - 4, sy(ys.lo), loLabel, "end", true, true));
+  board.add(textRect(ax - 4, sy(ys.hi), hiLabel, "end", true));
+  board.add(textRect(ax - 4, sy(ys.lo), loLabel, "end", true));
+  const first = m.lines.flatMap((l) => l.pts).reduce((
+    a,
+    p,
+  ) => (p.x < a.x ? p : a));
+  const lastX = m.lines.flatMap((l) => l.pts).reduce((
+    a,
+    p,
+  ) => (p.x > a.x ? p : a));
+  const axisY = y1 + 10;
+  body.push(
+    pathEl(`M${n(sx(dx0))},${n(axisY)}H${n(sx(dx1))}`, "currentColor", 1, 0.5),
+  );
+  const fl = String(first.raw);
+  const ll = String(lastX.raw);
+  body.push(textEl(sx(dx0), axisY + 13, fl, "start", true));
+  body.push(textEl(sx(dx1), axisY + 13, ll, "end", true));
+  board.add(textRect(sx(dx0), axisY + 13, fl, "start"));
+  board.add(textRect(sx(dx1), axisY + 13, ll, "end"));
+
+  const xyAll = m.lines.map((l) =>
+    l.pts.map((p): [number, number] => [sx(p.x), sy(p.y)])
+  );
+  m.lines.forEach((_l, i) => {
+    body.push(pathEl(linePath(xyAll[i]), color(i), 1.5));
+    board.segs.push(...segsOf(xyAll[i]));
+  });
+
+  if (many) {
+    const ends = xyAll.map((xy) => xy[xy.length - 1]);
+    const slots = spread(ends.map((e) => e[1]), LINE_H, y0 - 4, y1 + 4);
+    if (!slots) {
+      fail(
+        "labels_collide",
+        `The ${m.lines.length} end-of-line labels do not fit without overlapping. Use form "multiples".`,
+      );
+    }
+    m.lines.forEach((l, i) => {
+      const [px, py] = ends[i];
+      const ly = slots[i];
+      const name = l.name ?? "";
+      if (Math.abs(ly - py) > 3) {
+        body.push(
+          pathEl(
+            `M${n(px + 1)},${n(py)}L${n(px + 5)},${n(ly)}`,
+            "currentColor",
+            0.75,
+            0.5,
+          ),
+        );
+      }
+      body.push(textEl(px + 7, ly, name, "start", false, true));
+      board.add(textRect(px + 7, ly, name, "start", true));
+    });
+  }
+
+  body.push(...drawNotes(board, m.notes, (note) => {
+    const li = m.lines.findIndex((l) => l.name === note.series);
+    const pi = m.lines[li].pts.indexOf(note.pt);
+    return xyAll[li][pi];
+  }));
+  return svgWrap(W, H, m.finding, body);
+}
+
+// Small multiples ----------------------------------------------------------
+
+function drawMultiples(m: Model): string {
+  const W = m.width ?? 640;
+  const gap = 14;
+  const count = m.lines.length;
+  const cols = Math.min(
+    m.columns ?? Math.max(1, Math.floor((W + gap) / (120 + gap))),
+    count,
+  );
+  const pw = (W - (cols - 1) * gap) / cols;
+  if (pw < 40) {
+    fail(
+      "invalid_spec",
+      `width ${W} is too small for ${cols} columns. Raise width or lower columns.`,
+    );
+  }
+  const ph = 68;
+  const rows = Math.ceil(count / cols);
+  const H = rows * ph + (rows - 1) * 10;
+  const ys = yScale(m);
+  const [dx0, dx1] = xDomain(m.lines);
+  const body: string[] = [];
+  m.lines.forEach((l, i) => {
+    const ox = (i % cols) * (pw + gap);
+    const oy = Math.floor(i / cols) * (ph + 10);
+    const sx = scaleLinear().domain([dx0, dx1]).range([ox + 3, ox + pw - 3]);
+    const sy = scaleLinear().domain([ys.lo, ys.hi]).range([
+      oy + ph - 5,
+      oy + 24,
+    ]);
+    const xy = l.pts.map((p): [number, number] => [sx(p.x), sy(p.y)]);
+    const title = `${l.name} ${ys.label(l.pts[l.pts.length - 1].y)}`;
+    body.push(textEl(ox, oy + 11, title, "start"));
+    body.push(pathEl(linePath(xy), color(0), 1.5));
+    const board = new Board({ x0: ox, y0: oy, x1: ox + pw, y1: oy + ph });
+    board.segs = segsOf(xy);
+    board.add(textRect(ox, oy + 11, title, "start"));
+    const mine = m.notes.filter((note) => note.series === l.name);
+    body.push(...drawNotes(board, mine, (note) => xy[l.pts.indexOf(note.pt)]));
+  });
+  return svgWrap(W, H, m.finding, body);
+}
+
+// Slopegraph ---------------------------------------------------------------
+
+function drawSlope(m: Model): string {
+  const W = m.width ?? 640;
+  const ys = yScale(m);
+  const positions = m.positions ?? [0, 1];
+  const left = m.lines.map((l) => `${l.name} ${ys.label(l.pts[0].y)}`);
+  const right = m.lines.map((l) => `${ys.label(l.pts[1].y)} ${l.name}`);
+  const x0 = Math.max(...left.map(tw)) + 14;
+  const x1 = W - Math.max(...right.map(tw)) - 14;
+  if (x1 - x0 < 60) {
+    fail(
+      "invalid_spec",
+      `width ${W} is too small for these labels. Raise it to at least ${
+        Math.ceil(W + 60 - (x1 - x0))
+      }.`,
+    );
+  }
+  const top = 24;
+  const plotH = Math.max(160, m.lines.length * 14);
+  const sy = scaleLinear().domain([ys.lo, ys.hi]).range([top + plotH, top]);
+  const idealL = m.lines.map((l) => sy(l.pts[0].y));
+  const idealR = m.lines.map((l) => sy(l.pts[1].y));
+  const slotL = spread(idealL, LINE_H, top - 6, Infinity) ?? idealL;
+  const slotR = spread(idealR, LINE_H, top - 6, Infinity) ?? idealR;
+  const H = Math.max(top + plotH + 14, Math.max(...slotL, ...slotR) + 14);
+  const body: string[] = [];
+  const board = new Board({ x0: x0 + 4, y0: top - 6, x1: x1 - 4, y1: H });
+  const hl = String(positions[0]);
+  const hr = String(positions[1]);
+  body.push(textEl(x0, 11, hl, "middle", true));
+  body.push(textEl(x1, 11, hr, "middle", true));
+  m.lines.forEach((_l, i) => {
+    body.push(
+      pathEl(
+        `M${n(x0)},${n(idealL[i])}L${n(x1)},${n(idealR[i])}`,
+        color(0),
+        1.5,
+      ),
+    );
+    board.segs.push([x0, idealL[i], x1, idealR[i]]);
+    if (Math.abs(slotL[i] - idealL[i]) > 3) {
+      body.push(
+        pathEl(
+          `M${n(x0 - 1)},${n(idealL[i])}L${n(x0 - 5)},${n(slotL[i])}`,
+          "currentColor",
+          0.75,
+          0.5,
+        ),
+      );
+    }
+    if (Math.abs(slotR[i] - idealR[i]) > 3) {
+      body.push(
+        pathEl(
+          `M${n(x1 + 1)},${n(idealR[i])}L${n(x1 + 5)},${n(slotR[i])}`,
+          "currentColor",
+          0.75,
+          0.5,
+        ),
+      );
+    }
+    body.push(textEl(x0 - 7, slotL[i], left[i], "end", false, true));
+    body.push(textEl(x1 + 7, slotR[i], right[i], "start", false, true));
+  });
+  body.push(...drawNotes(board, m.notes, (note) => {
+    const li = m.lines.findIndex((l) => l.name === note.series);
+    return note.pt.x === 0 ? [x0, idealL[li]] : [x1, idealR[li]];
+  }));
+  return svgWrap(W, H, m.finding, body);
+}
+
+// Command line -------------------------------------------------------------
+
+async function main(): Promise<void> {
+  const text = await new Response(Deno.stdin.readable).text();
+  try {
+    let spec: unknown;
+    try {
+      spec = JSON.parse(text);
+    } catch (e) {
+      fail(
+        "invalid_spec",
+        `The input is not JSON: ${e instanceof Error ? e.message : String(e)}`,
+      );
+    }
+    // render checks the value at run time, so an untyped spec is safe here.
+    const svg = render(spec as ChartSpec);
+    await Deno.stdout.write(new TextEncoder().encode(svg + "\n"));
+  } catch (e) {
+    if (e instanceof ChartError) {
+      await Deno.stderr.write(
+        new TextEncoder().encode(`${e.code}: ${e.message}\n`),
+      );
+      Deno.exit(2);
+    }
+    throw e;
+  }
 }
 
 if (import.meta.main) {
